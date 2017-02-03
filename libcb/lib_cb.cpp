@@ -2,30 +2,33 @@
 // Created by Gautham Banasandra on 03/02/17.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
 #include <libcouchbase/couchbase.h>
 
 static void end(lcb_t, const char *, lcb_error_t);
 
 static void callback(lcb_t, int, const lcb_RESPBASE *);
 
+using namespace std;
+
 static void end(lcb_t instance, const char *msg, lcb_error_t err)
 {
-    fprintf(stderr, "error %s\nerror code %X\t%s", msg, err, lcb_strerror(instance, err));
+    fprintf(stderr, "error\t%s\nerror code\t%X\t%s\n", msg, err, lcb_strerror(instance, err));
     exit(EXIT_FAILURE);
 }
 
 static void callback(lcb_t instance, int callback_type, const lcb_RESPBASE *rb)
 {
-    fprintf(stderr, "-%s-\n", lcb_strcbtype(callback_type));
+    cout << "-" << lcb_strcbtype(callback_type) << "-" << endl;
+
     if (rb->rc == LCB_SUCCESS)
     {
-        fprintf(stderr, "key %.*s\n", (int) rb->nkey, rb->key);
+        printf("key %.*s\n", (int) rb->nkey, rb->key);
+
         if (callback_type == LCB_CALLBACK_GET)
         {
             const lcb_RESPGET *rg = (const lcb_RESPGET *) rb;
-            fprintf(stderr, "val %.*s\n", (int) rg->nkey, rg->key);
+            printf("val %.*s\n", (int) rg->nvalue, rg->value);
         }
     } else
         end(instance, lcb_strcbtype(rb->rc), rb->rc);
@@ -38,6 +41,7 @@ int main()
     lcb_t instance = NULL;
     lcb_create_st options;
     lcb_error_t err;
+
 
     memset(&options, 0, sizeof(options));
     options.version = 3;
@@ -69,7 +73,7 @@ int main()
     if (err != LCB_SUCCESS)
         end(instance, "unable to schedule storage operation", err);
 
-    fprintf(stderr, "waiting for storage to complete\n");
+    cout << "waiting for storage to complete\n" << endl;
     lcb_wait(instance);
 
     lcb_CMDGET get_cmd = {0};
@@ -78,7 +82,7 @@ int main()
     if (err != LCB_SUCCESS)
         end(instance, "unable to schedule get operation", err);
 
-    fprintf(stderr, "waiting for get to complete\n");
+    cout << "waiting for get to complete\n" << endl;
     lcb_wait(instance);
 
     lcb_destroy(instance);
