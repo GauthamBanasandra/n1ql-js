@@ -13,8 +13,6 @@
 using namespace v8;
 using namespace std;
 
-Persistent<Context> global_ctx;
-
 class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
 public:
@@ -47,19 +45,30 @@ void IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value value(arg);
 
     const char *source_code = string(*value).c_str();
-    Local<String> source = String::NewFromUtf8(Isolate::GetCurrent(),
+    Isolate *isolate = Isolate::GetCurrent();
+
+    Local<String> source = String::NewFromUtf8(isolate,
                                                source_code,
                                                NewStringType::kNormal).ToLocalChecked();
-    Local<Script> script = Script::Compile(Isolate::GetCurrent()->GetCurrentContext(), source).ToLocalChecked();
+    Local<Context> context = isolate->GetCurrentContext();
+
+    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
 
     // Crashes if the following lines are uncommented.
-    Local<Value> result = script->Run(Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked();
+    Local<Value> result = script->Run(context).ToLocalChecked();
     String::Utf8Value utf8(result);
 
-    cout << *utf8 << endl;
+    Local<Value> function_def = context->Global()->Get(String::NewFromUtf8(isolate,
+                                                                           "F",
+                                                                           NewStringType::kNormal).ToLocalChecked());
+    Local<Function> function = Local<Function>::Cast(function_def);
 
+    Local<Value> function_result = function->Call(function, 0, NULL);
+    String::Utf8Value function_value(function_result);
 
-    cout << *value << endl;
+    cout << "calling F\t" << *function_value << endl;
+
+    cout << "calling iter\t" << *utf8 << endl;
 }
 
 
@@ -93,8 +102,6 @@ int main(int argc, char *argv[])
         // Create a new context.
         Local<Context> context = Context::New(isolate, NULL, global_functions);
 
-        global_ctx.Reset(isolate, context);
-
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
@@ -121,7 +128,7 @@ int main(int argc, char *argv[])
         // Convert the result to an UTF8 string and print it.
         String::Utf8Value utf8(result);
 
-        cout << *utf8 << endl;
+        cout << "calling script\t" << *utf8 << endl;
     }
 
     // Dispose the isolate and tear down V8.
