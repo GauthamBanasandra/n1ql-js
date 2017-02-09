@@ -13,7 +13,7 @@
 using namespace v8;
 using namespace std;
 
-Isolate *global_isolate;
+Persistent<Context> global_ctx;
 
 class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator
 {
@@ -46,21 +46,17 @@ void IterFunction(const FunctionCallbackInfo<Value> &args)
     Local<Value> arg = args[0];
     String::Utf8Value value(arg);
 
-    Local<Context> context = global_isolate->GetCurrentContext();
-    Context::Scope context_scope(context);
-
-
     const char *source_code = string(*value).c_str();
-    Local<String> source = String::NewFromUtf8(global_isolate,
+    Local<String> source = String::NewFromUtf8(Isolate::GetCurrent(),
                                                source_code,
                                                NewStringType::kNormal).ToLocalChecked();
-    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Script> script = Script::Compile(Isolate::GetCurrent()->GetCurrentContext(), source).ToLocalChecked();
 
     // Crashes if the following lines are uncommented.
-    /*Local<Value> result = script->Run(context).ToLocalChecked();
+    Local<Value> result = script->Run(Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked();
     String::Utf8Value utf8(result);
 
-    cout << *utf8 << endl;*/
+    cout << *utf8 << endl;
 
 
     cout << *value << endl;
@@ -97,6 +93,8 @@ int main(int argc, char *argv[])
         // Create a new context.
         Local<Context> context = Context::New(isolate, NULL, global_functions);
 
+        global_ctx.Reset(isolate, context);
+
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
@@ -116,8 +114,6 @@ int main(int argc, char *argv[])
 
         // Compile the source code.
         Local<Script> script = Script::Compile(context, source).ToLocalChecked();
-
-        global_isolate = isolate;
 
         // Run the script to get the result.
         Local<Value> result = script->Run(context).ToLocalChecked();
