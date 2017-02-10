@@ -13,5 +13,6 @@ get_city();
 
 function n1ql(query)
 {
-	console.log(query);
+	log(query);
 }
+n1ql('hello');

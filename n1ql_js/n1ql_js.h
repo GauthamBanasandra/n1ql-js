@@ -8,4 +8,4 @@
 
 #endif //N1QL_JS_N1QL_JS_H
 
-void exec_js(std::string);
+void ExecJs(std::string);

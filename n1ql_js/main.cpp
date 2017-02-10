@@ -17,7 +17,7 @@ int main()
     string input_file_path = "inputs/input_jsify.txt";
     string source_code = ReadFile(input_file_path);
 
-    exec_js(source_code);
+    ExecJs(source_code);
 
     return 0;
 }

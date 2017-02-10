@@ -4,12 +4,16 @@
 #include <iostream>
 #include "n1ql_js.h"
 #include "jsify/jsify.h"
+#include "v8/V8Env.h"
 
 using namespace std;
 
-void exec_js(string source_code)
+void ExecJs(string source_code)
 {
     string plain_js = parse(source_code.c_str());
 
-    cout << plain_js << endl;
+    V8Env v8;
+    v8.ExecJs("./n1ql_js", plain_js);
+
+    cout << "code " << plain_js << endl;
 }
