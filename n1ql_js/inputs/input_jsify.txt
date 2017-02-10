@@ -1,0 +1,17 @@
+function get_city()
+{
+	var n='Bangalore';
+	var a=1000;
+
+    var res =
+			select city
+			from cities
+			where area > :a and name = :n;
+}
+
+get_city();
+
+function n1ql(query)
+{
+	console.log(query);
+}
