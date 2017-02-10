@@ -116,13 +116,9 @@ int main(int argc, char *argv[])
         string src((istreambuf_iterator<char>(file_name)),
                    istreambuf_iterator<char>());
 
-        const char *source_code = src.c_str();
-
-        // isolate->GetCurrentContext();
-
         // Create a string containing the JavaScript source code.
         Local<String> source = String::NewFromUtf8(isolate,
-                                                   source_code,
+                                                   src.c_str(),
                                                    NewStringType::kNormal).ToLocalChecked();
 
         // Compile the source code.
@@ -132,7 +128,7 @@ int main(int argc, char *argv[])
         Local<Value> result = script->Run(context).ToLocalChecked();
 
         // Convert the result to an UTF8 string and print it.
-        String::Utf8Value utf8(result);
+//        String::Utf8Value utf8(result);
     }
 
     // Dispose the isolate and tear down V8.

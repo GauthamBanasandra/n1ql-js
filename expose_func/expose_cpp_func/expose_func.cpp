@@ -77,8 +77,6 @@ int main(int argc, char *argv[])
 
         const char *source_code = src.c_str();
 
-        // isolate->GetCurrentContext();
-
         // Create a string containing the JavaScript source code.
         Local<String> source = String::NewFromUtf8(isolate,
                                                    source_code,
