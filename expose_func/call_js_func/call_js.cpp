@@ -58,9 +58,12 @@ int main(int argc, char *argv[])
         // Create a stack-allocated handle scope.
         HandleScope handle_scope(isolate);
 
+        // Exposing the log() function to Js.
         Local<ObjectTemplate> global_functions = ObjectTemplate::New(isolate);
         auto function_name = String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked();
         auto function_callback = FunctionTemplate::New(isolate, LogFunction);
+
+        // Attaching LogFunction as callback to log() method.
         global_functions->Set(function_name, function_callback);
 
         // Create a new context.
@@ -76,8 +79,6 @@ int main(int argc, char *argv[])
 
         const char *source_code = src.c_str();
 
-        // isolate->GetCurrentContext();
-
         // Create a string containing the JavaScript source code.
         Local<String> source = String::NewFromUtf8(isolate,
                                                    source_code,
@@ -90,16 +91,20 @@ int main(int argc, char *argv[])
         Local<Value> result = script->Run(context).ToLocalChecked();
 
 
+        // Create arguments to call_me() function.
         Local<Value> args[1];
         args[0] = String::NewFromUtf8(isolate, "gautham", NewStringType::kNormal).ToLocalChecked();
 
+        // Grab the call_me() function in Js.
         Local<Value> value = context->Global()->Get(String::NewFromUtf8(isolate,
                                                                          "call_me",
                                                                          NewStringType::kNormal).ToLocalChecked());
 
         Local<Function> function = Local<Function>::Cast(value);
 
+        // Call the function call_me().
         Local<Value> func_result = function->Call(context->Global(), 1, args);
+
         String::Utf8Value func_return(func_result);
         cout << "function returned " << *func_result << endl;
     }

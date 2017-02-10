@@ -56,9 +56,12 @@ int main(int argc, char *argv[])
         // Create a stack-allocated handle scope.
         HandleScope handle_scope(isolate);
 
+        // Exposing the log() function to Js.
         Local<ObjectTemplate> global_functions = ObjectTemplate::New(isolate);
         auto function_name = String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked();
         auto function_callback = FunctionTemplate::New(isolate, LogFunction);
+
+        // Attaching LogFunction as callback to log() method.
         global_functions->Set(function_name, function_callback);
 
         // Create a new context.
