@@ -4,10 +4,7 @@
 
 #ifndef N1QL_JS_V8ENV_H
 #define N1QL_JS_V8ENV_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
+
 #include "ArrayBufferAllocator.h"
 #include "/Users/gautham/.cbdepscache/include/libplatform/libplatform.h"
 #include "/Users/gautham/.cbdepscache/include/v8.h"

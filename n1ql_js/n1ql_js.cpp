@@ -15,5 +15,5 @@ void ExecJs(string source_code)
     V8Env v8;
     v8.ExecJs("./n1ql_js", plain_js);
 
-    cout << "code " << plain_js << endl;
+//    cout << "code " << plain_js << endl;
 }

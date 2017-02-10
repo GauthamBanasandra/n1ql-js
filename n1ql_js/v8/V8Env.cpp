@@ -53,6 +53,11 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value function_value(function_result);
 }
 
+/*
+ * Executes the given JavaScript code.
+ * Params:  startup_data - name of the final executable.
+ *          js_src - The source code to execute.
+ */
 void V8Env::ExecJs(string startup_data, string js_src)
 {
     // Initialize V8.

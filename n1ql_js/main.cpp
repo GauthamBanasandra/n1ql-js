@@ -12,10 +12,9 @@ string ReadFile(string file_name)
     return source_code;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    string input_file_path = "inputs/input_jsify.txt";
-    string source_code = ReadFile(input_file_path);
+    string source_code = ReadFile(argv[1]);
 
     ExecJs(source_code);
 
