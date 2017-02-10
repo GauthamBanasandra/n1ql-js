@@ -4,6 +4,8 @@
 
 	* Output:	Syntactically and semantically valid JavaScript code.
 
+    * Purpose:  Detects N1QL embedded constructs in the JavaScript code and transforms them into comments and wraps it with an anonymous function.
+
 	* Caveats:	The N1QL statement must end with a semi-colon ';'.
 				Otherwise, the lex program can't detect detect the end of the query.
 
