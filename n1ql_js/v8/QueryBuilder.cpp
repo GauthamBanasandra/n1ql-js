@@ -16,7 +16,7 @@ void LogFunction(const FunctionCallbackInfo<Value> &args)
     cout << *value << endl;
 }
 
-string QueryBuilder::Build(string js_src)
+string QueryBuilder::Build(string js_src, string user_code)
 {
     // Initialize V8.
     V8::InitializeICU();
@@ -59,12 +59,17 @@ string QueryBuilder::Build(string js_src)
         // Run the script to get the result.
         script->Run(context).ToLocalChecked();
 
-        Local<String> function_name = String::NewFromUtf8(isolate,
-                                                          "query_builder",
-                                                          NewStringType::kNormal).ToLocalChecked();
+        Local<String> function_name;
+        function_name = String::NewFromUtf8(isolate, "query_builder", NewStringType::kNormal).ToLocalChecked();
+
         Local<Value> function_def = context->Global()->Get(function_name);
         Local<Function> function_ref = Local<Function>::Cast(function_def);
-        Local<Value> function_result = function_ref->Call(function_ref, 0, NULL);
+
+        // Input on which the query builder should act on.
+        Local<Value> args[1];
+        args[0] = String::NewFromUtf8(isolate, user_code.c_str(), NewStringType::kNormal).ToLocalChecked();
+
+        Local<Value> function_result = function_ref->Call(function_ref, 1, args);
 
         // Convert the result to an UTF8 string and print it.
         String::Utf8Value utf8(function_result);

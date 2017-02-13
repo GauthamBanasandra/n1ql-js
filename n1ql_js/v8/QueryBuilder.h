@@ -12,7 +12,7 @@
 class QueryBuilder
 {
 public:
-    std::string Build(std::string);
+    std::string Build(std::string, std::string);
 };
 
 

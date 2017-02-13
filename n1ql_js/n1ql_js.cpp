@@ -19,7 +19,7 @@ void ExecJs(string source_code)
 
     const string &query_builder_src = N1qlUtils::ReadFile(N1qlUtils::GetQueryBuilderPath());
     QueryBuilder builder;
-    plain_js = builder.Build(query_builder_src);
+    plain_js = builder.Build(query_builder_src, plain_js);
 
     cout << "n1ql_js.cpp\tcode " << plain_js << endl;
 }
