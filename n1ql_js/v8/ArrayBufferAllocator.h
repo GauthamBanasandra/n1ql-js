@@ -5,8 +5,6 @@
 #ifndef N1QL_JS_ARRAYBUFFERALLOCATOR_H
 #define N1QL_JS_ARRAYBUFFERALLOCATOR_H
 
-#endif //N1QL_JS_ARRAYBUFFERALLOCATOR_H
-
 #include <iostream>
 #include "/Users/gautham/.cbdepscache/include/libplatform/libplatform.h"
 #include "/Users/gautham/.cbdepscache/include/v8.h"
@@ -28,3 +26,5 @@ public:
     virtual void Free(void *data, size_t)
     { free(data); }
 };
+
+#endif //N1QL_JS_ARRAYBUFFERALLOCATOR_H

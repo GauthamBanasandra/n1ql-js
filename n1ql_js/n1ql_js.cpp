@@ -4,7 +4,7 @@
 #include <iostream>
 #include "n1ql_js.h"
 #include "jsify/jsify.h"
-//#include "v8/V8Env.h"
+#include "v8/V8Env.h"
 #include "v8/QueryBuilder.h"
 #include "utils/Utils.h"
 
