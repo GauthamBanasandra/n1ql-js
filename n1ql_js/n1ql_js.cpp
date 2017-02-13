@@ -2,7 +2,6 @@
 // Created by Gautham Banasandra on 10/02/17.
 //
 #include <iostream>
-#include <fstream>
 #include "n1ql_js.h"
 #include "jsify/jsify.h"
 //#include "v8/V8Env.h"
@@ -18,11 +17,9 @@ void ExecJs(string source_code)
     /*V8Env v8;
     v8.ExecJs("./n1ql_js", plain_js);*/
 
-    ifstream file(N1qlUtils::GetQueryBuilderPath());
-    string code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-
+    const string &query_builder_src = N1qlUtils::ReadFile(N1qlUtils::GetQueryBuilderPath());
     QueryBuilder builder;
-    plain_js = builder.Build(code);
+    plain_js = builder.Build(query_builder_src);
 
     cout << "n1ql_js.cpp\tcode " << plain_js << endl;
 }
