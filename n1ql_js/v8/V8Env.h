@@ -13,11 +13,23 @@
 class V8Env
 {
 private:
+    Isolate *isolate;
+    Platform *platform;
+
     static void LogFunction(const FunctionCallbackInfo<Value> &);
+
     static void IterFunction(const FunctionCallbackInfo<Value> &);
 
 public:
-    void ExecJs(std::string, std::string);
+    V8Env();
+
+    std::string ExecJs(std::string);
+
+    std::string Build(std::string, std::string);
+
+    Isolate *getIsolate() const;
+
+    virtual ~V8Env();
 };
 
 

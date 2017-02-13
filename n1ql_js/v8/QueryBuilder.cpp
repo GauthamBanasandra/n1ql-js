@@ -2,36 +2,15 @@
 // Created by Gautham Banasandra on 10/02/17.
 //
 
-#include "QueryBuilder.h"
-#include "../utils/Utils.h"
+#include "V8Env.h"
 
 using namespace std;
 
-void LogFunction(const FunctionCallbackInfo<Value> &args)
+string V8Env::Build(string js_src, string user_code)
 {
-    HandleScope scope(args.GetIsolate());
-    Local<Value> arg = args[0];
-    String::Utf8Value value(arg);
-
-    cout << *value << endl;
-}
-
-string QueryBuilder::Build(string js_src, string user_code)
-{
-    // Initialize V8.
-    V8::InitializeICU();
-    V8::InitializeExternalStartupData(N1qlUtils::GetStartupData().c_str());
-    Platform *platform = platform::CreateDefaultPlatform();
-    V8::InitializePlatform(platform);
-    V8::Initialize();
-
     string utf8Result;
 
-    // Create a new Isolate and make it the current one.
-    ArrayBufferAllocator allocator;
-    Isolate::CreateParams create_params;
-    create_params.array_buffer_allocator = &allocator;
-    Isolate *isolate = Isolate::New(create_params);
+    Isolate *isolate = getIsolate();
     {
         Isolate::Scope isolate_scope(isolate);
         // Create a stack-allocated handle scope.
@@ -75,12 +54,6 @@ string QueryBuilder::Build(string js_src, string user_code)
         String::Utf8Value utf8(function_result);
         utf8Result = *utf8;
     }
-
-    // Dispose the isolate and tear down V8.
-    isolate->Dispose();
-    V8::Dispose();
-    V8::ShutdownPlatform();
-    delete platform;
 
     return utf8Result;
 }

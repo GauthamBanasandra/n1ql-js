@@ -15,4 +15,3 @@ function n1ql(query)
 {
 	log(query);
 }
-n1ql('hello');
