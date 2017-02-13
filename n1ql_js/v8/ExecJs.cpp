@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// This function just prints the arguments to the standard output.
 void V8Env::LogFunction(const FunctionCallbackInfo<Value> &args)
 {
     HandleScope scope(args.GetIsolate());
@@ -14,6 +15,7 @@ void V8Env::LogFunction(const FunctionCallbackInfo<Value> &args)
     cout << *value << endl;
 }
 
+// This function accepts a function 'F' as argument and executes it as part of the parent script.
 void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
 {
     HandleScope scope(args.GetIsolate());

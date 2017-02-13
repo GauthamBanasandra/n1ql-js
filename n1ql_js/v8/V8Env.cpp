@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// Initializes the v8 engine.
 V8Env::V8Env()
 {
     V8::InitializeICU();
@@ -22,6 +23,7 @@ V8Env::V8Env()
     isolate = Isolate::New(create_params);
 }
 
+// Purges the existing v8 engine.
 V8Env::~V8Env()
 {
     isolate->Dispose();

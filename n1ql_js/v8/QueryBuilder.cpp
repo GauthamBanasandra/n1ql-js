@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// Accepts the builder code and user code as parameters and transforms constructs into N1QL calls.
 string V8Env::Build(string js_src, string user_code)
 {
     string utf8Result;
