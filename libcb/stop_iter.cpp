@@ -1,5 +1,5 @@
 //
-// Created by Gautham Banasandra on 03/02/17.
+// Created by Gautham Banasandra on 13/02/17.
 //
 
 #include <iostream>
@@ -13,6 +13,7 @@ static void row_callback(lcb_t, int, const lcb_RESPN1QL *);
 using namespace std;
 
 int row_count = 0;
+lcb_t instance = NULL;
 
 static void end(lcb_t instance, const char *msg, lcb_error_t err)
 {
@@ -25,8 +26,8 @@ static void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *
     if (!(resp->rflags & LCB_RESP_F_FINAL))
     {
         ++row_count;
-        if(row_count==2)
-            printf("count is 2\n");
+        if (row_count >= 2)
+            return;
         printf("count=%d\trow\t %.*s\n", row_count, (int) resp->nrow, resp->row);
     } else
         printf("metadata\t %.*s\n", (int) resp->nrow, resp->row);
@@ -35,7 +36,6 @@ static void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *
 int main()
 {
     // Couchbase handle instance. Connects to a bucket.
-    lcb_t instance = NULL;
     lcb_create_st options;
     lcb_error_t err;
 
