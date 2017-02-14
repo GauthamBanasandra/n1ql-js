@@ -12575,70 +12575,99 @@ function query_builder(code) {
 }
 
 function get_ast(code, esprima, estraverse) {
+    // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {attachComment: true});
-    var scopes = [];
-    var scopeIdx = -1;
 
-    function linq_query(query) {
-        /*var spawn = require('child_process').spawnSync('/Users/gautham/projects/linq_js/linq_parser/src/a.out',
-         [],
-         {input: (query.length + 10) + ' ' + query + '\n'});
-         console.log(spawn.stdout.toString().length);
-         return spawn.stdout.toString();*/
+    // This is the stack of the variables in the corresponding scope.
+    var scopeStack = [];
+    var stackIdx = -1;
 
-        return '\'' + query + '\'';
-    }
-
+    // Traverses the ast and builds the N1QL query wherever it spots them.
     function traverse(mode) {
-        var inst = {};
+        // Represents the structure for each element of the stack.
+        var stackElem = {};
 
         if (mode === 'gen_code')
-            scopeIdx = -1;
+            stackIdx = -1;
 
+        /*
+         * The ast will be traversed twice and hence, there are two traversal modes - var_scope and gen_code.
+         * var_scope -   Traverse the ast once to get to know all the variables and their scopes.
+         *               The scopeStack gets populated in this traversal.
+         * gen_code -    Traverse the ast for the second time to spot the N1QL embedded queries and transform them to N1QL
+         *               calls. The variables in the N1QL queries get substituted in this traversal, by making use of the
+         *               stackScope populated in the previous traversal
+         */
         estraverse.traverse(ast, {
+            // Callback upon entering a node of the ast.
             enter: function (node) {
+                /*
+                 * Function in JavaScript creates a new scope.
+                 * So, upon entering a function, push an element onto stack if the mode of traversal is 'var_scope'.
+                 */
                 if (/Function/.test(node.type)) {
                     if (mode === 'var_scope') {
-                        inst = {name: node.id ? node.id.name : 'anonymous', vars: {}};
-                        scopes.push(inst);
-                        ++scopeIdx;
+                        stackElem = {name: node.id ? node.id.name : 'anonymous', vars: {}};
+                        scopeStack.push(stackElem);
+                        ++stackIdx;
                     }
                     else if (mode === 'gen_code')
-                        ++scopeIdx;
+                        ++stackIdx;
                 }
 
+                /*
+                 * Program in JavaScript is the global scope.
+                 * So, push an initial element onto stack if the mode of traversal is 'var_scope'.
+                 */
                 if (/Program/.test(node.type)) {
                     if (mode === 'var_scope') {
-                        inst = {name: 'global', vars: {}};
-                        scopes.push(inst);
-                        ++scopeIdx;
+                        stackElem = {name: 'global', vars: {}};
+                        scopeStack.push(stackElem);
+                        ++stackIdx;
                     }
                     else if (mode === 'gen_code')
-                        ++scopeIdx;
+                        ++stackIdx;
                 }
 
+                /*
+                 * This 'if' block contains all possible ways in which a variable gets declared in JavaScript.
+                 * These variable names are pushed onto the stack corresponding to its scope.
+                 */
                 if (mode === 'var_scope') {
+                    // Variables declared using assignment expression.
                     if (node.type === 'AssignmentExpression')
-                        scopes[scopeIdx].vars[node.left.name] = null;
+                        scopeStack[stackIdx].vars[node.left.name] = null;
 
+                    // Variables declared using 'var' keyword.
+                    // TODO:    Check if this works for those declared using 'const' keyword.
                     if (node.type === 'VariableDeclaration')
                         for (var i in node.declarations)
-                            scopes[scopeIdx].vars[node.declarations[i].id.name] = null;
+                            scopeStack[stackIdx].vars[node.declarations[i].id.name] = null;
 
+                    // Variables that are passed as parameters to a function.
                     if (node.type === 'FunctionDeclaration')
                         if (node.params && node.params.length > 0)
                             for (var i in node.params)
-                                scopes[scopeIdx].vars[node.params[i].name] = null;
+                                scopeStack[stackIdx].vars[node.params[i].name] = null;
                 }
 
+                // The following 'if' block is for the 'gen_code' mode.
                 if (mode === 'gen_code')
-                    if (check_linq_n1ql(node)) {
-                        var varsInScope = get_vars_in_scope(scopeIdx);
+                // Check the node if it's a N1QL query.
+                    if (check_n1ql(node)) {
+                        // Get the variables in the current scope.
+                        var varsInScope = get_vars_in_scope(stackIdx);
+
+                        // Extract the N1QL query from the node.
                         var query = node.body.innerComments[0].value.trim();
-                        var firstWord = query.split(' ')[0];
-                        var n1qlQuery = firstWord === 'select' ? build_query(query, varsInScope) : linq_query(query);
+
+                        // Build the query by substituting the variables in the query.
+                        var n1qlQuery = build_query(query, varsInScope);
+
+                        // Convert to ast node.
                         var n1qlAst = esprima.parse(n1qlQuery).body[0].expression;
 
+                        // Replace the N1QL statement node with the call to N1QL function node.
                         Object.keys(node).forEach(function (key) {
                             delete node[key];
                         });
@@ -12654,18 +12683,19 @@ function get_ast(code, esprima, estraverse) {
                     /*if (mode === 'var_scope')
                      {
                      var functionName = node.id ? node.id.name : 'anonymous';
-                     var vars = get_vars_in_scope(scopeIdx);
+                     var vars = get_vars_in_scope(stackIdx);
 
                      console.log(functionName, vars.join(', '));
                      }*/
 
-                    --scopeIdx;
+                    --stackIdx;
                 }
             }
         });
     }
 
-    function check_linq_n1ql(node) {
+    // Checks if the given node is a N1QL query.
+    function check_n1ql(node) {
         return (
             node.type === 'FunctionExpression' &&
             node.id === null &&
@@ -12679,30 +12709,45 @@ function get_ast(code, esprima, estraverse) {
         );
     }
 
+    // Build a N1QL function call from the query.
     function build_query(query, vars) {
-        for (var i in vars) {
-            var re = new RegExp('\\b' + vars[i] + '\\b', 'g');
-            query = query.replace(re, '" + ' + vars[i] + ' + "');
+        // Identifier regex.
+        var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
+
+        // Match the regex against the query to find all the variables that are used.
+        var matches = query.match(re);
+
+        for (var i in matches) {
+            // Get the variable from the query that has to be substituted.
+            var _var = matches[i].slice(1);
+
+            // Check if that variable exists in the list of the variables that are in the scope.
+            if (vars.indexOf(_var) == -1)
+                throw "'" + _var + "' not found in scope'";
         }
+
+        // Replace the :<var> with proper substitution.
+        query = query.replace(re, '" + $1 + "');
 
         return 'n1ql("' + query + '");';
     }
 
+    // Get the variables at the given stack index.
     function get_vars_in_scope(idx) {
         var vars = [];
 
         for (var i = 0; i <= idx; ++i)
-            Object.keys(scopes[i].vars).forEach(function (key) {
+            Object.keys(scopeStack[i].vars).forEach(function (key) {
                 vars[key] = null;
             });
 
         return Object.keys(vars);
     }
 
+    // First traversal - detect all the variables in their corresponding scopes.
     traverse('var_scope');
-// Uncomment to display the variables that are active in the global scope.
-// console.log('global', get_vars_in_scope(0).join(', '), '\n\n');
 
+    // Second traversal - replace all N1QL queries with N1QL function calls.
     traverse('gen_code');
 
     return ast;
