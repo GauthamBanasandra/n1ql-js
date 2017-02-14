@@ -12571,6 +12571,10 @@ function query_builder(code) {
         }, {}, [1])(1)
     });
 
+    return this.escodegen.generate(get_ast(code, esprima, estraverse), {comment: true});
+}
+
+function get_ast(code, esprima, estraverse) {
     var ast = esprima.parse(code, {attachComment: true});
     var scopes = [];
     var scopeIdx = -1;
@@ -12701,6 +12705,5 @@ function query_builder(code) {
 
     traverse('gen_code');
 
-    // return escodegen.generate(ast, {comment: true});
-    return this.escodegen.generate(ast, {comment: true});
+    return ast;
 }

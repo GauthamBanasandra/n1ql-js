@@ -13,7 +13,6 @@ static void row_callback(lcb_t, int, const lcb_RESPN1QL *);
 using namespace std;
 
 int row_count = 0;
-lcb_t instance = NULL;
 
 static void end(lcb_t instance, const char *msg, lcb_error_t err)
 {
@@ -23,12 +22,16 @@ static void end(lcb_t instance, const char *msg, lcb_error_t err)
 
 static void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp)
 {
+
     if (!(resp->rflags & LCB_RESP_F_FINAL))
     {
         ++row_count;
-        if (row_count >= 2)
-            return;
-        printf("count=%d\trow\t %.*s\n", row_count, (int) resp->nrow, resp->row);
+        // Must stop after getting one row. But doesn't.
+        if (row_count > 1)
+        {
+            lcb_breakout(instance);
+        }
+        printf("row=%d\t %.*s\n", row_count, (int) resp->nrow, resp->row);
     } else
         printf("metadata\t %.*s\n", (int) resp->nrow, resp->row);
 }
@@ -36,6 +39,7 @@ static void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *
 int main()
 {
     // Couchbase handle instance. Connects to a bucket.
+    lcb_t instance = NULL;
     lcb_create_st options;
     lcb_error_t err;
 
