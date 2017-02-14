@@ -2,32 +2,29 @@
 // Created by Gautham Banasandra on 13/02/17.
 //
 #include "V8Env.h"
+#include "../utils/Utils.h"
 
 using namespace std;
 
 // This function just prints the arguments to the standard output.
 void V8Env::LogFunction(const FunctionCallbackInfo<Value> &args)
 {
-    HandleScope scope(args.GetIsolate());
-    Local<Value> arg = args[0];
-    String::Utf8Value value(arg);
+    string value = N1qlUtils::GetArgAsString(args);
 
-    cout << *value << endl;
+    cout << value << endl;
 }
 
 // This function accepts a function 'F' as argument and executes it as part of the parent script.
 void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
 {
-    HandleScope scope(args.GetIsolate());
-    Local<Value> arg = args[0];
-    String::Utf8Value str_func(arg);
+    string str_func = N1qlUtils::GetArgAsString(args);
 
     // Get the current isolate.
     Isolate *isolate = Isolate::GetCurrent();
 
     // Create the source code from the argument.
     Local<String> source = String::NewFromUtf8(isolate,
-                                               string(*str_func).c_str(),
+                                               str_func.c_str(),
                                                NewStringType::kNormal).ToLocalChecked();
 
     // Get the current context from the isolate.
@@ -56,14 +53,10 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
 
 void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
 {
-    HandleScope scope(args.GetIsolate());
-    Local<Value> arg = args[0];
-    String::Utf8Value query_string(arg);
+    string query_string = N1qlUtils::GetArgAsString(args);
 
-    cout << "query string\t" << *query_string << endl;
-    /*// Get the current isolate.
-    Isolate *isolate = Isolate::GetCurrent();
-    */
+    cout << "query string\t" << query_string << endl;
+
 }
 
 /*

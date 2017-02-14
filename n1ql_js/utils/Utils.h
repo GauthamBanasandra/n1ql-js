@@ -7,6 +7,7 @@
 
 
 #include <iostream>
+#include "/Users/gautham/.cbdepscache/include/v8.h"
 
 
 class N1qlUtils
@@ -17,6 +18,8 @@ public:
     static std::string GetQueryBuilderPath();
 
     static std::string ReadFile(std::string file_path);
+
+    static std::string GetArgAsString(const v8::FunctionCallbackInfo<v8::Value> &);
 };
 
 #endif //N1QL_JS_UTILS_H
