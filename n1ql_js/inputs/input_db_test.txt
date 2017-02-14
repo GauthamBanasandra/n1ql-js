@@ -1,0 +1,5 @@
+var bucket='default';
+
+var all=
+    select *
+    from :bucket;

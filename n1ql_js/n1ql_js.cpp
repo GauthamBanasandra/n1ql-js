@@ -12,7 +12,6 @@ using namespace std;
 void ExecJs(string user_code)
 {
     string plain_js = parse(user_code.c_str());
-
     const string &query_builder_src = N1qlUtils::ReadFile(N1qlUtils::GetQueryBuilderPath());
 
     V8Env v8;

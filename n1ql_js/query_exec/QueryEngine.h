@@ -15,12 +15,16 @@ private:
     lcb_t instance;
     lcb_create_st options;
     lcb_error_t err;
+
     static void row_callback(lcb_t, int, const lcb_RESPN1QL *);
+
     static void end(lcb_t, const char *, lcb_error_t);
 
 public:
     QueryEngine();
+
     void ExecQuery(std::string);
+
     virtual ~QueryEngine();
 };
 

@@ -2,6 +2,7 @@
 // Created by Gautham Banasandra on 13/02/17.
 //
 #include "V8Env.h"
+#include "../query_exec/QueryEngine.h"
 #include "../utils/Utils.h"
 
 using namespace std;
@@ -55,8 +56,8 @@ void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
 {
     string query_string = N1qlUtils::GetArgAsString(args);
 
-    cout << "query string\t" << query_string << endl;
-
+    QueryEngine qEngine;
+    qEngine.ExecQuery(query_string);
 }
 
 /*

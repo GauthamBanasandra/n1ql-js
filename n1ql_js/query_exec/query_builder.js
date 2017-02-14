@@ -1,8 +1,6 @@
 /**
  * Created by gautham on 10/02/17.
  */
-// TODO:    Handle substitution of variables of :var.
-// TODO:    Modularize this function.
 function query_builder(code) {
     var esprima = {};
     // esprima
@@ -12574,6 +12572,7 @@ function query_builder(code) {
     return this.escodegen.generate(get_ast(code, esprima, estraverse), {comment: true});
 }
 
+// TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be handled in the lex.
 function get_ast(code, esprima, estraverse) {
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {attachComment: true});
