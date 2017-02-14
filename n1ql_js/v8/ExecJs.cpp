@@ -54,6 +54,18 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value function_value(function_result);
 }
 
+void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
+{
+    HandleScope scope(args.GetIsolate());
+    Local<Value> arg = args[0];
+    String::Utf8Value query_string(arg);
+
+    cout << "query string\t" << *query_string << endl;
+    /*// Get the current isolate.
+    Isolate *isolate = Isolate::GetCurrent();
+    */
+}
+
 /*
  * Executes the given JavaScript code.
  * Params:  js_src - The source code to execute.
@@ -79,6 +91,11 @@ string V8Env::ExecJs(string js_src)
         auto callback_iter = FunctionTemplate::New(isolate, V8Env::IterFunction);
         global_functions->Set(name_iter, callback_iter);
 
+        // Exposing the n1ql() function to Js.
+        auto name_n1ql = String::NewFromUtf8(isolate, "n1ql", NewStringType::kNormal).ToLocalChecked();
+        auto callback_n1ql = FunctionTemplate::New(isolate, V8Env::N1qlFunction);
+        global_functions->Set(name_n1ql, callback_n1ql);
+
         // Create a new context.
         Local<Context> context = Context::New(isolate, NULL, global_functions);
 
@@ -99,7 +116,7 @@ string V8Env::ExecJs(string js_src)
         // Convert the result to an UTF8 string and print it.
         String::Utf8Value utf8(result);
 
-        utf8Result=*utf8;
+        utf8Result = *utf8;
     }
 
     return utf8Result;

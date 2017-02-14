@@ -10,8 +10,3 @@ function get_city()
 }
 
 get_city();
-
-function n1ql(query)
-{
-	log(query);
-}
