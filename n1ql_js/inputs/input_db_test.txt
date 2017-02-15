@@ -3,3 +3,6 @@ var bucket='default';
 var all=
     select *
     from :bucket;
+
+for(var i of all)
+    log(i);

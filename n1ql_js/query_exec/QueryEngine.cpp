@@ -1,8 +1,12 @@
 //
 // Created by Gautham Banasandra on 13/02/17.
 //
-
+#include <vector>
 #include "QueryEngine.h"
+
+using namespace std;
+
+vector<string> rows;
 
 QueryEngine::QueryEngine()
 {
@@ -44,7 +48,7 @@ void QueryEngine::end(lcb_t instance, const char *msg, lcb_error_t err)
     exit(EXIT_FAILURE);
 }
 
-void QueryEngine::ExecQuery(std::string query)
+vector<string> QueryEngine::ExecQuery(std::string query)
 {
     // Structure for writing the query.
     lcb_CMDN1QL cmd = {0};
@@ -71,12 +75,18 @@ void QueryEngine::ExecQuery(std::string query)
 
     // Block till the queries finish.
     lcb_wait(instance);
+
+    return rows;
 }
 
 void QueryEngine::row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp)
 {
     if (!(resp->rflags & LCB_RESP_F_FINAL))
-        printf("row\t %.*s\n", (int) resp->nrow, resp->row);
-    else
+    {
+        char *temp;
+        asprintf(&temp, "%.*s\n", (int) resp->nrow, resp->row);
+        rows.push_back(string(temp));
+        free(temp);
+    } else
         printf("metadata\t %.*s\n", (int) resp->nrow, resp->row);
 }

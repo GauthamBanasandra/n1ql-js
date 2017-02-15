@@ -1,6 +1,7 @@
 //
 // Created by Gautham Banasandra on 13/02/17.
 //
+#include <vector>
 #include "V8Env.h"
 #include "../query_exec/QueryEngine.h"
 #include "../utils/Utils.h"
@@ -10,9 +11,22 @@ using namespace std;
 // This function just prints the arguments to the standard output.
 void V8Env::LogFunction(const FunctionCallbackInfo<Value> &args)
 {
-    string value = N1qlUtils::GetArgAsString(args);
+    Isolate *isolate = Isolate::GetCurrent();
+    HandleScope handleScope(isolate);
 
-    cout << value << endl;
+    Local<Object> json = isolate->GetCurrentContext()
+            ->Global()
+            ->Get(String::NewFromUtf8(isolate, "JSON", NewStringType::kNormal).ToLocalChecked())
+            ->ToObject();
+    Local<Function> stringify = json
+            ->Get(String::NewFromUtf8(isolate, "stringify", NewStringType::kNormal).ToLocalChecked()).As<Function>();
+
+    Local<Value> param = args[0];
+    Local<Value> result = stringify->Call(json, 1, &param);
+
+    String::Utf8Value const str_result(result);
+
+    cout << *str_result << endl;
 }
 
 // This function accepts a function 'F' as argument and executes it as part of the parent script.
@@ -52,12 +66,24 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value function_value(function_result);
 }
 
+// Accepts the N1QL query and executes it.
 void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
 {
     string query_string = N1qlUtils::GetArgAsString(args);
 
     QueryEngine qEngine;
-    qEngine.ExecQuery(query_string);
+    vector<string> rows = qEngine.ExecQuery(query_string);
+
+    string result = "[";
+    for (string row : rows)
+        result += row + ",";
+    result.erase(result.length() - 1);
+    result += "]";
+
+    Local<Value> json_result = JSON::Parse(String::NewFromUtf8(Isolate::GetCurrent(),
+                                                               result.c_str(),
+                                                               NewStringType::kNormal).ToLocalChecked());
+    args.GetReturnValue().Set(json_result);
 }
 
 /*

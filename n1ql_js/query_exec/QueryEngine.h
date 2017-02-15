@@ -23,7 +23,7 @@ private:
 public:
     QueryEngine();
 
-    void ExecQuery(std::string);
+    std::vector<std::string> ExecQuery(std::string);
 
     virtual ~QueryEngine();
 };
