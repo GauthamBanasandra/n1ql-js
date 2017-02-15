@@ -1,8 +1,12 @@
-var bucket='default';
+function n1ql()
+{
+    var bucket='default';
 
-var all=
-    SELECT *
-    FROM :bucket;
+    var all=
+        SELECT *
+        FROM :bucket;
 
-for(var i of all)
-    log(i);
+    for(var i of all)
+        log(i);
+}
+n1ql();

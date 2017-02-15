@@ -66,13 +66,38 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value function_value(function_result);
 }
 
-// Accepts the N1QL query and executes it.
-void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
+void V8Env::N1qlQueryConstructor(const FunctionCallbackInfo<Value> &args)
 {
-    string query_string = N1qlUtils::GetArgAsString(args);
+    Isolate *isolate = Isolate::GetCurrent();
+    HandleScope handleScope(isolate);
+
+    Local<ObjectTemplate> obj = ObjectTemplate::New();
+
+    Local<Name> query_name = String::NewFromUtf8(isolate, "query", NewStringType::kNormal).ToLocalChecked();
+    Local<Value> empty_string = String::NewFromUtf8(isolate, "", NewStringType::kNormal).ToLocalChecked();
+    obj->Set(query_name, empty_string);
+
+    Local<String> exec_query_name = String::NewFromUtf8(isolate, "exec_query", NewStringType::kNormal).ToLocalChecked();
+    obj->Set(exec_query_name, FunctionTemplate::New(isolate, V8Env::ExecQueryFunction));
+
+    if (!args[0].IsEmpty() && args[0]->IsString())
+        obj->Set(query_name, args[0]);
+
+    args.GetReturnValue().Set(obj->NewInstance());
+}
+
+// Accepts the N1QL query and executes it.
+void V8Env::ExecQueryFunction(const FunctionCallbackInfo<Value> &args)
+{
+    Isolate *isolate = Isolate::GetCurrent();
+    HandleScope handleScope(isolate);
+
+    Local<Name> query_name = String::NewFromUtf8(isolate, "query", NewStringType::kNormal).ToLocalChecked();
+    Local<Value> query_value = args.This()->Get(query_name);
+    String::Utf8Value query_string(query_value);
 
     QueryEngine qEngine;
-    vector<string> rows = qEngine.ExecQuery(query_string);
+    vector<string> rows = qEngine.ExecQuery(*query_string);
 
     // TODO:    Try to return a proper object here, instead of parsing string to JSON.
     string result = "[";
@@ -101,8 +126,9 @@ string V8Env::ExecJs(string js_src)
         // Create a stack-allocated handle scope.
         HandleScope handle_scope(isolate);
 
-        // Exposing the log() function to Js.
         Local<ObjectTemplate> global_functions = ObjectTemplate::New(isolate);
+
+        // Exposing the log() function to Js.
         auto name_log = String::NewFromUtf8(isolate, "log", NewStringType::kNormal).ToLocalChecked();
         auto callback_log = FunctionTemplate::New(isolate, V8Env::LogFunction);
         global_functions->Set(name_log, callback_log);
@@ -113,9 +139,9 @@ string V8Env::ExecJs(string js_src)
         global_functions->Set(name_iter, callback_iter);
 
         // Exposing the n1ql() function to Js.
-        auto name_n1ql = String::NewFromUtf8(isolate, "n1ql", NewStringType::kNormal).ToLocalChecked();
-        auto callback_n1ql = FunctionTemplate::New(isolate, V8Env::N1qlFunction);
-        global_functions->Set(name_n1ql, callback_n1ql);
+        auto name_constructor = String::NewFromUtf8(isolate, "N1qlQuery", NewStringType::kNormal).ToLocalChecked();
+        auto callback_constructor = FunctionTemplate::New(isolate, V8Env::N1qlQueryConstructor);
+        global_functions->Set(name_constructor, callback_constructor);
 
         // Create a new context.
         Local<Context> context = Context::New(isolate, NULL, global_functions);

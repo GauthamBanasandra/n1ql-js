@@ -12573,6 +12573,7 @@ function query_builder(code) {
 }
 
 // TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be handled in the lex.
+// TODO:    Bug -
 function get_ast(code, esprima, estraverse) {
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {attachComment: true});
@@ -12581,7 +12582,7 @@ function get_ast(code, esprima, estraverse) {
     var scopeStack = [];
     var stackIdx = -1;
 
-    // Traverses the ast and builds the N1QL query wherever it spots them.
+// Traverses the ast and builds the N1QL query wherever it spots them.
     function traverse(mode) {
         // Represents the structure for each element of the stack.
         var stackElem = {};
@@ -12639,9 +12640,12 @@ function get_ast(code, esprima, estraverse) {
 
                     // Variables declared using 'var' keyword.
                     // TODO:    Check if this works for those declared using 'const' keyword.
+                    // TODO:    Assumption - N1QL queries always appear in the form of variable declaration.
                     if (node.type === 'VariableDeclaration')
-                        for (var i in node.declarations)
-                            scopeStack[stackIdx].vars[node.declarations[i].id.name] = null;
+                        for (var i in node.declarations) {
+                            // console.log('n1ql node', node.declarations[i].id.name, check_n1ql(node.declarations[i].init));
+                            scopeStack[stackIdx].vars[node.declarations[i].id.name] = check_n1ql(node.declarations[i].init) ? true : null;
+                        }
 
                     // Variables that are passed as parameters to a function.
                     if (node.type === 'FunctionDeclaration')
@@ -12651,8 +12655,8 @@ function get_ast(code, esprima, estraverse) {
                 }
 
                 // The following 'if' block is for the 'gen_code' mode.
-                if (mode === 'gen_code')
-                // Check the node if it's a N1QL query.
+                if (mode === 'gen_code') {
+                    // Check the node if it's a N1QL query.
                     if (check_n1ql(node)) {
                         // Get the variables in the current scope.
                         var varsInScope = get_vars_in_scope(stackIdx);
@@ -12675,6 +12679,20 @@ function get_ast(code, esprima, estraverse) {
                             node[key] = n1qlAst[key];
                         });
                     }
+
+                    if (/ForOfStatement/.test(node.type) && /Identifier/.test(node.right.type))
+                        if (is_n1ql_var(stackIdx, node.right.name)) {
+                            var queryExecAst = esprima.parse(node.right.name + '.exec_query()').body[0].expression;
+
+                            Object.keys(node.right).forEach(function (key) {
+                                delete node.right[key];
+                            });
+
+                            Object.keys(queryExecAst).forEach(function (key) {
+                                node.right[key] = queryExecAst[key];
+                            });
+                        }
+                }
             },
             leave: function (node) {
                 if (/Function/.test(node.type)) {
@@ -12693,9 +12711,10 @@ function get_ast(code, esprima, estraverse) {
         });
     }
 
-    // Checks if the given node is a N1QL query.
+// Checks if the given node is a N1QL query.
     function check_n1ql(node) {
         return (
+            node &&
             node.type === 'FunctionExpression' &&
             node.id === null &&
             typeof node.params === typeof [] &&
@@ -12708,7 +12727,7 @@ function get_ast(code, esprima, estraverse) {
         );
     }
 
-    // Build a N1QL function call from the query.
+// Build a N1QL function call from the query.
     function build_query(query, vars) {
         // Identifier regex.
         var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
@@ -12728,10 +12747,10 @@ function get_ast(code, esprima, estraverse) {
         // Replace the :<var> with proper substitution.
         query = query.replace(re, '" + $1 + "');
 
-        return 'n1ql("' + query + '");';
+        return 'new N1qlQuery("' + query + '");';
     }
 
-    // Get the variables at the given stack index.
+// Get the variables at the given stack index.
     function get_vars_in_scope(idx) {
         var vars = [];
 
@@ -12743,10 +12762,21 @@ function get_ast(code, esprima, estraverse) {
         return Object.keys(vars);
     }
 
-    // First traversal - detect all the variables in their corresponding scopes.
+    function is_n1ql_var(idx, name) {
+        while (idx) {
+            for (var i in scopeStack[idx].vars)
+                if (scopeStack[idx].vars[name])
+                    return true;
+            --idx;
+        }
+
+        return false;
+    }
+
+// First traversal - detect all the variables in their corresponding scopes.
     traverse('var_scope');
 
-    // Second traversal - replace all N1QL queries with N1QL function calls.
+// Second traversal - replace all N1QL queries with N1QL function calls.
     traverse('gen_code');
 
     return ast;

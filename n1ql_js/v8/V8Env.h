@@ -20,7 +20,9 @@ private:
 
     static void IterFunction(const FunctionCallbackInfo<Value> &);
 
-    static void N1qlFunction(const FunctionCallbackInfo<Value> &);
+    static void ExecQueryFunction(const FunctionCallbackInfo<Value> &);
+
+    static void N1qlQueryConstructor(const FunctionCallbackInfo<Value> &);
 
 public:
     V8Env();
