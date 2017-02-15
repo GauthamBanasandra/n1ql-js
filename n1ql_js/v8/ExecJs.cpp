@@ -66,6 +66,12 @@ void V8Env::IterFunction(const FunctionCallbackInfo<Value> &args)
     String::Utf8Value function_value(function_result);
 }
 
+/*
+ * Constructor for N1qlQuery().
+ * Accepts a string as N1QL query and returns an instance of N1qlQuery.
+ * Attributes -     query - contains the query as string.
+ * Methods -    exec_query() - executes the query.
+ */
 void V8Env::N1qlQueryConstructor(const FunctionCallbackInfo<Value> &args)
 {
     Isolate *isolate = Isolate::GetCurrent();
@@ -73,16 +79,22 @@ void V8Env::N1qlQueryConstructor(const FunctionCallbackInfo<Value> &args)
 
     Local<ObjectTemplate> obj = ObjectTemplate::New();
 
+    // Attribute name - query.
     Local<Name> query_name = String::NewFromUtf8(isolate, "query", NewStringType::kNormal).ToLocalChecked();
     Local<Value> empty_string = String::NewFromUtf8(isolate, "", NewStringType::kNormal).ToLocalChecked();
+
+    // Initialize the attribute "name" with empty string.
     obj->Set(query_name, empty_string);
 
+    // Method name - exec_query.
     Local<String> exec_query_name = String::NewFromUtf8(isolate, "exec_query", NewStringType::kNormal).ToLocalChecked();
     obj->Set(exec_query_name, FunctionTemplate::New(isolate, V8Env::ExecQueryFunction));
 
+    // If the arguments to the constructor is non-empty, initialize the instance with query string.
     if (!args[0].IsEmpty() && args[0]->IsString())
         obj->Set(query_name, args[0]);
 
+    // Return the new instance.
     args.GetReturnValue().Set(obj->NewInstance());
 }
 
@@ -92,10 +104,12 @@ void V8Env::ExecQueryFunction(const FunctionCallbackInfo<Value> &args)
     Isolate *isolate = Isolate::GetCurrent();
     HandleScope handleScope(isolate);
 
+    // Get the "query" attribute of the instance.
     Local<Name> query_name = String::NewFromUtf8(isolate, "query", NewStringType::kNormal).ToLocalChecked();
     Local<Value> query_value = args.This()->Get(query_name);
     String::Utf8Value query_string(query_value);
 
+    // Execute the query.
     QueryEngine qEngine;
     vector<string> rows = qEngine.ExecQuery(*query_string);
 
