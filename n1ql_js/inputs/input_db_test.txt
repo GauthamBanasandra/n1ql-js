@@ -1,8 +1,8 @@
 var bucket='default';
 
 var all=
-    select *
-    from :bucket;
+    SELECT *
+    FROM :bucket;
 
 for(var i of all)
     log(i);

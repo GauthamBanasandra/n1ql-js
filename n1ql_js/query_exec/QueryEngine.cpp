@@ -50,6 +50,8 @@ void QueryEngine::end(lcb_t instance, const char *msg, lcb_error_t err)
 
 vector<string> QueryEngine::ExecQuery(std::string query)
 {
+    rows.clear();
+
     // Structure for writing the query.
     lcb_CMDN1QL cmd = {0};
     lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();

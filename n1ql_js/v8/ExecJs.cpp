@@ -74,6 +74,7 @@ void V8Env::N1qlFunction(const FunctionCallbackInfo<Value> &args)
     QueryEngine qEngine;
     vector<string> rows = qEngine.ExecQuery(query_string);
 
+    // TODO:    Try to return a proper object here, instead of parsing string to JSON.
     string result = "[";
     for (string row : rows)
         result += row + ",";
