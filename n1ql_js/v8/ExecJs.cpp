@@ -152,7 +152,7 @@ string V8Env::ExecJs(string js_src)
         auto callback_iter = FunctionTemplate::New(isolate, V8Env::IterFunction);
         global_functions->Set(name_iter, callback_iter);
 
-        // Exposing the n1ql() function to Js.
+        // Exposing the N1qlQuery() constructor to Js.
         auto name_constructor = String::NewFromUtf8(isolate, "N1qlQuery", NewStringType::kNormal).ToLocalChecked();
         auto callback_constructor = FunctionTemplate::New(isolate, V8Env::N1qlQueryConstructor);
         global_functions->Set(name_constructor, callback_constructor);
