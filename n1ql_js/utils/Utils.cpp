@@ -10,7 +10,7 @@ using namespace std;
 
 string N1qlUtils::GetQueryBuilderPath()
 {
-    return "query_exec/query_builder.js";
+    return "/Users/gautham/projects/github/n1ql-js/n1ql_js/query_exec/query_builder.js";
 }
 
 string N1qlUtils::GetStartupData()
