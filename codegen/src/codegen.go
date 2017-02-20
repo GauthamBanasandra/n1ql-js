@@ -5,7 +5,26 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"bytes"
+	"strings"
 )
+
+func N1qlJs(input string) (string) {
+	// Binary to execute.
+	cmd := exec.Command("bin/n1ql_js")
+
+	// Set I/O.
+	cmd.Stdin = strings.NewReader(input)
+	var output bytes.Buffer
+	cmd.Stdout = &output
+
+	// Run the binary.
+	err := cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	return output.String()
+}
 
 func main() {
 	// Input path.
@@ -17,20 +36,8 @@ func main() {
 		panic(err_read)
 	}
 
-	// Binary to execute.
-	cmd := exec.Command("bin/n1ql_js")
-
-	// Set I/O.
-	cmd.Stdin = bytes.NewReader(input)
-	var output bytes.Buffer
-	cmd.Stdout = &output
-
-	// Run the binary.
-	err := cmd.Run()
-	if err != nil {
-		panic(err)
-	}
+	output := N1qlJs(string(input))
 
 	// Output.
-	fmt.Println(output.String())
+	fmt.Println(output)
 }
