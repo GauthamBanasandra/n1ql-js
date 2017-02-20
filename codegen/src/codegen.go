@@ -14,7 +14,7 @@ func main() {
 		panic(err_read)
 	}
 
-	cmd := exec.Command("bin/a.out")
+	cmd := exec.Command("bin/n1ql_js")
 	cmd.Stdin = bytes.NewReader(input)
 	var output bytes.Buffer
 	cmd.Stdout = &output
