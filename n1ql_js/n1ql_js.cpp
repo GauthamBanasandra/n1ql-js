@@ -16,7 +16,10 @@ void ExecJs(string user_code)
 
     V8Env v8;
     plain_js = v8.Build(query_builder_src, plain_js);
-    string result = v8.ExecJs(plain_js);
+    cout << plain_js << endl << endl;
 
-    cout << "after executing" << endl << result << endl;
+    // Uncomment the following lines to execute the js generated above.
+//    string result = v8.ExecJs(plain_js);
+
+//    cout << "after executing" << endl << result << endl;
 }
