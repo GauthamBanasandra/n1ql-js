@@ -1,0 +1,12 @@
+function n1ql()
+{
+    var bucket='`beer-sample`';
+
+    var all=
+        SELECT *
+        FROM :bucket
+
+    for(var i of all)
+        log(i);
+}
+n1ql();
