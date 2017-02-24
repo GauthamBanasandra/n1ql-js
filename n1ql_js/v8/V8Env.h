@@ -6,8 +6,8 @@
 #define N1QL_JS_V8ENV_H
 
 #include "ArrayBufferAllocator.h"
-#include "/Users/gautham/.cbdepscache/include/libplatform/libplatform.h"
-#include "/Users/gautham/.cbdepscache/include/v8.h"
+#include <include/libplatform/libplatform.h>
+#include <include/v8.h>
 
 
 class V8Env

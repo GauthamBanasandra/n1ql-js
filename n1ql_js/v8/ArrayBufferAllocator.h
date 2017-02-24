@@ -6,8 +6,8 @@
 #define N1QL_JS_ARRAYBUFFERALLOCATOR_H
 
 #include <iostream>
-#include "/Users/gautham/.cbdepscache/include/libplatform/libplatform.h"
-#include "/Users/gautham/.cbdepscache/include/v8.h"
+#include <include/libplatform/libplatform.h>
+#include <include/v8.h>
 
 using namespace v8;
 

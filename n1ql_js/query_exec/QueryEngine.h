@@ -8,7 +8,7 @@
 #include <iostream>
 #include <libcouchbase/couchbase.h>
 #include <libcouchbase/n1ql.h>
-#include "/Users/gautham/.cbdepscache/include/v8.h"
+#include <include/v8.h>
 
 class QueryEngine
 {
