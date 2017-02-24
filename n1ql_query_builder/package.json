@@ -1,0 +1,10 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "devDependencies": {
+    "escodegen": "latest",
+    "estraverse": "latest",
+    "esprima": "latest",
+    "sleep": "latest"
+  }
+}
