@@ -5,8 +5,12 @@
 #include "QueryEngine.h"
 
 using namespace std;
+using namespace v8;
 
 vector<string> rows;
+Local<Function> callback;
+bool is_callback_set = false;
+bool stop_signal = false;
 
 QueryEngine::QueryEngine()
 {
@@ -48,6 +52,13 @@ void QueryEngine::end(lcb_t instance, const char *msg, lcb_error_t err)
     exit(EXIT_FAILURE);
 }
 
+void QueryEngine::ExecQuery(std::string query, v8::Local<v8::Function> function)
+{
+    is_callback_set = true;
+    callback = function;
+    ExecQuery(query);
+}
+
 vector<string> QueryEngine::ExecQuery(std::string query)
 {
     rows.clear();
@@ -83,11 +94,26 @@ vector<string> QueryEngine::ExecQuery(std::string query)
 
 void QueryEngine::row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp)
 {
+    if (stop_signal)
+    {
+        lcb_breakout(instance);
+        return;
+    }
+
     if (!(resp->rflags & LCB_RESP_F_FINAL))
     {
         char *temp;
         asprintf(&temp, "%.*s\n", (int) resp->nrow, resp->row);
-        rows.push_back(string(temp));
+
+        if (is_callback_set)
+        {
+            Local<Value> args[1];
+            args[0] = String::NewFromUtf8(Isolate::GetCurrent(), temp);
+            callback->Call(callback, 1, args);
+        } else
+            rows.push_back(string(temp));
+
+
         free(temp);
     } else
         printf("metadata\t %.*s\n", (int) resp->nrow, resp->row);

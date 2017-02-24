@@ -8,6 +8,7 @@
 #include <iostream>
 #include <libcouchbase/couchbase.h>
 #include <libcouchbase/n1ql.h>
+#include "/Users/gautham/.cbdepscache/include/v8.h"
 
 class QueryEngine
 {
@@ -24,6 +25,8 @@ public:
     QueryEngine();
 
     std::vector<std::string> ExecQuery(std::string);
+
+    void ExecQuery(std::string, v8::Local<v8::Function>);
 
     virtual ~QueryEngine();
 };

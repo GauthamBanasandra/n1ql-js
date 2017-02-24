@@ -1,12 +1,21 @@
 function n1ql()
 {
-    var bucket='default';
+    var bucket='`beer-sample`';
 
     var all=
         SELECT *
         FROM :bucket;
 
-    for(var i of all)
-        log(i);
+    var count=0;
+
+    for (var row of all) {
+        ++count;
+        log(row);
+
+        if(count > 1)
+            all.stop_iter();
+    }
+
+    log('rows='+count);
 }
 n1ql();
