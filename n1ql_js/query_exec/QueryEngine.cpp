@@ -59,6 +59,7 @@ void QueryEngine::ExecQuery(std::string query, v8::Local<v8::Function> function)
     ExecQuery(query);
 }
 
+// TODO: Pull out 'rows.clear' and 'return rows;' and turn that to a separate function.
 vector<string> QueryEngine::ExecQuery(std::string query)
 {
     rows.clear();
