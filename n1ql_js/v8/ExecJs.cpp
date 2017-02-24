@@ -111,17 +111,15 @@ void V8Env::ExecQueryFunction(const FunctionCallbackInfo<Value> &args)
     QueryEngine qEngine;
     vector<string> rows = qEngine.ExecQuery(*query_string);
 
-    // TODO:    Try to return a proper object here, instead of parsing string to JSON.
-    string result = "[";
-    for (string row : rows)
-        result += row + ",";
-    result.erase(result.length() - 1);
-    result += "]";
+    Local<Array> result_array = Array::New(isolate, static_cast<int>(rows.size()));
 
-    Local<Value> json_result = JSON::Parse(String::NewFromUtf8(Isolate::GetCurrent(),
-                                                               result.c_str(),
-                                                               NewStringType::kNormal).ToLocalChecked());
-    args.GetReturnValue().Set(json_result);
+    for (int i = 0; i < rows.size(); ++i)
+    {
+        Local<Value> json_row = JSON::Parse(String::NewFromUtf8(isolate, rows[i].c_str()));
+        result_array->Set(static_cast<uint32_t>(i), json_row);
+    }
+
+    args.GetReturnValue().Set(result_array);
 }
 
 /*
