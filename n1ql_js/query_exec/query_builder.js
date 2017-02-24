@@ -12667,30 +12667,40 @@ function get_ast(code, esprima, estraverse, escodegen) {
                         var queryAst = get_query_ast(query, varsInScope);
 
                         // Replace the N1QL statement node with the call to N1QL function node.
-                        Object.keys(node).forEach(function (key) {
-                            delete node[key];
-                        });
-
-                        Object.keys(queryAst).forEach(function (key) {
-                            node[key] = queryAst[key];
-                        });
+                        replace_node(node, queryAst);
                     }
 
                     // TODO:    If the user himself has called exec_query(), do nothing.
-                    // TODO:    Crashes if there is no {} for the body of the for loop.
+                    // TODO:    Handle 'return' statements occurring in the 'for ... of ...' construct.
                     // Handling the "for ... of ..." construct here.
                     if (/ForOfStatement/.test(node.type) && /Identifier/.test(node.right.type))
                         if (is_n1ql_var(stackIdx, node.right.name)) {
+                            /*
+                             * If the body of the "for ... of ..." is not a block statement,
+                             * then convert it to a block statement.
+                             */
+                            if (!/BlockStatement/.test(node.body.type)) {
+                                var forBodyAst = {};
+
+                                // Make a deep copy of the body.
+                                Object.keys(node.body).forEach(function (key) {
+                                    forBodyAst[key] = node.body[key];
+                                });
+
+                                // Transform the previous single-line statement into a block.
+                                node.body.body = [forBodyAst];
+                                node.body.type = 'BlockStatement';
+                            }
+                            // For every element in the body of the "for ... of ..."
+                            for (var i in node.body.body)
+                                if (node.body.body[i].type === 'BreakStatement') {
+                                    var callAst = esprima.parse(node.right.name + '.stop_iter()').body[0];
+                                    replace_node(node.body.body[i], callAst);
+                                }
                             // If the source is a N1QL variable, then replace it with a call to exec_query().
                             var queryExecAst = get_iter_ast(node, 'for_of');
 
-                            Object.keys(node).forEach(function (key) {
-                                delete node[key];
-                            });
-
-                            Object.keys(queryExecAst).forEach(function (key) {
-                                node[key] = queryExecAst[key];
-                            });
+                            replace_node(node, queryExecAst);
                         }
                 }
             },
@@ -12708,6 +12718,17 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     --stackIdx;
                 }
             }
+        });
+    }
+
+// Replaces source node with the target node.
+    function replace_node(source, target) {
+        Object.keys(source).forEach(function (key) {
+            delete source[key];
+        });
+
+        Object.keys(target).forEach(function (key) {
+            source[key] = target[key];
         });
     }
 
@@ -12757,7 +12778,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
             var body = escodegen.generate(node.body, {comment: true});
             return esprima.parse(
                 node.right.name +
-                '.iter(function F(' + (node.left.name ? node.left.name : node.left.declarations[0].id.name) + ')' +
+                '.iter(function (' + (node.left.name ? node.left.name : node.left.declarations[0].id.name) + ')' +
                 body + ')'
             ).body[0];
         }
@@ -12788,11 +12809,13 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
         return false;
     }
+
 // First traversal - detect all the variables in their corresponding scopes.
     traverse('var_scope');
 
 // Second traversal - replace all N1QL queries with N1QL function calls.
     traverse('gen_code');
+
 
     return ast;
 }
