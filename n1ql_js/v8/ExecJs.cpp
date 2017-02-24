@@ -30,6 +30,7 @@ void V8Env::LogFunction(const FunctionCallbackInfo<Value> &args)
 
         String::Utf8Value const str_result(result);
 
+
         cout << *str_result << endl;
     }
 }
