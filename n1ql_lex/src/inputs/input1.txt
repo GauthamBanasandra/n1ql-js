@@ -21,6 +21,6 @@ function n1ql()
 		FROM :bucket
 		LIMIT 10;
 
-	printf("select * from `beer-sample`");
+	printf('select * from `beer-sample`');
 }
 n1ql();

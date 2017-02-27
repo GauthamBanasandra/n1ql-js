@@ -7,8 +7,8 @@
 	* Caveats:	The N1QL statement must end with a semi-colon ';'.
 				Otherwise, the lex program can't detect detect the end of the query.
 
-	* TODO:		Handle N1QL queries appearing in comments and string.
 	* TODO:		At the moment, the assumption is that all N1QL queries begin with 'select'. Need to handle the case to correctly detect the start of the N1QL query.
+	* TODO:		Escape the DSTR strings - necessary for esprima.
 	* TODO:		Bug - Check the entry condition, currently, N1QL state is entered upon things like "select_res".
 	*/
 	#include <iostream>
@@ -24,7 +24,7 @@
 	string plain_js;
 	int previous_state;
 %}
-%x N1QL CMT SSTR DSTR TSTR
+%x N1QL CMT DSTR SSTR TSTR
 %%
 	previous_state=YYSTATE;
 "/*"	{
@@ -37,8 +37,12 @@
 				BEGIN previous_state;
 			}
 <CMT>\n	{plain_js+="\n";}
-["]	{handle_str_start(SSTR);}
-<SSTR>["]	{handle_str_stop(SSTR);}
+["]	{handle_str_start(DSTR);}
+<DSTR>["]	{handle_str_stop(DSTR);}
+[']	{handle_str_start(SSTR);}
+<SSTR>[']	{handle_str_stop(SSTR);}
+[`]	{handle_str_start(TSTR);}
+<TSTR>[`]	{handle_str_stop(TSTR);}
 [sS][eE][lL][eE][cC][tT]	{
 								BEGIN N1QL;
 								plain_js+="(function(){/* select";
@@ -73,7 +77,7 @@
 				BEGIN INITIAL;
 				plain_js+="; */});";
 			}
-<N1QL,CMT,SSTR>.	{plain_js+=string(yytext);}
+<N1QL,CMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
 .	{plain_js+=string(yytext);}
 \n	{plain_js+="\n";}
 %%
@@ -98,9 +102,19 @@ void handle_str_start(int state)
 
 	switch (state)
 	{
+	case DSTR:
+		BEGIN DSTR;
+		plain_js+="\"";
+		break;
+
 	case SSTR:
 		BEGIN SSTR;
-		plain_js+="\"";
+		plain_js+="'";
+		break;
+
+	case TSTR:
+		BEGIN TSTR;
+		plain_js+="`";
 		break;
 	}
 }
@@ -116,8 +130,16 @@ void handle_str_stop(int state)
 
 	switch(state)
 	{
-	case SSTR:
+	case DSTR:
 		plain_js+="\"";
+		break;
+
+	case SSTR:
+		plain_js+="'";
+		break;
+
+	case TSTR:
+		plain_js+="`";
 		break;
 	}
 }
