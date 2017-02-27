@@ -15,14 +15,30 @@
 	#include <fstream>
 
 	std::string parse(const char*);
+	void handle_str_start(int state);
+	void handle_str_stop(int state);
 
 	using namespace std;
 
 	// Contains the output plain JavaScript code.
 	string plain_js;
+	int previous_state;
 %}
-%x N1QL
+%x N1QL CMT SSTR DSTR TSTR
 %%
+	previous_state=YYSTATE;
+"/*"	{
+			previous_state=YYSTATE;
+			BEGIN CMT;
+			plain_js+="/*";
+		}
+<CMT>"*/"	{
+				plain_js+="*/";
+				BEGIN previous_state;
+			}
+<CMT>\n	{plain_js+="\n";}
+["]	{handle_str_start(SSTR);}
+<SSTR>["]	{handle_str_stop(SSTR);}
 [sS][eE][lL][eE][cC][tT]	{
 								BEGIN N1QL;
 								plain_js+="(function(){/* select";
@@ -53,13 +69,11 @@
 							BEGIN N1QL;
 							plain_js+="(function(){/* merge";
 						}
-
-<N1QL>[\t]+	;
 <N1QL>";"	{
 				BEGIN INITIAL;
 				plain_js+="; */});";
 			}
-<N1QL>.	{plain_js+=string(yytext);}
+<N1QL,CMT,SSTR>.	{plain_js+=string(yytext);}
 .	{plain_js+=string(yytext);}
 \n	{plain_js+="\n";}
 %%
@@ -76,4 +90,34 @@ string parse(const char* input)
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	return string(plain_js);
+}
+
+void handle_str_start(int state)
+{
+	previous_state=YYSTATE;
+
+	switch (state)
+	{
+	case SSTR:
+		BEGIN SSTR;
+		plain_js+="\"";
+		break;
+	}
+}
+
+void handle_str_stop(int state)
+{
+	if(plain_js.length()>0)
+	{
+		int is_esc=plain_js[plain_js.length()-1]=='\\';
+		if(!is_esc)
+			BEGIN previous_state;
+	}
+
+	switch(state)
+	{
+	case SSTR:
+		plain_js+="\"";
+		break;
+	}
 }

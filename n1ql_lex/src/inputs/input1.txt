@@ -2,9 +2,6 @@ function n1ql()
 {
     var bucket='default';
 
-    var all=
-        SELECT *
-        FROM :bucket;
 
     for(var i of all)
         log(i);
@@ -13,5 +10,17 @@ function n1ql()
         UPSERT INTO :bucket (key, value)
         VALUES ("game", {"name":"lara croft tomb raider"})
         RETURNING *;
+	/*	var all=
+        SELECT *
+        FROM :bucket
+        LIMIT 10;
+	*/
+
+	var all=
+		SELECT *
+		FROM :bucket
+		LIMIT 10;
+
+	printf("select * from `beer-sample`");
 }
 n1ql();
