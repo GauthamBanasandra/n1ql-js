@@ -1,0 +1,8 @@
+var linq_res =	from city in cities
+				where city.area > 1000
+				select city.name;
+var n1ql_res =	select name
+				from city
+				where area > 1000;
+
+select name from city where area > 1000;from city in cities where city.area > 1000 select city.name;

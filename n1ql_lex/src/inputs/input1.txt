@@ -1,0 +1,17 @@
+function n1ql()
+{
+    var bucket='default';
+
+    var all=
+        SELECT *
+        FROM :bucket;
+
+    for(var i of all)
+        log(i);
+
+    var up=
+        UPSERT INTO :bucket (key, value)
+        VALUES ("game", {"name":"lara croft tomb raider"})
+        RETURNING *;
+}
+n1ql();
