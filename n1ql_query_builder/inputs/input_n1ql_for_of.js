@@ -9,6 +9,5 @@ function n1ql() {
     count = 0;
 
     for (var i of all)
-        for (var z of all)
-            break;
+        break;
 }

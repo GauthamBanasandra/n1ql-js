@@ -107,7 +107,7 @@ function traverse(mode) {
                 // TODO:    If the user himself has called exec_query(), do nothing.
                 // TODO:    Handle 'return' statements occurring in the 'for ... of ...' construct.
                 // TODO:    Handle when to replace 'break' with '.stop_iter()'- only if the break statement actually stops the loop.
-                // TODO:    Bug - Handle the case when there are nested 'for ... of ...' loops of iterators - Currently crashes.
+                // TODO:    Bug - Handle the case when there are nested 'for ... of ...' loops - Currently crashes - this is crashing because, we generate a new anonymous function here but we don't update the stack with the vars of the new anonymous function.
                 // Handling the "for ... of ..." construct here.
                 if (/ForOfStatement/.test(node.type) && /Identifier/.test(node.right.type))
                     if (is_n1ql_var(stackIdx, node.right.name)) {
