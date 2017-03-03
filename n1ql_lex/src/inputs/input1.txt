@@ -9,6 +9,7 @@ function n1ql()
     var up=
         UPSERT INTO :bucket (key, value)
         VALUES ("game", {"name":"lara croft tomb raider"})
+        WHERE text == `hello`
         RETURNING *;
 	/*	var all=
         SELECT *

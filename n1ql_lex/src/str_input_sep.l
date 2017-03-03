@@ -17,6 +17,7 @@
 	std::string parse(const char*);
 	void handle_str_start(int state);
 	void handle_str_stop(int state);
+	bool is_esc();
 
 	using namespace std;
 
@@ -45,39 +46,44 @@
 <TSTR>[`]	{handle_str_stop(TSTR);}
 [sS][eE][lL][eE][cC][tT]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* select";
+								plain_js+="new N1qlQuery(`select";
 							}
 
 [cC][rR][eE][aA][tT][eE]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* create";
+								plain_js+="new N1qlQuery(`create";
 							}
 
 [uU][pP][sS][eE][rR][tT]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* upsert";
+								plain_js+="new N1qlQuery(`upsert";
 							}
 [iI][nN][sS][eE][rR][tT]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* insert";
+								plain_js+="new N1qlQuery(`insert";
 							}
 [dD][eE][lL][eE][tT][eE]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* delete";
+								plain_js+="new N1qlQuery(`delete";
 							}
 [uU][pP][dD][aA][tT][eE]	{
 								BEGIN N1QL;
-								plain_js+="(function(){/* update";
+								plain_js+="new N1qlQuery(`update";
 							}
 [mM][eE][rR][gG][eE]	{
 							BEGIN N1QL;
-							plain_js+="(function(){/* merge";
+							plain_js+="new N1qlQuery(`merge";
 						}
 <N1QL>";"	{
 				BEGIN INITIAL;
-				plain_js+="; */});";
+				plain_js+="`);";
 			}
-<N1QL,CMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
+<N1QL>.	{
+			if(yytext[0]=='`' && !is_esc())
+				plain_js+="\\";
+			plain_js+=string(yytext);
+		}
+<CMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
 .	{plain_js+=string(yytext);}
 \n	{plain_js+="\n";}
 %%
@@ -121,12 +127,8 @@ void handle_str_start(int state)
 
 void handle_str_stop(int state)
 {
-	if(plain_js.length()>0)
-	{
-		int is_esc=plain_js[plain_js.length()-1]=='\\';
-		if(!is_esc)
-			BEGIN previous_state;
-	}
+	if(!is_esc())
+		BEGIN previous_state;
 
 	switch(state)
 	{
@@ -142,4 +144,9 @@ void handle_str_stop(int state)
 		plain_js+="`";
 		break;
 	}
+}
+
+bool is_esc()
+{
+	return plain_js.length()>0?plain_js[plain_js.length()-1]=='\\':0;
 }
