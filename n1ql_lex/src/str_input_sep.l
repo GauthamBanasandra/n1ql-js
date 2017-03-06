@@ -9,7 +9,6 @@
 
 	* TODO:		At the moment, the assumption is that all N1QL queries begin with 'select'. Need to handle the case to correctly detect the start of the N1QL query.
 	* TODO:		Escape the DSTR strings - necessary for esprima.
-	* TODO:		Bug - Check the entry condition, currently, N1QL state is entered upon things like "select_res".
 	*/
 	#include <iostream>
 	#include <fstream>
@@ -44,36 +43,36 @@
 <SSTR>[']	{handle_str_stop(SSTR);}
 [`]	{handle_str_start(TSTR);}
 <TSTR>[`]	{handle_str_stop(TSTR);}
-[sS][eE][lL][eE][cC][tT]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`select";
-							}
+[sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`select";
+										}
 
-[cC][rR][eE][aA][tT][eE]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`create";
-							}
+[cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`create";
+										}
 
-[uU][pP][sS][eE][rR][tT]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`upsert";
-							}
-[iI][nN][sS][eE][rR][tT]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`insert";
-							}
-[dD][eE][lL][eE][tT][eE]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`delete";
-							}
-[uU][pP][dD][aA][tT][eE]	{
-								BEGIN N1QL;
-								plain_js+="new N1qlQuery(`update";
-							}
-[mM][eE][rR][gG][eE]	{
-							BEGIN N1QL;
-							plain_js+="new N1qlQuery(`merge";
-						}
+[uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`upsert";
+										}
+[iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`insert";
+										}
+[dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`delete";
+										}
+[uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{
+											BEGIN N1QL;
+											plain_js+="new N1qlQuery(`update";
+										}
+[mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{
+										BEGIN N1QL;
+										plain_js+="new N1qlQuery(`merge";
+									}
 <N1QL>";"	{
 				BEGIN INITIAL;
 				plain_js+="`);";

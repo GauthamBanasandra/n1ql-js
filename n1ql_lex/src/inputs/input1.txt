@@ -17,7 +17,7 @@ function n1ql()
         LIMIT 10;
 	*/
 
-	var all=
+	var res=
 		SELECT *
 		FROM :bucket
 		LIMIT 10;
