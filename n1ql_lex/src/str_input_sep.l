@@ -45,33 +45,33 @@
 <TSTR>[`]	{handle_str_stop(TSTR);}
 [sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`select";
+											plain_js+="new N1qlQuery(`select ";
 										}
 
 [cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`create";
+											plain_js+="new N1qlQuery(`create ";
 										}
 
 [uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`upsert";
+											plain_js+="new N1qlQuery(`upsert ";
 										}
 [iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`insert";
+											plain_js+="new N1qlQuery(`insert ";
 										}
 [dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`delete";
+											plain_js+="new N1qlQuery(`delete ";
 										}
 [uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`update";
+											plain_js+="new N1qlQuery(`update ";
 										}
 [mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{
 										BEGIN N1QL;
-										plain_js+="new N1qlQuery(`merge";
+										plain_js+="new N1qlQuery(`merge ";
 									}
 <N1QL>";"	{
 				BEGIN INITIAL;

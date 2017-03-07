@@ -1,10 +1,3 @@
-//
-//  jsify.cpp
-//  n1ql_js_v2
-//
-//  Created by Gautham Banasandra on 06/03/17.
-//  Copyright © 2017 Couchbase. All rights reserved.
-//
 
 #line 3 "lex.yy.c"
 
@@ -23,7 +16,7 @@
 /* First, we deal with  platform-specific or compiler-specific issues. */
 
 /* begin standard C headers. */
-#include "../include/jsify.hpp"
+#include "jsify.hpp"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -810,7 +803,7 @@ YY_DECL {
 #line 46 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`select";
+                plain_js += "new N1qlQuery(`select ";
             }
             YY_BREAK
         case 11:
@@ -819,7 +812,7 @@ YY_DECL {
 #line 51 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`create";
+                plain_js += "new N1qlQuery(`create ";
             }
             YY_BREAK
         case 12:
@@ -828,7 +821,7 @@ YY_DECL {
 #line 56 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`upsert";
+                plain_js += "new N1qlQuery(`upsert ";
             }
             YY_BREAK
         case 13:
@@ -837,7 +830,7 @@ YY_DECL {
 #line 60 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`insert";
+                plain_js += "new N1qlQuery(`insert ";
             }
             YY_BREAK
         case 14:
@@ -846,7 +839,7 @@ YY_DECL {
 #line 64 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`delete";
+                plain_js += "new N1qlQuery(`delete ";
             }
             YY_BREAK
         case 15:
@@ -855,7 +848,7 @@ YY_DECL {
 #line 68 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`update";
+                plain_js += "new N1qlQuery(`update ";
             }
             YY_BREAK
         case 16:
@@ -864,7 +857,7 @@ YY_DECL {
 #line 72 "str_input_sep.l"
             {
                 BEGIN N1QL;
-                plain_js += "new N1qlQuery(`merge";
+                plain_js += "new N1qlQuery(`merge ";
             }
             YY_BREAK
         case 17:
