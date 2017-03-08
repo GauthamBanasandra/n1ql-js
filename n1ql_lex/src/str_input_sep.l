@@ -24,19 +24,28 @@
 	string plain_js;
 	int previous_state;
 %}
-%x N1QL CMT DSTR SSTR TSTR
+%x N1QL MLCMT SLCMT DSTR SSTR TSTR
 %%
 	previous_state=YYSTATE;
 "/*"	{
 			previous_state=YYSTATE;
-			BEGIN CMT;
+			BEGIN MLCMT;
 			plain_js+="/*";
 		}
-<CMT>"*/"	{
+<MLCMT>"*/"	{
 				plain_js+="*/";
 				BEGIN previous_state;
 			}
-<CMT>\n	{plain_js+="\n";}
+<MLCMT>\n	{plain_js+="\n";}
+"//"	{
+			previous_state=YYSTATE;
+			BEGIN SLCMT;
+			plain_js+="//";
+		}
+<SLCMT>\n	{
+				BEGIN previous_state;
+				plain_js+="\n";
+			}
 ["]	{handle_str_start(DSTR);}
 <DSTR>["]	{handle_str_stop(DSTR);}
 [']	{handle_str_start(SSTR);}
@@ -82,7 +91,7 @@
 				plain_js+="\\";
 			plain_js+=string(yytext);
 		}
-<CMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
+<MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
 .	{plain_js+=string(yytext);}
 \n	{plain_js+="\n";}
 %%
