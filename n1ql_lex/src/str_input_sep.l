@@ -87,7 +87,7 @@
 \n	{plain_js+="\n";}
 %%
 // Parses the given input string.
-string parse(const char* input)
+void parse(const char* input, string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
@@ -98,7 +98,11 @@ string parse(const char* input)
 	// Clear the buffer allocation.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
-	return string(plain_js);
+	// Copy the output;
+	*output=plain_js;
+
+	// Clear the global variable for the next input.
+	plain_js="";
 }
 
 void handle_str_start(int state)

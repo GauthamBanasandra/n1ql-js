@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-std::string parse(const char*);
+void parse(const char*, std::string *);
 
 using namespace std;
 
@@ -11,9 +11,14 @@ int main()
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	const char* input=source_code.c_str();
-	string js_code=parse(input);
+	string plain_js_code;
+	parse(input, &plain_js_code);
 
-	cout << js_code << endl;
+	cout << plain_js_code << endl<<endl;
+
+	parse(input, &plain_js_code);
+
+	cout << plain_js_code << endl<<endl;
 
 	return 0;
 }
