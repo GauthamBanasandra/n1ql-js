@@ -17,7 +17,9 @@ int main(int argc, const char *argv[]) {
     string source((istreambuf_iterator<char>(file)),
                   istreambuf_iterator<char>());
     const char *input = source.c_str();
-    string plain_js = parse(input);
+    string plain_js;
+    parse(input, &plain_js);
+    
     cout << plain_js << endl;
     
     return 0;

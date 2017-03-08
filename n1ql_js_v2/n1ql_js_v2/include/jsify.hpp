@@ -10,6 +10,17 @@
 #define jsify_hpp
 #include <iostream>
 
-std::string parse(const char *);
+int parse(const char *, std::string *);
+
+enum op_code {
+    OK,
+    KWD_SELECT,
+    KWD_CREATE,
+    KWD_UPSERT,
+    KWD_INSERT,
+    KWD_DELETE,
+    KWD_UPDATE,
+    KWD_MERGE
+};
 
 #endif /* jsify_hpp */
