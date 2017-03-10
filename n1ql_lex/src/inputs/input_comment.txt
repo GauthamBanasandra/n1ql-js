@@ -4,7 +4,7 @@ function OnUpdate(doc, meta)
 
     var res=SELECT * FROM :bucket;
 
-    select:{
+    alter1:{
         for(var row of res)
         {
             log(row);

@@ -39,6 +39,8 @@ int main()
 	case KWD_MERGE:
 		cout << "error: merge is a reserved word"<<endl<<ret_code;;
 		break;
+	default:
+		cout << "error: using a reserved word"<<endl<<ret_code;
 	}
 
 	return 0;

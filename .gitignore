@@ -37,3 +37,20 @@ jspm_packages
 .node_repl_history
 
 .DS_Store
+
+*.xml
+
+*.iml
+/n1ql_lex/out
+
+expose_func/incremental_build/incr_build
+
+n1ql_js/n1ql_js
+
+expose_func/expose_cpp_func/expose_func
+
+expose_func/expose_cpp_func/call_js
+
+expose_func/call_js_func/call_js
+
+codegen/bin/n1ql_js

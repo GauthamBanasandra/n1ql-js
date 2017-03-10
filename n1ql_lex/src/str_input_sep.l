@@ -53,43 +53,40 @@
 <SSTR>[']	{handle_str_stop(SSTR);}
 [`]	{handle_str_start(TSTR);}
 <TSTR>[`]	{handle_str_stop(TSTR);}
-(var|function)[ \t\n]+[sS][eE][lL][eE][cC][tT][ \t\n;=(]|[sS][eE][lL][eE][cC][tT][ \t\n]*:[ \t\n]*\{	{return KWD_SELECT;}
+(var|function)[ \t\n]+[aA][lL][tT][eE][rR][ \t\n;=(]|[aA][lL][tT][eE][rR][ \t\n]*:[ \t\n]*\{	{return KWD_ALTER;}
+(var|function)[ \t\n]+[bB][uU][iI][lL][dD][ \t\n;=(]|[bB][uU][iI][lL][dD][ \t\n]*:[ \t\n]*\{	{return KWD_BUILD;}
 (var|function)[ \t\n]+[cC][rR][eE][aA][tT][eE][ \t\n;=(]|[cC][rR][eE][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_CREATE;}
-(var|function)[ \t\n]+[uU][pP][sS][eE][rR][tT][ \t\n;=(]|[uU][pP][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_UPSERT;}
-(var|function)[ \t\n]+[iI][nN][sS][eE][rR][tT][ \t\n;=(]|[iI][nN][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_INSERT;}
 (var|function)[ \t\n]+[dD][eE][lL][eE][tT][eE][ \t\n;=(]|[dD][eE][lL][eE][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_DELETE;}
-(var|function)[ \t\n]+[uU][pP][dD][aA][tT][eE][ \t\n;=(]|[uU][pP][dD][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_UPDATE;}
+(var|function)[ \t\n]+[dD][rR][oO][pP][ \t\n;=(]|[dD][rR][oO][pP][ \t\n]*:[ \t\n]*\{	{return KWD_DROP;}
+(var|function)[ \t\n]+[eE][xX][eE][cC][uU][tT][eE][ \t\n;=(]|[eE][xX][eE][cC][uU][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_EXECUTE;}
+(var|function)[ \t\n]+[eE][xX][pP][lL][aA][iI][nN][ \t\n;=(]|[eE][xX][pP][lL][aA][iI][nN][ \t\n]*:[ \t\n]*\{	{return KWD_EXPLAIN;}
+(var|function)[ \t\n]+[gG][rR][aA][nN][tT][ \t\n;=(]|[gG][rR][aA][nN][tT][ \t\n]*:[ \t\n]*\{	{return KWD_GRANT;}
+(var|function)[ \t\n]+[iI][nN][fF][eE][rR][ \t\n;=(]|[iI][nN][fF][eE][rR][ \t\n]*:[ \t\n]*\{	{return KWD_INFER;}
+(var|function)[ \t\n]+[iI][nN][sS][eE][rR][tT][ \t\n;=(]|[iI][nN][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_INSERT;}
 (var|function)[ \t\n]+[mM][eE][rR][gG][eE][ \t\n;=(]|[mM][eE][rR][gG][eE][ \t\n]*:[ \t\n]*\{	{return KWD_MERGE;}
-[sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`select ";
-										}
-
-[cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`create ";
-										}
-
-[uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`upsert ";
-										}
-[iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`insert ";
-										}
-[dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`delete ";
-										}
-[uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{
-											BEGIN N1QL;
-											plain_js+="new N1qlQuery(`update ";
-										}
-[mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{
-										BEGIN N1QL;
-										plain_js+="new N1qlQuery(`merge ";
-									}
+(var|function)[ \t\n]+[pP][rR][eE][pP][aA][rR][eE][ \t\n;=(]|[pP][rR][eE][pP][aA][rR][eE][ \t\n]*:[ \t\n]*\{	{return KWD_PREPARE;}
+(var|function)[ \t\n]+[rR][eE][nN][aA][mM][eE][ \t\n;=(]|[rR][eE][nN][aA][mM][eE][ \t\n]*:[ \t\n]*\{	{return KWD_RENAME;}
+(var|function)[ \t\n]+[sS][eE][lL][eE][cC][tT][ \t\n;=(]|[sS][eE][lL][eE][cC][tT][ \t\n]*:[ \t\n]*\{	{return KWD_SELECT;}
+(var|function)[ \t\n]+[rR][eE][vV][oO][kK][eE][ \t\n;=(]|[rR][eE][vV][oO][kK][eE][ \t\n]*:[ \t\n]*\{	{return KWD_REVOKE;}
+(var|function)[ \t\n]+[uU][pP][dD][aA][tT][eE][ \t\n;=(]|[uU][pP][dD][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_UPDATE;}
+(var|function)[ \t\n]+[uU][pP][sS][eE][rR][tT][ \t\n;=(]|[uU][pP][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_UPSERT;}
+[aA][lL][tT][eE][rR][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`alter ";}
+[bB][uU][iI][lL][dD][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`build ";}
+[cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`create ";}
+[dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`delete ";}
+[dD][rR][oO][pP][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`drop ";}
+[eE][xX][eE][cC][uU][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`execute ";}
+[eE][xX][pP][lL][aA][iI][nN][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`explain ";}
+[gG][rR][aA][nN][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`grant ";}
+[iI][nN][fF][eE][rR][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`infer ";}
+[iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`insert ";}
+[mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`merge ";}
+[pP][rR][eE][pP][aA][rR][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`prepare ";}
+[rR][eE][nN][aA][mM][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`rename ";}
+[sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`select ";}
+[rR][eE][vV][oO][kK][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`revoke ";}
+[uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`update ";}
+[uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`upsert ";}
 <N1QL>";"	{
 				BEGIN INITIAL;
 				plain_js+="`);";
