@@ -25,6 +25,10 @@ string N1qlUtils::GetJsFormatPath() {
 
 string N1qlUtils::GetStartupData() { return "./n1ql_js"; }
 
+string N1qlUtils::GetTestInputPath() {
+    return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/"
+           "inputs/inputs/jsify_inputs.txt";
+}
 string N1qlUtils::ReadFile(string file_path) {
     ifstream file(file_path);
     string source((istreambuf_iterator<char>(file)),

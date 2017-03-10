@@ -17,9 +17,11 @@ class N1qlUtils {
     static std::string GetStartupData();
 
     static std::string GetQueryBuilderPath();
+    
+    static std::string GetTestInputPath();
 
     static std::string GetJsFormatPath();
-    
+
     static std::string ReadFile(std::string file_path);
 
     static std::string
