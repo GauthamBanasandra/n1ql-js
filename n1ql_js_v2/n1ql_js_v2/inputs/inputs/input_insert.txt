@@ -1,0 +1,12 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='`travel-sample`';
+    var value={'id':'01', 'type':'airline'};
+
+    var res=INSERT INTO :bucket (KEY, VALUE) VALUES ('k001', :value) RETURNING META.id() as docid;
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+}

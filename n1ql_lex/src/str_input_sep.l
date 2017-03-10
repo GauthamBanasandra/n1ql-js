@@ -12,6 +12,7 @@
 	*/
 	#include <iostream>
 	#include <fstream>
+	#include "jsify.hpp"
 
 	std::string parse(const char*);
 	void handle_str_start(int state);
@@ -52,6 +53,13 @@
 <SSTR>[']	{handle_str_stop(SSTR);}
 [`]	{handle_str_start(TSTR);}
 <TSTR>[`]	{handle_str_stop(TSTR);}
+(var|function)[ \t\n]+[sS][eE][lL][eE][cC][tT][ \t\n;=(]|[sS][eE][lL][eE][cC][tT][ \t\n]*:[ \t\n]*\{	{return KWD_SELECT;}
+(var|function)[ \t\n]+[cC][rR][eE][aA][tT][eE][ \t\n;=(]|[cC][rR][eE][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_CREATE;}
+(var|function)[ \t\n]+[uU][pP][sS][eE][rR][tT][ \t\n;=(]|[uU][pP][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_UPSERT;}
+(var|function)[ \t\n]+[iI][nN][sS][eE][rR][tT][ \t\n;=(]|[iI][nN][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_INSERT;}
+(var|function)[ \t\n]+[dD][eE][lL][eE][tT][eE][ \t\n;=(]|[dD][eE][lL][eE][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_DELETE;}
+(var|function)[ \t\n]+[uU][pP][dD][aA][tT][eE][ \t\n;=(]|[uU][pP][dD][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_UPDATE;}
+(var|function)[ \t\n]+[mM][eE][rR][gG][eE][ \t\n;=(]|[mM][eE][rR][gG][eE][ \t\n]*:[ \t\n]*\{	{return KWD_MERGE;}
 [sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{
 											BEGIN N1QL;
 											plain_js+="new N1qlQuery(`select ";
@@ -96,13 +104,13 @@
 \n	{plain_js+="\n";}
 %%
 // Parses the given input string.
-void parse(const char* input, string *output)
+int parse(const char* input, string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
 
 	// Begin lexer.
-	yylex();
+	int code=yylex();
 
 	// Clear the buffer allocation.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
@@ -112,6 +120,8 @@ void parse(const char* input, string *output)
 
 	// Clear the global variable for the next input.
 	plain_js="";
+
+	return code;
 }
 
 void handle_str_start(int state)

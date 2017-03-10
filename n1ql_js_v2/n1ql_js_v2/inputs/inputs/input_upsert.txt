@@ -1,0 +1,11 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+    
+    var res=UPSERT INTO product (KEY, VALUE) VALUES ("odwalla-juice1", { "productId": "odwalla-juice1", "unitPrice": 5.40, "type": "product", "color":"red"}) RETURNING *;
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+}

@@ -1,0 +1,5 @@
+function OnUpdate(doc, meta)
+{
+    var bucket='default';
+    new N1qlQuery(`delete * FROM :bucket`);
+}

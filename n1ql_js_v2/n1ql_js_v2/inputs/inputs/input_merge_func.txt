@@ -1,0 +1,5 @@
+function OnUpdate(doc, meta)
+{
+    var bucket='product';
+    function merge(){MERGE INTO :bucket p USING orders o ON KEY o.productId WHEN MATCHED THEN UPDATE SET p.lastSaleDate = o.orderDate WHEN MATCHED THEN DELETE WHERE p.inventoryCount  <= 0;}
+}

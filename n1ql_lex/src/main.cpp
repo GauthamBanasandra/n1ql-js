@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
-
-void parse(const char*, std::string *);
+#include "jsify.hpp"
 
 using namespace std;
 
@@ -12,9 +11,35 @@ int main()
 
 	const char* input=source_code.c_str();
 	string plain_js_code;
-	parse(input, &plain_js_code);
+	int ret_code=parse(input, &plain_js_code);
 
-	cout << plain_js_code << endl<<endl;
+	switch(ret_code)
+	{
+	case OK:
+		cout << plain_js_code << endl<<ret_code;
+		break;
+	case KWD_SELECT:
+		cout << "error: select is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_CREATE:
+		cout << "error: create is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_UPSERT:
+		cout << "error: upsert is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_INSERT:
+		cout << "error: insert is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_DELETE:
+		cout << "error: delete is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_UPDATE:
+		cout << "error: update is a reserved word"<<endl<<ret_code;;
+		break;
+	case KWD_MERGE:
+		cout << "error: merge is a reserved word"<<endl<<ret_code;;
+		break;
+	}
 
 	return 0;
 }
