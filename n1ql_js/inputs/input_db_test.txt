@@ -6,25 +6,13 @@ function n1ql()
         SELECT *
         FROM :bucket;
 
-    var res= SELECT * FROM default;
-
     var count=0;
-    var count2=0;
-
-x=10;
-if(x>20)
-all=1234;
 
     for (var row of all) {
         ++count;
         log('all count='+count+row);
 
-        for (var r of res)
-        {
-            ++count2;
-            log('res count='+count2+r);
-        }
-    }
+     }
 
     log('rows='+count);
 }

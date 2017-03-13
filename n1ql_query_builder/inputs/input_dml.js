@@ -3,14 +3,14 @@
  */
 function n1ql() {
     var bucket = 'default';
-    var all = (function () {/* select *         FROM :bucket; */
-    });
+    var all = (function () { /* select *         FROM :bucket; */ });
 
-    
-    for (var i of all){
-        log(i);
+
+    for (var i of all) {
+        for (var j of res)
+            log(i, j);
+        for(var x of all_res)
+            log(i, x);
     }
 }
-
-
 n1ql();

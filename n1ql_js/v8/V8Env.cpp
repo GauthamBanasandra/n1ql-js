@@ -29,7 +29,7 @@ V8Env::~V8Env()
     isolate->Dispose();
     V8::Dispose();
     V8::ShutdownPlatform();
-    delete platform;
+//    delete platform;
 }
 
 Isolate *V8Env::getIsolate() const
