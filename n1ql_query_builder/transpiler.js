@@ -47,6 +47,32 @@ function get_iter_ast(node, mode) {
     throw 'Invalid arg ' + mode + ' for get_iter_ast';
 }
 
+// Returns iterator consturct with dynamic type checking.
+function get_iter_compatible_ast(forOfNode) {
+    // Iterator AST.
+    var iterAst = get_iter_ast(forOfNode, 'for_of');
+    // 'if ... else ...' with dynamic type checking.
+    var ifElseAst = esprima.parse('if(typeof ' + forOfNode.right.name + '=== N1qlQuery){}else{}').body[0];
+
+    // Make a copy of the 'for ... of ...' loop.
+    var nodeCopy = deep_copy(forOfNode);
+
+    // Push the iterator AST into 'if' block.
+    ifElseAst.consequent.body.push(iterAst);
+    // Push the user-written 'for ... of ...' loop into 'else' block.
+    ifElseAst.alternate.body.push(nodeCopy);
+
+    // Traverse all the 'for ... of ...' loops in the 'else' block and mark them as visited - so that we don't recursively convert these into iterator constructs.
+    estraverse.traverse(nodeCopy, {
+        enter: function (node) {
+            if (/ForOfStatement/.test(node.type))
+                node.isVisited = true;
+        }
+    });
+
+    return ifElseAst;
+}
+
 var fs = require('fs'),
     esprima = require('esprima'),
     estraverse = require('estraverse'),
@@ -64,27 +90,14 @@ var ast = esprima.parse(code, {
 estraverse.traverse(ast, {
     enter: function (node) {
         // TODO : Handle the case when the source of 'for ... of ...' is of type x.y
+        // Modifies all the 'for ... of ...' constructs to work with iteration. Takes care to see to it that it visits the node only once.
         if (/ForOfStatement/.test(node.type) && !node.isVisited) {
-
             if (!/BlockStatement/.test(node.body.type))
                 convert_to_block_stmt(node);
 
-            var iterAst = get_iter_ast(node, 'for_of');
-            var ifAst = esprima.parse('if(typeof ' + node.right.name + '=== N1qlQuery){}else{}').body[0];
+            var iterAst = get_iter_compatible_ast(node);
 
-            var nodeCopy = deep_copy(node);
-
-            ifAst.consequent.body.push(iterAst);
-            ifAst.alternate.body.push(nodeCopy);
-
-            estraverse.traverse(nodeCopy, {
-                enter: function (node) {
-                    if (/ForOfStatement/.test(node.type))
-                        node.isVisited = true;
-                }
-            });
-            
-            replace_node(node, ifAst);
+            replace_node(node, iterAst);
         }
     }
 });
