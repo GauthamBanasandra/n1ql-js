@@ -62,3 +62,9 @@ codegen/bin/n1ql_js
 *.xml
 
 *.xml
+
+*.xml
+
+codegen/.idea/libraries/GOPATH__codegen_.xml
+
+codegen/.idea/libraries/GOPATH__codegen_.xml
