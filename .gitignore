@@ -68,3 +68,5 @@ codegen/bin/n1ql_js
 codegen/.idea/libraries/GOPATH__codegen_.xml
 
 codegen/.idea/libraries/GOPATH__codegen_.xml
+
+n1ql_query_builder/.vscode/launch.json

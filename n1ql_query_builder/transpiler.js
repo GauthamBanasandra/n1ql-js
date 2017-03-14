@@ -1,3 +1,19 @@
+function Stack() {
+    var stack = [];
+
+    this.push = function (item) {
+        stack.push(item);
+    }
+    this.pop = function () {
+        if (stack.length == 0)
+            throw 'Stack underflow exception';
+        return stack.pop();
+    }
+    this.getSize = function (params) {
+        return stack.length;
+    }
+}
+
 // Replaces source node with the target node.
 function replace_node(source, target) {
     Object.keys(source).forEach(function (key) {
@@ -34,6 +50,7 @@ function deep_copy(node) {
 
 function get_iter_ast(node, mode) {
     if (mode === 'for_of') {
+
         var body = escodegen.generate(node.body, {
             comment: true
         });
@@ -52,7 +69,7 @@ function get_iter_compatible_ast(forOfNode) {
     // Iterator AST.
     var iterAst = get_iter_ast(forOfNode, 'for_of');
     // 'if ... else ...' with dynamic type checking.
-    var ifElseAst = esprima.parse('if(typeof ' + forOfNode.right.name + '=== N1qlQuery){}else{}').body[0];
+    var ifElseAst = esprima.parse('if('+forOfNode.right.name + ' instanceof N1qlQuery){}else{}').body[0];
 
     // Make a copy of the 'for ... of ...' loop.
     var nodeCopy = deep_copy(forOfNode);
@@ -80,25 +97,26 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
+var breakAncestors = new Stack();
 
 // Get the Abstract Syntax Tree (ast) of the input code.
 var ast = esprima.parse(code, {
-    attachComment: true
+    attachComment: true,
+    sourceType: 'script'
 });
 
-
 estraverse.traverse(ast, {
-    enter: function (node) {
+    leave: function (node) {
         // TODO : Handle the case when the source of 'for ... of ...' is of type x.y
         // Modifies all the 'for ... of ...' constructs to work with iteration. Takes care to see to it that it visits the node only once.
         if (/ForOfStatement/.test(node.type) && !node.isVisited) {
-            if (!/BlockStatement/.test(node.body.type))
+            if (!/BlockStatement/.test(node.body.type)) {
                 convert_to_block_stmt(node);
-
+            }
             var iterAst = get_iter_compatible_ast(node);
-
             replace_node(node, iterAst);
         }
     }
 });
+
 console.log(escodegen.generate(ast, { comment: true }));

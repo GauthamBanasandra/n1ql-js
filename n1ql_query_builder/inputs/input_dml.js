@@ -1,16 +1,4 @@
-/**
- * Created by gautham on 16/02/17.
- */
-function n1ql() {
-    var bucket = 'default';
-    var all = (function () { /* select *         FROM :bucket; */ });
+var all = new N1qlQuery();
 
-
-    for (var i of all) {
-        for (var j of res)
-            log(i, j);
-        for(var x of all_res)
-            log(i, x);
-    }
-}
-n1ql();
+for (var i of all)
+                log(i, j);
