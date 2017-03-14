@@ -50,15 +50,15 @@ function deep_copy(node) {
 
 function get_iter_ast(node, mode) {
     if (mode === 'for_of') {
+        var body = deep_copy(node.body);
 
-        var body = escodegen.generate(node.body, {
-            comment: true
-        });
-        return esprima.parse(
+        var iter = esprima.parse(
             node.right.name +
-            '.iter(function (' + (node.left.name ? node.left.name : node.left.declarations[0].id.name) + ')' +
-            body + ')'
+            '.iter(function (' + (node.left.name ? node.left.name : node.left.declarations[0].id.name) + '){});'
         ).body[0];
+        iter.expression.arguments[0].body = body;
+
+        return iter;
     }
 
     throw 'Invalid arg ' + mode + ' for get_iter_ast';
@@ -69,7 +69,7 @@ function get_iter_compatible_ast(forOfNode) {
     // Iterator AST.
     var iterAst = get_iter_ast(forOfNode, 'for_of');
     // 'if ... else ...' with dynamic type checking.
-    var ifElseAst = esprima.parse('if('+forOfNode.right.name + ' instanceof N1qlQuery){}else{}').body[0];
+    var ifElseAst = esprima.parse('if(' + forOfNode.right.name + ' instanceof N1qlQuery){}else{}').body[0];
 
     // Make a copy of the 'for ... of ...' loop.
     var nodeCopy = deep_copy(forOfNode);
