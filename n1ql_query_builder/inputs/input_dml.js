@@ -1,5 +1,7 @@
-var all = new N1qlQuery();
-
+const all = new N1qlQuery();
+if (true)
+    all = 10;
 for (var i of all)
-    for (var i of all)
-        log(i, j);
+    for (var i of res)
+        if (true)
+            break;
