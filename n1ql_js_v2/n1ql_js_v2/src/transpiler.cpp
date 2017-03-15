@@ -6,14 +6,13 @@
 //  Copyright © 2017 Couchbase. All rights reserved.
 //
 
-#include "transpiler.hpp"
 #include "v8_env.hpp"
 
 using namespace std;
 
 // Accepts the builder code and user code as parameters and transforms
 // constructs into N1QL calls.
-string V8Env::Build(string js_src, string user_code) {
+string V8Env::Build(string js_src, string user_code, int mode) {
     string utf8Result;
 
     Isolate *isolate = getIsolate();
@@ -43,10 +42,16 @@ string V8Env::Build(string js_src, string user_code) {
         script->Run(context).ToLocalChecked();
 
         Local<String> function_name;
-        function_name = String::NewFromUtf8(isolate, "jsFormat",
-                                            NewStringType::kNormal)
-                            .ToLocalChecked();
-
+        switch (mode) {
+            case EXEC_JS_FORMAT:
+                function_name = String::NewFromUtf8(isolate, "jsFormat");
+                break;
+            case EXEC_TRANSPILER:
+                function_name = String::NewFromUtf8(isolate, "transpile");
+            default:
+                break;
+        }
+        
         Local<Value> function_def = context->Global()->Get(function_name);
         Local<Function> function_ref = Local<Function>::Cast(function_def);
 

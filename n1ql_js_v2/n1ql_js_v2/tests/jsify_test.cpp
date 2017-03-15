@@ -299,7 +299,7 @@ TEST(ErrorTest, InsertAsLabel) {
 
 string FormatJs(string input) {
     string jsFormatSrc = N1qlUtils::ReadFile(N1qlUtils::GetJsFormatPath());
-    string formattedJs = v8env.Build(jsFormatSrc, input);
+    string formattedJs = v8env.Build(jsFormatSrc, input, EXEC_JS_FORMAT);
 
     return formattedJs;
 }

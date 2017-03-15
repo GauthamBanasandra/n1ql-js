@@ -9,6 +9,6 @@
 #ifndef q_builder_hpp
 #define q_builder_hpp
 #include <iostream>
-
+enum builder_mode{EXEC_JS_FORMAT, EXEC_TRANSPILER};
 std::string Build(std::string js_src, std::string user_code);
 #endif /* q_builder_hpp */

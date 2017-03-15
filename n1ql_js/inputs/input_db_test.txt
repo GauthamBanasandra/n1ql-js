@@ -1,6 +1,6 @@
 function n1ql()
 {
-    var bucket='`beer-sample`';
+    var bucket='default';
 
     var all=
         SELECT *

@@ -212,6 +212,28 @@ function get_iter_compatible_ast(forOfNode) {
     return ifElseAst;
 }
 
+// Build an ast node for N1QL function call from the query.
+function get_query_ast(query) {
+    // Identifier regex.
+    var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
+
+    console.log(query);
+    // Match the regex against the query to find all the variables that are used.
+    var matches = query.match(re);
+
+    // Replace the :<var> with proper substitution.
+    query = query.replace(re, '" + $1 + "');
+    query = 'new N1qlQuery("' + query + '");';
+
+    // Return the ast.
+    return esprima.parse(query).body[0].expression;
+}
+
+function is_n1ql_node(node) {
+    return /NewExpression/.test(node.type) &&
+        /N1qlQuery/.test(node.callee.name);
+}
+
 var fs = require('fs'),
     esprima = require('esprima'),
     estraverse = require('estraverse'),
@@ -229,6 +251,13 @@ var ast = esprima.parse(code, {
 
 estraverse.traverse(ast, {
     leave: function (node) {
+        if (is_n1ql_node(node) && node.arguments.length > 0) {
+            console.log(node.arguments);
+            const query=node.arguments[0].quasis[0].value.raw;
+            const queryAst=get_query_ast(query);
+            replace_node(node, deep_copy(queryAst));
+        }
+
         // TODO : Handle the case when the source of 'for ... of ...' is of type x.y
         // Modifies all the 'for ... of ...' constructs to work with iteration. Takes care to see to it that it visits the node only once.
         if (/ForOfStatement/.test(node.type) && !node.isVisited) {

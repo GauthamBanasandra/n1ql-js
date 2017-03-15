@@ -13,9 +13,8 @@ using namespace v8;
 using namespace std;
 
 // TODO : Change this path.
-string N1qlUtils::GetQueryBuilderPath() {
-    return "/Users/gautham/projects/github/n1ql-js/n1ql_js/query_exec/"
-           "query_builder.js";
+string N1qlUtils::GetTranspilerJsPath() {
+    return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/transpiler.js";
 }
 
 string N1qlUtils::GetJsFormatPath() {

@@ -16,7 +16,7 @@ class N1qlUtils {
   public:
     static std::string GetStartupData();
 
-    static std::string GetQueryBuilderPath();
+    static std::string GetTranspilerJsPath();
     
     static std::string GetTestInputPath();
 

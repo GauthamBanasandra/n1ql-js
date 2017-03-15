@@ -1,4 +1,4 @@
-const all = new N1qlQuery();
+const all = new N1qlQuery(`select * from :bucket`);
 if (true)
     all = 10;
 for (var i of all)
