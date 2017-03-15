@@ -1,10 +1,14 @@
-function OnUpdate(doc, meta)
-{
+function OnUpdate(doc, meta) {
     var bucket = 'default';
     var res = SELECT * FROM :bucket;
 
-    for(var row of res)
-        break;
+    var count = 0;
+    for (var row of res) {
+        if (count > 2)
+            break;
+        ++count;
+        log(row);
+    }
 }
 
 OnUpdate(1, 2);

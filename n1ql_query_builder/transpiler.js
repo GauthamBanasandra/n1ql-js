@@ -139,7 +139,7 @@ function deep_copy(node) {
 }
 
 function get_iter_ast(forOfNode, mode) {
-    var nodeCopy=deep_copy(forOfNode);
+    var nodeCopy = deep_copy(forOfNode);
 
     if (mode === 'for_of') {
         estraverse.traverse(nodeCopy, {
@@ -154,12 +154,10 @@ function get_iter_ast(forOfNode, mode) {
                 switch (node.type) {
                     case 'BreakStatement':
                         if (breakMod.isReplaceReq()) {
+                            // TODO : Must add return also.
                             const stopIterAst = esprima.parse(nodeCopy.right.name + '.stopIter();').body[0];
                             replace_node(node, stopIterAst);
                         }
-                        break;
-
-                    default:
                         break;
                 }
             },
@@ -184,12 +182,12 @@ function get_iter_ast(forOfNode, mode) {
 function get_iter_compatible_ast(forOfNode) {
     // Make a copy of the 'for ... of ...' loop.
     var nodeCopy = deep_copy(forOfNode);
-    
+
     // Iterator AST.
     var iterAst = get_iter_ast(nodeCopy, 'for_of');
 
     // 'if ... else ...' with dynamic type checking.
-    var ifElseAst = esprima.parse('if(' + forOfNode.right.name + ' instanceof N1qlQuery){}else{}').body[0];
+    var ifElseAst = esprima.parse('if(' + forOfNode.right.name + '.isInstance){}else{}').body[0];
     // Push the iterator AST into 'if' block.
     ifElseAst.consequent.body.push(iterAst);
     // Push the user-written 'for ... of ...' loop into 'else' block.
@@ -217,7 +215,6 @@ function get_query_ast(query) {
     // Identifier regex.
     var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
 
-    console.log(query);
     // Match the regex against the query to find all the variables that are used.
     var matches = query.match(re);
 
@@ -252,9 +249,8 @@ var ast = esprima.parse(code, {
 estraverse.traverse(ast, {
     leave: function (node) {
         if (is_n1ql_node(node) && node.arguments.length > 0) {
-            console.log(node.arguments);
-            const query=node.arguments[0].quasis[0].value.raw;
-            const queryAst=get_query_ast(query);
+            const query = node.arguments[0].quasis[0].value.raw;
+            const queryAst = get_query_ast(query);
             replace_node(node, deep_copy(queryAst));
         }
 
@@ -265,7 +261,7 @@ estraverse.traverse(ast, {
                 convert_to_block_stmt(node);
             }
             var iterAst = get_iter_compatible_ast(node);
-        
+
             replace_node(node, deep_copy(iterAst));
         }
     }
