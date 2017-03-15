@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AC0FBA491E792247002073B3 /* query_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA481E792247002073B3 /* query_engine.cpp */; };
+		AC0FBA4C1E797FBF002073B3 /* n1ql_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */; };
 		AC15CE8D1E6ECC0400B71475 /* libv8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0F141E6EC7B700706E47 /* libv8.dylib */; };
 		ACC5778E1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
 		ACC5778F1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
@@ -64,6 +65,8 @@
 		AC0FBA451E791879002073B3 /* input_select.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input_select.txt; sourceTree = "<group>"; };
 		AC0FBA481E792247002073B3 /* query_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = query_engine.cpp; sourceTree = "<group>"; };
 		AC0FBA4A1E79225C002073B3 /* query_engine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = query_engine.hpp; sourceTree = "<group>"; };
+		AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_js.cpp; sourceTree = "<group>"; };
+		AC0FBA4D1E79800D002073B3 /* n1ql_js.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = n1ql_js.hpp; sourceTree = "<group>"; };
 		ACAB534F1E6FC29C00C9FE73 /* test_utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = test_utils.hpp; path = n1ql_js_v2/tests/test_utils.hpp; sourceTree = SOURCE_ROOT; };
 		ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = exec_js.cpp; sourceTree = "<group>"; };
 		ACC577901E6ED14D006D73EE /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
@@ -164,6 +167,7 @@
 				ACC577941E6EFD08006D73EE /* transpiler.cpp */,
 				ACC577981E6EFD36006D73EE /* v8_env.cpp */,
 				AC0FBA481E792247002073B3 /* query_engine.cpp */,
+				AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -177,6 +181,7 @@
 				ACE512F41E6D307C0094AFEC /* jsify.hpp */,
 				ACC5779C1E6EFD80006D73EE /* array_buf.h */,
 				AC0FBA4A1E79225C002073B3 /* query_engine.hpp */,
+				AC0FBA4D1E79800D002073B3 /* n1ql_js.hpp */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -348,6 +353,7 @@
 				AC0FBA491E792247002073B3 /* query_engine.cpp in Sources */,
 				ACC5779A1E6EFD36006D73EE /* v8_env.cpp in Sources */,
 				ACC577961E6EFD08006D73EE /* transpiler.cpp in Sources */,
+				AC0FBA4C1E797FBF002073B3 /* n1ql_js.cpp in Sources */,
 				ACE512F21E6D30310094AFEC /* main.cpp in Sources */,
 				ACE512F81E6D30960094AFEC /* jsify.cpp in Sources */,
 				ACC577921E6ED14D006D73EE /* utils.cpp in Sources */,

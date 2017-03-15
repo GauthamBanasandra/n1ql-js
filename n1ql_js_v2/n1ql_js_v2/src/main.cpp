@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "n1ql_js.hpp"
 
 using namespace std;
 
@@ -36,15 +37,8 @@ int main(int argc, const char *argv[]) {
 //    cout << result << endl;
 
     string source = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/n1ql_js_inputs/input_select.txt");
-    string plain_js;
-    parse(source.c_str(), &plain_js);
+    string transpiled_js = TranspileAndExec(source);
     
-    string transpilerJsSrc = N1qlUtils::ReadFile(N1qlUtils::GetTranspilerJsPath());
-    V8Env v8Env;
-    string transpiled_js = v8Env.Build(transpilerJsSrc, plain_js, EXEC_TRANSPILER);
     cout << transpiled_js << endl;
-    
-    v8Env.ExecJs(transpiled_js);
-    
     return 0;
 }
