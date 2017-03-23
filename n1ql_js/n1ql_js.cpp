@@ -18,9 +18,9 @@ void ExecJs(string user_code)
     plain_js = v8.Build(query_builder_src, plain_js);
     cout << plain_js << endl;
     string result = v8.ExecJs(plain_js);
-//    for (int i=0; i<20; ++i) {
-//        v8.ExecJs(plain_js);
-//    }
+    for (int i=0; i<200; ++i) {
+        v8.ExecJs(plain_js);
+    }
     
     cout << "after executing" << endl << result << endl;
 }

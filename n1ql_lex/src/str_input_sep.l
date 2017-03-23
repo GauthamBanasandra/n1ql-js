@@ -4,10 +4,6 @@
 
 	* Output:	Syntactically and semantically valid JavaScript code.
 
-	* Caveats:	The N1QL statement must end with a semi-colon ';'.
-				Otherwise, the lex program can't detect detect the end of the query.
-
-	* TODO:		At the moment, the assumption is that all N1QL queries begin with 'select'. Need to handle the case to correctly detect the start of the N1QL query.
 	* TODO:		Escape the DSTR strings - necessary for esprima.
 	*/
 	#include <iostream>
@@ -23,22 +19,26 @@
 
 	// Contains the output plain JavaScript code.
 	string plain_js;
+	// Storing the state for resuming on switch.
 	int previous_state;
 %}
 %x N1QL MLCMT SLCMT DSTR SSTR TSTR
 %%
 	previous_state=YYSTATE;
 "/*"	{
+			/* Start of a multi-line comment */
 			previous_state=YYSTATE;
 			BEGIN MLCMT;
 			plain_js+="/*";
 		}
 <MLCMT>"*/"	{
+				/* Stop of a multi-line comment */
 				plain_js+="*/";
 				BEGIN previous_state;
 			}
 <MLCMT>\n	{plain_js+="\n";}
 "//"	{
+			/* Single-line comment */
 			previous_state=YYSTATE;
 			BEGIN SLCMT;
 			plain_js+="//";
@@ -47,13 +47,13 @@
 				BEGIN previous_state;
 				plain_js+="\n";
 			}
-["]	{handle_str_start(DSTR);}
+["]	{handle_str_start(DSTR); /* Handling double-quoted string */}
 <DSTR>["]	{handle_str_stop(DSTR);}
-[']	{handle_str_start(SSTR);}
+[']	{handle_str_start(SSTR); /* Handling single-quoted string */}
 <SSTR>[']	{handle_str_stop(SSTR);}
-[`]	{handle_str_start(TSTR);}
+[`]	{handle_str_start(TSTR); /* Handling templated string */}
 <TSTR>[`]	{handle_str_stop(TSTR);}
-(var|function)[ \t\n]+[aA][lL][tT][eE][rR][ \t\n;=(]|[aA][lL][tT][eE][rR][ \t\n]*:[ \t\n]*\{	{return KWD_ALTER;}
+(var|function)[ \t\n]+[aA][lL][tT][eE][rR][ \t\n;=(]|[aA][lL][tT][eE][rR][ \t\n]*:[ \t\n]*\{	{return KWD_ALTER; /* Checking the constraints in this section */}
 (var|function)[ \t\n]+[bB][uU][iI][lL][dD][ \t\n;=(]|[bB][uU][iI][lL][dD][ \t\n]*:[ \t\n]*\{	{return KWD_BUILD;}
 (var|function)[ \t\n]+[cC][rR][eE][aA][tT][eE][ \t\n;=(]|[cC][rR][eE][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_CREATE;}
 (var|function)[ \t\n]+[dD][eE][lL][eE][tT][eE][ \t\n;=(]|[dD][eE][lL][eE][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_DELETE;}
@@ -101,7 +101,7 @@
 \n	{plain_js+="\n";}
 %%
 // Parses the given input string.
-int parse(const char* input, string *output)
+int Jsify(const char* input, string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
@@ -109,7 +109,7 @@ int parse(const char* input, string *output)
 	// Begin lexer.
 	int code=yylex();
 
-	// Clear the buffer allocation.
+	// Clear the buffer allocation after the lex.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	// Copy the output;
@@ -121,6 +121,8 @@ int parse(const char* input, string *output)
 	return code;
 }
 
+// Handles the concatenation of different types of strings.
+// It tries to escape the quote of the same kind.
 void handle_str_start(int state)
 {
 	previous_state=YYSTATE;
@@ -144,6 +146,7 @@ void handle_str_start(int state)
 	}
 }
 
+// Restores the previous state and adds the appropriate closing quote.
 void handle_str_stop(int state)
 {
 	if(!is_esc())
@@ -165,6 +168,7 @@ void handle_str_stop(int state)
 	}
 }
 
+// Tests whether the current character is an escape character.
 bool is_esc()
 {
 	return plain_js.length()>0?plain_js[plain_js.length()-1]=='\\':0;

@@ -12,11 +12,12 @@
 using namespace v8;
 using namespace std;
 
-// TODO : Change this path.
+// Returns the path to transpiler.js
 string N1qlUtils::GetTranspilerJsPath() {
     return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/transpiler.js";
 }
 
+// Returns the path to js_format.js (Does not exist currently - required for unit tests).
 string N1qlUtils::GetJsFormatPath() {
     return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/"
            "js_format.js";
@@ -28,6 +29,12 @@ string N1qlUtils::GetTestInputPath() {
     return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/"
            "inputs/inputs/jsify_inputs.txt";
 }
+
+string N1qlUtils::GetEsToolsPath() {
+    return "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/estools.js";
+}
+
+// Reads a file from the given path and returns the content.
 string N1qlUtils::ReadFile(string file_path) {
     ifstream file(file_path);
     string source((istreambuf_iterator<char>(file)),

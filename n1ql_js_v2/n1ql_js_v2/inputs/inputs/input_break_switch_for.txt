@@ -1,0 +1,10 @@
+for(var i of res) {
+    switch(i) {
+    case '1':
+        for(var row of res2)
+            break;
+        break;
+    default:
+        break;
+    }
+}

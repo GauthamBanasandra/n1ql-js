@@ -723,10 +723,6 @@ char *yytext;
 
 	* Output:	Syntactically and semantically valid JavaScript code.
 
-	* Caveats:	The N1QL statement must end with a semi-colon ';'.
-				Otherwise, the lex program can't detect detect the end of the query.
-
-	* TODO:		At the moment, the assumption is that all N1QL queries begin with 'select'. Need to handle the case to correctly detect the start of the N1QL query.
 	* TODO:		Escape the DSTR strings - necessary for esprima.
 	*/
 	#include <iostream>
@@ -742,9 +738,10 @@ char *yytext;
 
 	// Contains the output plain JavaScript code.
 	string plain_js;
+	// Storing the state for resuming on switch.
 	int previous_state;
 
-#line 748 "lex.yy.c"
+#line 745 "lex.yy.c"
 
 #define INITIAL 0
 #define N1QL 1
@@ -932,10 +929,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 29 "str_input_sep.l"
+#line 26 "str_input_sep.l"
 
 	previous_state=YYSTATE;
-#line 939 "lex.yy.c"
+#line 936 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -1020,8 +1017,9 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 31 "str_input_sep.l"
+#line 28 "str_input_sep.l"
 {
+			/* Start of a multi-line comment */
 			previous_state=YYSTATE;
 			BEGIN MLCMT;
 			plain_js+="/*";
@@ -1029,8 +1027,9 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 36 "str_input_sep.l"
+#line 34 "str_input_sep.l"
 {
+				/* Stop of a multi-line comment */
 				plain_js+="*/";
 				BEGIN previous_state;
 			}
@@ -1038,13 +1037,14 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 40 "str_input_sep.l"
+#line 39 "str_input_sep.l"
 {plain_js+="\n";}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 41 "str_input_sep.l"
+#line 40 "str_input_sep.l"
 {
+			/* Single-line comment */
 			previous_state=YYSTATE;
 			BEGIN SLCMT;
 			plain_js+="//";
@@ -1062,7 +1062,7 @@ YY_RULE_SETUP
 case 6:
 YY_RULE_SETUP
 #line 50 "str_input_sep.l"
-{handle_str_start(DSTR);}
+{handle_str_start(DSTR); /* Handling double-quoted string */}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -1072,7 +1072,7 @@ YY_RULE_SETUP
 case 8:
 YY_RULE_SETUP
 #line 52 "str_input_sep.l"
-{handle_str_start(SSTR);}
+{handle_str_start(SSTR); /* Handling single-quoted string */}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
@@ -1082,7 +1082,7 @@ YY_RULE_SETUP
 case 10:
 YY_RULE_SETUP
 #line 54 "str_input_sep.l"
-{handle_str_start(TSTR);}
+{handle_str_start(TSTR); /* Handling templated string */}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
@@ -1093,7 +1093,7 @@ case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
 #line 56 "str_input_sep.l"
-{return KWD_ALTER;}
+{return KWD_ALTER; /* Checking the constraints in this section */}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
@@ -2338,7 +2338,7 @@ void yyfree (void * ptr )
 
 
 // Parses the given input string.
-int parse(const char* input, string *output)
+int Jsify(const char* input, string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
@@ -2346,7 +2346,7 @@ int parse(const char* input, string *output)
 	// Begin lexer.
 	int code=yylex();
 
-	// Clear the buffer allocation.
+	// Clear the buffer allocation after the lex.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	// Copy the output;
@@ -2358,6 +2358,8 @@ int parse(const char* input, string *output)
 	return code;
 }
 
+// Handles the concatenation of different types of strings.
+// It tries to escape the quote of the same kind.
 void handle_str_start(int state)
 {
 	previous_state=YYSTATE;
@@ -2381,6 +2383,7 @@ void handle_str_start(int state)
 	}
 }
 
+// Restores the previous state and adds the appropriate closing quote.
 void handle_str_stop(int state)
 {
 	if(!is_esc())
@@ -2402,6 +2405,7 @@ void handle_str_stop(int state)
 	}
 }
 
+// Tests whether the current character is an escape character.
 bool is_esc()
 {
 	return plain_js.length()>0?plain_js[plain_js.length()-1]=='\\':0;

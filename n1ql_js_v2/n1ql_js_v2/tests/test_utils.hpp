@@ -11,5 +11,6 @@
 
 #include <iostream>
 std::string ReadFile(std::string);
-
+std::string FormatJs(std::string input);
+std::string Transpile(std::string);
 #endif /* test_utils_hpp */

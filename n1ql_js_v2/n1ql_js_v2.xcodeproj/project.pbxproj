@@ -11,7 +11,6 @@
 		AC0FBA4C1E797FBF002073B3 /* n1ql_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */; };
 		AC15CE8D1E6ECC0400B71475 /* libv8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0F141E6EC7B700706E47 /* libv8.dylib */; };
 		ACC5778E1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
-		ACC5778F1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
 		ACC577921E6ED14D006D73EE /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577901E6ED14D006D73EE /* utils.cpp */; };
 		ACC577931E6ED14D006D73EE /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577901E6ED14D006D73EE /* utils.cpp */; };
 		ACC577961E6EFD08006D73EE /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577941E6EFD08006D73EE /* transpiler.cpp */; };
@@ -27,6 +26,7 @@
 		ACEA0EF41E6E8DE800706E47 /* libgtest_main.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0EE01E6E8A0D00706E47 /* libgtest_main.a */; };
 		ACEA0EF71E6E963200706E47 /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACEA0EF51E6E963200706E47 /* test_utils.cpp */; };
 		ACFA2A441E72A9AA00DE9B12 /* jsify_inputs.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = ACFA2A431E728FE100DE9B12 /* jsify_inputs.txt */; };
+		ACFD27B91E8130CC0056FB4E /* transpilation_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACFD27B81E8130CC0056FB4E /* transpilation_test.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -67,6 +67,7 @@
 		AC0FBA4A1E79225C002073B3 /* query_engine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = query_engine.hpp; sourceTree = "<group>"; };
 		AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_js.cpp; sourceTree = "<group>"; };
 		AC0FBA4D1E79800D002073B3 /* n1ql_js.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = n1ql_js.hpp; sourceTree = "<group>"; };
+		AC1B3F601E822AAF00627F84 /* estools.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estools.js; sourceTree = "<group>"; };
 		ACAB534F1E6FC29C00C9FE73 /* test_utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = test_utils.hpp; path = n1ql_js_v2/tests/test_utils.hpp; sourceTree = SOURCE_ROOT; };
 		ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = exec_js.cpp; sourceTree = "<group>"; };
 		ACC577901E6ED14D006D73EE /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
@@ -94,6 +95,7 @@
 		ACEA0F1B1E6ECB0200706E47 /* libv8_libsampler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_libsampler.a; path = ../../v8/v8/out/ia32.release/libv8_libsampler.a; sourceTree = "<group>"; };
 		ACEA0F1C1E6ECB0200706E47 /* libv8_nosnapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_nosnapshot.a; path = ../../v8/v8/out/ia32.release/libv8_nosnapshot.a; sourceTree = "<group>"; };
 		ACFA2A431E728FE100DE9B12 /* jsify_inputs.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jsify_inputs.txt; sourceTree = "<group>"; };
+		ACFD27B81E8130CC0056FB4E /* transpilation_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpilation_test.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +160,7 @@
 		ACE512F01E6D300D0094AFEC /* src */ = {
 			isa = PBXGroup;
 			children = (
+				AC1B3F601E822AAF00627F84 /* estools.js */,
 				AC0FBA431E7911FF002073B3 /* transpiler.js */,
 				ACC5779D1E6F06BC006D73EE /* js_format.js */,
 				ACE512F71E6D30960094AFEC /* jsify.cpp */,
@@ -224,6 +227,7 @@
 			children = (
 				ACEA0EF11E6E8DC900706E47 /* jsify_test.cpp */,
 				ACEA0EF51E6E963200706E47 /* test_utils.cpp */,
+				ACFD27B81E8130CC0056FB4E /* transpilation_test.cpp */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -368,9 +372,9 @@
 				ACC577971E6EFD08006D73EE /* transpiler.cpp in Sources */,
 				ACC577931E6ED14D006D73EE /* utils.cpp in Sources */,
 				ACC5779B1E6EFD36006D73EE /* v8_env.cpp in Sources */,
-				ACC5778F1E6ED0CC006D73EE /* exec_js.cpp in Sources */,
 				ACEA0EF71E6E963200706E47 /* test_utils.cpp in Sources */,
 				ACD8C4DA1E6F1207000A4E78 /* jsify.cpp in Sources */,
+				ACFD27B91E8130CC0056FB4E /* transpilation_test.cpp in Sources */,
 				ACEA0EF21E6E8DC900706E47 /* jsify_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -471,7 +475,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
-					/Users/gautham/.cbdepscache,
+					/Users/gautham/.cbdepscache/,
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -493,7 +497,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
-					/Users/gautham/.cbdepscache,
+					/Users/gautham/.cbdepscache/,
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (

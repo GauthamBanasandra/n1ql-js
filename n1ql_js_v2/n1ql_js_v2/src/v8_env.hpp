@@ -20,6 +20,8 @@ class V8Env {
     Platform *platform;
 
     static void LogFunction(const FunctionCallbackInfo<Value> &);
+    
+    static void SendMailFunction(const FunctionCallbackInfo<Value> &);
 
     static void IterFunction(const FunctionCallbackInfo<Value> &);
 

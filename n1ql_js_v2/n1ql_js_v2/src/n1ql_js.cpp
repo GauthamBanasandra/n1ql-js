@@ -18,6 +18,8 @@ std::string TranspileAndExec(std::string input_source){
     std::string transpiler_js_src = N1qlUtils::ReadFile(N1qlUtils::GetTranspilerJsPath());
     V8Env v8Env;
     std::string transpiled_js = v8Env.Build(transpiler_js_src, plain_js, EXEC_TRANSPILER);
+//    for(int i=0; i<100; ++i)
+    v8Env.ExecJs(transpiled_js);
     
     return transpiled_js;
 }

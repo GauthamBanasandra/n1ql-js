@@ -1,0 +1,30 @@
+if(res1.isInstance){
+    res1.iter(function(i){
+        if(res2.isInstance){
+            res2.iter(function(j){
+                res2.stopIter();
+                return;
+            });
+        }
+        else {
+            for(var j of res2) {
+                break;
+            }
+        }
+    });
+}
+else {
+    for(var i of res1) {
+        if(res2.isInstance){
+            res2.iter(function(j){
+                res2.stopIter();
+                return;
+            });
+        }
+        else {
+            for(var j of res2){
+                break;
+            }
+        }
+    }
+}

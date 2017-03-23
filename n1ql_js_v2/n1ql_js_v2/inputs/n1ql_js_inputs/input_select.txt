@@ -1,14 +1,23 @@
 function OnUpdate(doc, meta) {
-    var bucket = 'default';
-    var res = SELECT * FROM :bucket;
+    var bucket = '`beer-sample`', abv = 5, limit = 5;
+
+    var res = SELECT * FROM :bucket WHERE abv > :abv LIMIT :limit;
+
+    var msg = 'Eventing updates';
+    msg += '\nquery:\t' + res.query;
 
     var count = 0;
     for (var row of res) {
-        if (count > 2)
-            break;
         ++count;
-        log(row);
+        msg += '\n\nabv = ' + row['beer-sample'].abv;
+        msg += '\nid = ' + row['beer-sample'].brewery_id;
+        msg += '\ndescription = ' + row['beer-sample'].description;
+
+        if (count > 1)
+            break;
     }
+
+    sendMail('gautham.bangalore@gmail.com', 'With love from Couchbase (again)', msg);
 }
 
 OnUpdate(1, 2);

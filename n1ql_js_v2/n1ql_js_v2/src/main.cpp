@@ -38,7 +38,17 @@ int main(int argc, const char *argv[]) {
 
     string source = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/n1ql_js_inputs/input_select.txt");
     string transpiled_js = TranspileAndExec(source);
-    
     cout << transpiled_js << endl;
+    
+    // Reading from stdin.
+//    cin >> noskipws;
+//    istream_iterator<char> iterator(cin);
+//    istream_iterator<char> iterator_end;
+//    
+//    string source_code(iterator, iterator_end);
+//    
+//    string transpiled_js = TranspileAndExec(source_code);
+//    cout << transpiled_js << endl;
+    
     return 0;
 }

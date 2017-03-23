@@ -21,10 +21,11 @@ class N1qlUtils {
     static std::string GetTestInputPath();
 
     static std::string GetJsFormatPath();
+    
+    static std::string GetEsToolsPath();
 
     static std::string ReadFile(std::string file_path);
 
-    static std::string
-    GetArgAsString(const v8::FunctionCallbackInfo<v8::Value> &);
+    static std::string GetArgAsString(const v8::FunctionCallbackInfo<v8::Value> &);
 };
 #endif /* utils_hpp */

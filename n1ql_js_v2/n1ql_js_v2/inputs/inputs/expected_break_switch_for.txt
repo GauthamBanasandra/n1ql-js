@@ -1,0 +1,42 @@
+if(res.isInstance) {
+    res.iter(function(i) {
+        switch(i) {
+        case '1':
+            if(res2.isInstance) {
+                res2.iter(function(row) {
+                    res2.stopIter();
+                    return;
+                });
+            }
+            else {
+                for(var row of res2) {
+                break;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    });
+}
+else {
+    for(var i of res) {
+    switch(i) {
+    case '1':
+        if(res2.isInstance) {
+                res2.iter(function(row) {
+                    res2.stopIter();
+                    return;
+                });
+            }
+            else {
+                for(var row of res2) {
+                break;
+                }
+            }
+            break;
+    default:
+        break;
+    }
+}
+}

@@ -8,7 +8,7 @@ var n1ql_query = couchbase.N1qlQuery;
 bucket.manager().createPrimaryIndex({ignoreIfExists: true}, function ()
 {
     bucket.upsert('user:king_arthur',
-        {'email': 'kingarthur@couchbase.com', 'interests': ['Holy Grail', 'African Swallows']},
+        {'email': 'princearthur@couchbase.com', 'interests': ['Holy Grail', 'African Swallows']},
         function (err, result)
         {
             bucket.get('user:king_arthur', function (err, result)

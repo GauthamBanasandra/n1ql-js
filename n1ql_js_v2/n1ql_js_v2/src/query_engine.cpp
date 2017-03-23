@@ -50,6 +50,7 @@ QueryEngine::~QueryEngine()
     lcb_destroy(instance);
 }
 
+// Error handler for LCB instance.
 void QueryEngine::end(lcb_t instance, const char *msg, lcb_error_t err)
 {
     fprintf(stderr, "error\t%s\nerror code\t%X\t%s\n", msg, err, lcb_strerror(instance, err));
@@ -97,6 +98,7 @@ vector<string> QueryEngine::ExecQuery(std::string query)
     return rows;
 }
 
+// Callback to execute for each row.
 void QueryEngine::row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp)
 {
     if (stop_signal)
@@ -112,8 +114,19 @@ void QueryEngine::row_callback(lcb_t instance, int callback_type, const lcb_RESP
         
         if (is_callback_set)
         {
-            Local<Value> args[1];
-            args[0] = String::NewFromUtf8(Isolate::GetCurrent(), temp);
+            v8::Isolate *isolate = Isolate::GetCurrent();
+            v8::Local<v8::Object> json = isolate->GetCurrentContext()
+            ->Global()
+            ->Get(String::NewFromUtf8(isolate, "JSON"))
+            ->ToObject();
+
+            v8::Local<v8::Function> parse = json
+            ->Get(v8::String::NewFromUtf8(isolate, "parse")).As<v8::Function>();
+            
+            v8::Local<v8::Value> args[1];
+            args[0] = String::NewFromUtf8(isolate, temp);
+            args[0] = parse->Call(json, 1, &args[0]);
+            
             callback->Call(callback, 1, args);
         } else
             rows.push_back(string(temp));

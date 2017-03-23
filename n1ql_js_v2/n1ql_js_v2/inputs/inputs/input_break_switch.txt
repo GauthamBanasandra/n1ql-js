@@ -1,0 +1,8 @@
+for(var i of res) {
+    switch(i) {
+    case '1':
+        break;
+    default:
+        break;
+    }
+}

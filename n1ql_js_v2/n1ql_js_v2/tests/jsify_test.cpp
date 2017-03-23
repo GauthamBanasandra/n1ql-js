@@ -8,16 +8,11 @@
 
 #include "test_utils.hpp"
 #include "utils.hpp"
-#include "v8_env.hpp"
 #include "gtest/gtest.h"
 #include "jsify.hpp"
 #include <iostream>
 
 using namespace std;
-
-string FormatJs(string input);
-V8Env v8env;
-
 
 TEST(TrivialTest, Select) {
     string input = ReadFile("./inputs/test_inputs/input_select.txt");
@@ -295,11 +290,4 @@ TEST(ErrorTest, InsertAsLabel) {
     int code = parse(input.c_str(), &output);
 
     EXPECT_EQ(code, KWD_INSERT);
-}
-
-string FormatJs(string input) {
-    string jsFormatSrc = N1qlUtils::ReadFile(N1qlUtils::GetJsFormatPath());
-    string formattedJs = v8env.Build(jsFormatSrc, input, EXEC_JS_FORMAT);
-
-    return formattedJs;
 }

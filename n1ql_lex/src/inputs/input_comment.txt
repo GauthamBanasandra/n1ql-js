@@ -2,7 +2,9 @@ function OnUpdate(doc, meta)
 {
     var bucket='default';
 
-    var res=SELECT * FROM :bucket;
+	var revoke;
+
+    var res=REVOKE * FROM :bucket;
 
     alter1:{
         for(var row of res)
