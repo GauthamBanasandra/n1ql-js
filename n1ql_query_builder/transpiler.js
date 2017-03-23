@@ -53,6 +53,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
         var ancestorStack = new Stack();
         this.stackIndex = -1;
 
+        // debug.
         this.stackCopy = ancestorStack.stackCopy;
 
         var associations = new Set();
@@ -65,6 +66,14 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 associations.add('SwitchStatement');
                 associations.add('WhileStatement');
                 associations.add('LabeledStatement');
+                break;
+            case 'continue':
+                associations.add('DoWhileStatement');
+                associations.add('ForStatement');
+                associations.add('ForInStatement');
+                associations.add('ForOfStatement');
+                associations.add('SwitchStatement');
+                associations.add('WhileStatement');
                 break;
             default:
                 throw 'Invalid modifier';
@@ -79,6 +88,9 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 switch (this.modType) {
                     case 'break':
                         node.breakStackIndex = this.stackIndex;
+                        break;
+                    case 'continue':
+                        node.continueStackIndex = this.stackIndex;
                         break;
                     default:
                         throw 'Invalid modifier type';
@@ -95,6 +107,11 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             return ancestorStack.pop();
                         }
                         break;
+                    case 'continue':
+                        if (this.stackIndex == ancestorStack.peek().continueStackIndex) {
+                            return ancestorStack.pop();
+                        }
+                        break;
                     default:
                         throw 'Invalid modifier type';
                 }
@@ -108,12 +125,12 @@ function get_ast(code, esprima, estraverse, escodegen) {
         this.isReplaceReq = function () {
             if (ancestorStack.getSize() > 0) {
                 switch (this.modType) {
+                    case 'continue':
                     case 'break':
-                        if (ancestorStack.peek().type === 'ForOfStatement') {
+                        if (/ForOfStatement/.test(ancestorStack.peek().type)) {
                             return true;
                         }
                         break;
-
                     default:
                         break;
                 }
@@ -138,16 +155,16 @@ function get_ast(code, esprima, estraverse, escodegen) {
     }
 
     function insert_node(parentBody, insAfterNode, nodeToInsert) {
-        //console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        //console.assert(parentBody.indexOf(insAfterNode) != -1, 'node not found in the parent body');
+        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+        console.assert(parentBody.indexOf(insAfterNode) != -1, 'node not found in the parent body');
 
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice(insertIndex, 0, nodeToInsert);
     }
 
     function insert_array(parentBody, insAfterNode, arrayToInsert) {
-        //console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        //console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
+        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+        console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
     }
@@ -166,12 +183,22 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 break;
             case 'IfStatement':
                 var ifBodyAst = {};
-                // Make a deep copy of the body.
+                // Make a deep copy of the 'if' body.
                 Object.keys(node.consequent).forEach(function (key) {
                     ifBodyAst[key] = node.consequent[key];
                 });
                 node.consequent.body = [ifBodyAst];
                 node.consequent.type = 'BlockStatement';
+                // If the 'else' part exists, convert it to a block statement.
+                if (node.alternate) {
+                    var elseBodyAst = {};
+                    // Make a deep copy of the 'else' body.
+                    Object.keys(node.alternate).forEach(function (key) {
+                        elseBodyAst[key] = node.alternate[key];
+                    });
+                    node.alternate.body = [elseBodyAst];
+                    node.alternate.type = 'BlockStatement';
+                }
                 break;
         }
     }
@@ -181,33 +208,42 @@ function get_ast(code, esprima, estraverse, escodegen) {
     }
 
     function get_iter_ast(forOfNode, mode) {
+        var returnStmtAst = {
+            "type": "ReturnStatement",
+            "argument": null
+        };
+
         var nodeCopy = deep_copy(forOfNode);
         if (mode === 'for_of') {
             estraverse.traverse(nodeCopy, {
                 enter: function (node, parent) {
                     ++breakMod.stackIndex;
+                    ++continueMod.stackIndex;
+
                     if (node.isGen) {
                         return;
                     }
 
                     breakMod.pushIfAssoc(node);
+                    continueMod.pushIfAssoc(node);
+
                     switch (node.type) {
                         case 'BreakStatement':
                             if (breakMod.isReplaceReq()) {
                                 var stopIterAst = esprima.parse(nodeCopy.right.name + '.stopIter();');
-                                var returnStmtAst = {
-                                    "type": "ReturnStatement",
-                                    "argument": null
-                                };
-
                                 stopIterAst = replace_node(node, stopIterAst.body[0]);
                                 insert_node(parent.body, stopIterAst, returnStmtAst);
                             }
                             break;
+                        case 'ContinueStatement':
+                            if (continueMod.isReplaceReq()) {
+                                replace_node(node, returnStmtAst);
+                            }
+                            break;
                         case 'IfStatement':
                             if (!/BlockStatement/.test(node.type)) {
-                                    convert_to_block_stmt(node);
-                                }
+                                convert_to_block_stmt(node);
+                            }
                             break;
                     }
                 },
@@ -282,6 +318,8 @@ function get_ast(code, esprima, estraverse, escodegen) {
     }
 
     var breakMod = new LoopModifier('break');
+    var continueMod = new LoopModifier('continue');
+
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {
         attachComment: true,
@@ -290,6 +328,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
     estraverse.traverse(ast, {
         leave: function (node) {
+            // Perform variable substitution in query constructor.
             if (is_n1ql_node(node) && node.arguments.length > 0) {
                 var queryAst = get_query_ast(node.arguments[0].quasis[0].value.raw);
                 replace_node(node, deep_copy(queryAst));

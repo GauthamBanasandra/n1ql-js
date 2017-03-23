@@ -24,6 +24,7 @@ V8Env v8env;
 
 string ReadFile(string filename) {
     if (test_data.size() == 0) {
+        system("python /Users/gautham/projects/file_modifier/input_combine.py /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/ > /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/jsify_inputs.txt");
         MapTestData(N1qlUtils::GetTestInputPath());
     }
 

@@ -178,6 +178,7 @@ std::string V8Env::ExecJs(std::string js_source) {
 void V8Env::StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     stop_signal = true;
+    
 }
 
 // This function accepts a function as argument and executes it as part of the parent script.

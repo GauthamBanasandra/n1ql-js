@@ -1,0 +1,19 @@
+if(res.isInstance){
+    res.iter(function(row) {
+        if(true){
+            log(row);
+        }
+        else {
+            res.stopIter();
+            return;
+        }
+    });
+}
+else {
+    for(var row of res){
+    if(true)
+        log(row);
+    else
+        break;
+    }
+}

@@ -1,0 +1,19 @@
+if(res.isInstance) {
+    res.iter(function(i) {
+        if(true) {
+            res.stopIter();
+            return;
+        }
+        else {
+            return;
+        }
+    });
+}
+else {
+    for(var i of res){
+    if(true)
+        break;
+    else
+        continue;
+    }
+}
