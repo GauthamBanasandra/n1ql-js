@@ -17,7 +17,9 @@ function OnUpdate(doc, meta) {
             break;
     }
 
-    sendMail('gautham.bangalore@gmail.com', 'With love from Couchbase (again)', msg);
+    log(msg);
+    // sendMail('gautham.bangalore@gmail.com', 'With love from Couchbase
+    // (again)', msg);
 }
 
 OnUpdate(1, 2);

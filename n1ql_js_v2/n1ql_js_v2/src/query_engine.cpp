@@ -13,6 +13,7 @@ using namespace v8;
 
 vector<string> rows;
 Local<Function> callback;
+Local<Value> callback_result;
 bool is_callback_set = false;
 bool stop_signal = false;
 
@@ -47,6 +48,7 @@ QueryEngine::QueryEngine()
 
 QueryEngine::~QueryEngine()
 {
+    cout << "calling destructor" << endl;
     lcb_destroy(instance);
 }
 
@@ -127,7 +129,7 @@ void QueryEngine::row_callback(lcb_t instance, int callback_type, const lcb_RESP
             args[0] = String::NewFromUtf8(isolate, temp);
             args[0] = parse->Call(json, 1, &args[0]);
             
-            callback->Call(callback, 1, args);
+            callback_result = callback->Call(callback, 1, args);
         } else
             rows.push_back(string(temp));
         

@@ -1,0 +1,10 @@
+function n1ql() {
+    var bucket = '`beer-sample`';
+    var res = SELECT * FROM :bucket;
+    res.x = res.iter(function(row){
+        return res.stopIter({code:'break'});
+    });
+    log(res.x.arg);
+}
+
+n1ql();

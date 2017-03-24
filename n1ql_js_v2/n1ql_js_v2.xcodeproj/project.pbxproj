@@ -62,7 +62,7 @@
 
 /* Begin PBXFileReference section */
 		AC0FBA431E7911FF002073B3 /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
-		AC0FBA451E791879002073B3 /* input_select.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input_select.txt; sourceTree = "<group>"; };
+		AC0FBA451E791879002073B3 /* input_select.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input_select.txt; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.javascript; };
 		AC0FBA481E792247002073B3 /* query_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = query_engine.cpp; sourceTree = "<group>"; };
 		AC0FBA4A1E79225C002073B3 /* query_engine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = query_engine.hpp; sourceTree = "<group>"; };
 		AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_js.cpp; sourceTree = "<group>"; };
@@ -94,7 +94,8 @@
 		ACEA0F1A1E6ECB0200706E47 /* libv8_libplatform.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_libplatform.a; path = ../../v8/v8/out/ia32.release/libv8_libplatform.a; sourceTree = "<group>"; };
 		ACEA0F1B1E6ECB0200706E47 /* libv8_libsampler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_libsampler.a; path = ../../v8/v8/out/ia32.release/libv8_libsampler.a; sourceTree = "<group>"; };
 		ACEA0F1C1E6ECB0200706E47 /* libv8_nosnapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_nosnapshot.a; path = ../../v8/v8/out/ia32.release/libv8_nosnapshot.a; sourceTree = "<group>"; };
-		ACFA2A431E728FE100DE9B12 /* jsify_inputs.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jsify_inputs.txt; sourceTree = "<group>"; };
+		ACF8BEDF1E83D589004B4F62 /* input_stop_iter.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = input_stop_iter.txt; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.javascript; };
+		ACFA2A431E728FE100DE9B12 /* jsify_inputs.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jsify_inputs.txt; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.javascript; };
 		ACFD27B81E8130CC0056FB4E /* transpilation_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpilation_test.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -123,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				AC0FBA451E791879002073B3 /* input_select.txt */,
+				ACF8BEDF1E83D589004B4F62 /* input_stop_iter.txt */,
 			);
 			path = n1ql_js_inputs;
 			sourceTree = "<group>";

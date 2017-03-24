@@ -1,8 +1,7 @@
 if(res.isInstance) {
     res.iter(function(i) {
         if(true) {
-            res.stopIter();
-            return;
+            return res.stopIter('break');
         }
         else {
             return;

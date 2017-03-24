@@ -4,8 +4,7 @@ if(res.isInstance){
             log(row);
         }
         else {
-            res.stopIter();
-            return;
+            return res.stopIter('break');
         }
     });
 }

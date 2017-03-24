@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 //    string result=v8Env.ExecJs(source);
 //    cout << result << endl;
 
-    string source = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/n1ql_js_inputs/input_select.txt");
+    string source = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/n1ql_js_inputs/input_stop_iter.txt");
     string transpiled_js = TranspileAndExec(source);
     cout << transpiled_js << endl;
     

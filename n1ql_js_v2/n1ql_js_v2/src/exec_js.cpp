@@ -11,6 +11,8 @@
 #include "query_engine.hpp"
 
 extern bool stop_signal;
+extern v8::Local<v8::Value> callback_result;
+extern QueryEngine *q_engine;
 
 std::string base64_encode(unsigned char const* , unsigned int len);
 std::string base64_decode(std::string const& s);
@@ -179,6 +181,9 @@ void V8Env::StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     stop_signal = true;
     
+    v8::Local<v8::Value> arg = args[0];
+    
+    args.GetReturnValue().Set(arg);
 }
 
 // This function accepts a function as argument and executes it as part of the parent script.
@@ -193,8 +198,8 @@ void V8Env::IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args)
     
     v8::Local<v8::Function> ffunc = v8::Local<v8::Function>::Cast(args[0]);
     
-    QueryEngine qEngine;
-    qEngine.ExecQuery(*query_string, ffunc);
+    q_engine->ExecQuery(*query_string, ffunc);
+    args.GetReturnValue().Set(callback_result);
 }
 
 

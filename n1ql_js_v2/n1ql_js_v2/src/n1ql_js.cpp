@@ -10,15 +10,21 @@
 #include "jsify.hpp"
 #include "utils.hpp"
 #include "v8_env.hpp"
+#include "query_engine.hpp"
+
+QueryEngine *q_engine;
 
 std::string TranspileAndExec(std::string input_source){
     std::string plain_js;
     parse(input_source.c_str(), &plain_js);
     
     std::string transpiler_js_src = N1qlUtils::ReadFile(N1qlUtils::GetTranspilerJsPath());
+    transpiler_js_src += N1qlUtils::ReadFile(N1qlUtils::GetEsToolsPath());
+    
     V8Env v8Env;
     std::string transpiled_js = v8Env.Build(transpiler_js_src, plain_js, EXEC_TRANSPILER);
-//    for(int i=0; i<100; ++i)
+    q_engine = new QueryEngine();
+    
     v8Env.ExecJs(transpiled_js);
     
     return transpiled_js;

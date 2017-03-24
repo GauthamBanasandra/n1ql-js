@@ -39,6 +39,15 @@ function get_ast(code, esprima, estraverse, escodegen) {
             return stack.length;
         }
 
+        this.contains = function (item) {
+            for (var _item of stack) {
+                if (_item !== item) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // debug.
         this.printAll = function () {
             for (var item of stack) {
@@ -58,7 +67,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
         var associations = new Set();
         switch (this.modType) {
-            case 'break':
+            case CONST.BREAK:
                 associations.add('DoWhileStatement');
                 associations.add('ForStatement');
                 associations.add('ForInStatement');
@@ -67,13 +76,16 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 associations.add('WhileStatement');
                 associations.add('LabeledStatement');
                 break;
-            case 'continue':
+            case CONST.CONTINUE:
                 associations.add('DoWhileStatement');
                 associations.add('ForStatement');
                 associations.add('ForInStatement');
                 associations.add('ForOfStatement');
                 associations.add('SwitchStatement');
                 associations.add('WhileStatement');
+                break;
+            case CONST.LBL_BREAK:
+                associations.add('LabeledStatement');
                 break;
             default:
                 throw 'Invalid modifier';
@@ -86,32 +98,42 @@ function get_ast(code, esprima, estraverse, escodegen) {
         this.pushIfAssoc = function (node) {
             if (this.checkAssoc(node.type)) {
                 switch (this.modType) {
-                    case 'break':
+                    case CONST.BREAK:
                         node.breakStackIndex = this.stackIndex;
+                        ancestorStack.push(node);
                         break;
-                    case 'continue':
+                    case CONST.CONTINUE:
                         node.continueStackIndex = this.stackIndex;
+                        ancestorStack.push(node);
+                        break;
+                    case CONST.LBL_BREAK:
+                        console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
+                        node.lblBreakStackIndex = this.stackIndex;
+                        ancestorStack.push(node.label.name);
                         break;
                     default:
                         throw 'Invalid modifier type';
                 }
-                ancestorStack.push(node);
             }
         }
 
         this.popIfAssoc = function () {
             if (ancestorStack.getSize() > 0) {
                 switch (this.modType) {
-                    case 'break':
+                    case CONST.BREAK:
                         if (this.stackIndex == ancestorStack.peek().breakStackIndex) {
                             return ancestorStack.pop();
                         }
                         break;
-                    case 'continue':
+                    case CONST.CONTINUE:
                         if (this.stackIndex == ancestorStack.peek().continueStackIndex) {
                             return ancestorStack.pop();
                         }
                         break;
+                    case CONST.LBL_BREAK:
+                        if (this.stackIndex == ancestorStack.peek().lblBreakStackIndex) {
+                            return ancestorStack.pop();
+                        }
                     default:
                         throw 'Invalid modifier type';
                 }
@@ -122,20 +144,24 @@ function get_ast(code, esprima, estraverse, escodegen) {
             return ancestorStack.getSize();
         }
 
-        this.isReplaceReq = function () {
+        this.isReplaceReq = function (args) {
             if (ancestorStack.getSize() > 0) {
                 switch (this.modType) {
-                    case 'continue':
-                    case 'break':
+                    case CONST.CONTINUE:
+                    case CONST.BREAK:
                         if (/ForOfStatement/.test(ancestorStack.peek().type)) {
                             return true;
                         }
                         break;
-                    default:
+                    case CONST.LBL_BREAK:
+                        return !ancestorStack.contains(args);
                         break;
+                    default:
+                        throw 'Invalid modifier type';
                 }
             }
         }
+
         // debug.
         this.printAll = function () {
             ancestorStack.printAll();
@@ -208,17 +234,13 @@ function get_ast(code, esprima, estraverse, escodegen) {
     }
 
     function get_iter_ast(forOfNode, mode) {
-        var returnStmtAst = {
-            "type": "ReturnStatement",
-            "argument": null
-        };
-
         var nodeCopy = deep_copy(forOfNode);
         if (mode === 'for_of') {
             estraverse.traverse(nodeCopy, {
                 enter: function (node, parent) {
                     ++breakMod.stackIndex;
                     ++continueMod.stackIndex;
+                    ++lblBreakMod.stackIndex;
 
                     if (node.isGen) {
                         return;
@@ -226,17 +248,36 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
                     breakMod.pushIfAssoc(node);
                     continueMod.pushIfAssoc(node);
+                    lblBreakMod.pushIfAssoc(node);
 
                     switch (node.type) {
                         case 'BreakStatement':
-                            if (breakMod.isReplaceReq()) {
-                                var stopIterAst = esprima.parse(nodeCopy.right.name + '.stopIter();');
-                                stopIterAst = replace_node(node, stopIterAst.body[0]);
-                                insert_node(parent.body, stopIterAst, returnStmtAst);
+                            if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                                var stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                var argsAst = esprima.parse("({code:'" + CONST.LBL_BREAK + "', args: '" + node.label.name + "'})");
+                                var returnStmtAst = {
+                                    "type": "ReturnStatement",
+                                    "argument": stopIterAst.body[0].expression
+                                };
+                                stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                replace_node(node, returnStmtAst);
+                            } else if (breakMod.isReplaceReq()) {
+                                var stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                var argsAst = esprima.parse("({code:'" + CONST.BREAK + "'})");
+                                var returnStmtAst = {
+                                    "type": "ReturnStatement",
+                                    "argument": stopIterAst.body[0].expression
+                                };
+                                stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                replace_node(node, returnStmtAst);
                             }
                             break;
                         case 'ContinueStatement':
                             if (continueMod.isReplaceReq()) {
+                                var returnStmtAst = {
+                                    "type": "ReturnStatement",
+                                    "argument": null
+                                };
                                 replace_node(node, returnStmtAst);
                             }
                             break;
@@ -317,8 +358,14 @@ function get_ast(code, esprima, estraverse, escodegen) {
             /N1qlQuery/.test(node.callee.name);
     }
 
-    var breakMod = new LoopModifier('break');
-    var continueMod = new LoopModifier('continue');
+    var CONST = {
+        BREAK: 'break',
+        CONTINUE: 'continue',
+        LBL_BREAK: 'labelled_break'
+    };
+    var breakMod = new LoopModifier(CONST.BREAK);
+    var continueMod = new LoopModifier(CONST.CONTINUE);
+    var lblBreakMod = new LoopModifier(CONST.LBL_BREAK);
 
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {

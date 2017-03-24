@@ -4,8 +4,7 @@ if(res.isInstance) {
         case '1':
             if(res2.isInstance) {
                 res2.iter(function(row) {
-                    res2.stopIter();
-                    return;
+                    return res2.stopIter('break');
                 });
             }
             else {
@@ -25,8 +24,7 @@ else {
     case '1':
         if(res2.isInstance) {
                 res2.iter(function(row) {
-                    res2.stopIter();
-                    return;
+                    return res2.stopIter('break');
                 });
             }
             else {
