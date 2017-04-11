@@ -1,10 +1,10 @@
 if(res.isInstance) {
-    res.iter(function(i) {
+    res.x = res.iter(function(i) {
         switch(i) {
         case '1':
             if(res2.isInstance) {
-                res2.iter(function(row) {
-                    return res2.stopIter('break');
+                res2.x = res2.iter(function(row) {
+                    return res2.stopIter({code:'break'});
                 });
             }
             else {
@@ -23,8 +23,8 @@ else {
     switch(i) {
     case '1':
         if(res2.isInstance) {
-                res2.iter(function(row) {
-                    return res2.stopIter('break');
+                res2.x = res2.iter(function(row) {
+                    return res2.stopIter({code:'break'});
                 });
             }
             else {

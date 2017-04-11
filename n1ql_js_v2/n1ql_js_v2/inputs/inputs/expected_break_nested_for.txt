@@ -1,5 +1,5 @@
 if(res.isInstance) {
-    res.iter(function(i){
+    res.x = res.iter(function(i){
         for(var j=0; j<10; ++j)
         break;
     });

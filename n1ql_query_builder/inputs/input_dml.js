@@ -1,4 +1,3 @@
-
-    for (var row of res)
-        if(true)
+for (var row of res)
+    if (true)
         break;

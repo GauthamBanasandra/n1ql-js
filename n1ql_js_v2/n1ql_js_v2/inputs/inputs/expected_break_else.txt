@@ -1,10 +1,10 @@
 if(res.isInstance){
-    res.iter(function(row) {
+    res.x = res.iter(function(row) {
         if(true){
             log(row);
         }
         else {
-            return res.stopIter('break');
+            return res.stopIter({code:'break'});
         }
     });
 }
