@@ -33,7 +33,6 @@ function get_ast(code, esprima, estraverse, escodegen) {
             if (size >= 0) {
                 return stack[size - 1];
             }
-
         };
 
         this.getSize = function () {
@@ -159,6 +158,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
         // Returns a boolean suggesting whether the node needs to be replaced.
         this.isReplaceReq = function (args) {
+            console.assert(ancestorStack.getSize() >= 0, 'ancestorStack size can not be negative');
             switch (this.modType) {
                 // For break and continue, the replacement criteria is the for-of node being the parent on TOS.
                 case LoopModifier.CONST.CONTINUE:
@@ -168,10 +168,14 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 // associated with.
                 case LoopModifier.CONST.LABELED_BREAK:
                     return !ancestorStack.contains(args);
-                // For return statement, the replacement criteria is the presence of a function on TOS.
+                // For return statement, the replacement criteria is the absence of a function on TOS.
                 case LoopModifier.CONST.RETURN:
-                    return ancestorStack.getSize() > 0 && (/FunctionDeclaration/.test(ancestorStack.peek().type) ||
-                        /FunctionExpression/.test(ancestorStack.peek().type));
+                    if (ancestorStack.getSize() === 0) {
+                        return true;
+                    }
+
+                    return !(/FunctionDeclaration/.test(ancestorStack.peek().type) ||
+                    /FunctionExpression/.test(ancestorStack.peek().type));
                 default:
                     throw 'Invalid modifier type';
             }
@@ -220,6 +224,21 @@ function get_ast(code, esprima, estraverse, escodegen) {
         this.label = {
             "type": "Identifier",
             "name": label
+        }
+    }
+
+    function Arg(code, args) {
+        this.code = code;
+        this.args = args;
+        this.toString = function () {
+            var obj = {};
+            for(var key of Object.keys(this)) {
+                if(this.hasOwnProperty(key)){
+                    obj[key]=this[key];
+                }
+            }
+
+            return JSON.stringify(obj);
         }
     }
 
@@ -299,7 +318,8 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     lblBreakMod.pushIfAssoc(node);
                     returnMod.pushIfAssoc(node);
 
-                    var stopIterAst,
+                    var arg,
+                        stopIterAst,
                         argsAst,
                         returnStmtAst;
                     // If any of the exit criteria is encountered, then that statement may be replaced.
@@ -308,7 +328,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             // Labeled break statement.
                             if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                                 stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
-                                var arg = '{"code":"' + LoopModifier.CONST.LABELED_BREAK + '", "args":"' + node.label.name + '"}';
+                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
                                 // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
                                 // object otherwise.
                                 argsAst = esprima.parse('(' + arg + ')');
@@ -318,7 +338,8 @@ function get_ast(code, esprima, estraverse, escodegen) {
                                 } // Unlabeled break statement.
                             } else if (!node.label && breakMod.isReplaceReq()) {
                                 stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
-                                argsAst = esprima.parse("({code:'" + LoopModifier.CONST.BREAK + "'})");
+                                arg = new Arg(LoopModifier.CONST.BREAK);
+                                argsAst = esprima.parse('(' + arg + ')');
                             }
 
                             if (stopIterAst && argsAst) {
@@ -342,6 +363,8 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             break;
                         case 'ReturnStatement':
                             if (returnMod.isReplaceReq(node)) {
+                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+
                                 console.log('need to replace return node ', node);
                             }
                             break;
