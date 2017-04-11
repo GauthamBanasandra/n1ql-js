@@ -1,7 +1,7 @@
 if(res.isInstance) {
    res.x =  res.iter(function(i) {
         if(true) {
-            return res.stopIter({code:'break'});
+            return res.stopIter({'code':'break'});
         }
         else {
             return;

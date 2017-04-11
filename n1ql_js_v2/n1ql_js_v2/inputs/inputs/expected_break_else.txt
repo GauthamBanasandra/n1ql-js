@@ -4,7 +4,7 @@ if(res.isInstance){
             log(row);
         }
         else {
-            return res.stopIter({code:'break'});
+            return res.stopIter({'code':'break'});
         }
     });
 }

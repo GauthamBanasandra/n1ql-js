@@ -227,14 +227,20 @@ function get_ast(code, esprima, estraverse, escodegen) {
         }
     }
 
+    function ReturnAst(argument) {
+        Ast.call(this, 'ReturnStatement');
+        this.argument = argument;
+    }
+
     function Arg(code, args) {
         this.code = code;
         this.args = args;
+
         this.toString = function () {
             var obj = {};
-            for(var key of Object.keys(this)) {
-                if(this.hasOwnProperty(key)){
-                    obj[key]=this[key];
+            for (var key of Object.keys(this)) {
+                if (this.hasOwnProperty(key)) {
+                    obj[key] = this[key];
                 }
             }
 
@@ -343,21 +349,17 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             }
 
                             if (stopIterAst && argsAst) {
-                                returnStmtAst = {
-                                    "type": "ReturnStatement",
-                                    "argument": stopIterAst.body[0].expression
-                                };
+                                returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
                                 // Add 'arg' as the argument to 'stopIter()'.
                                 stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                // debug.
+                                console.log(returnStmtAst);
                                 replace_node(node, returnStmtAst);
                             }
                             break;
                         case 'ContinueStatement':
                             if (continueMod.isReplaceReq()) {
-                                returnStmtAst = {
-                                    "type": "ReturnStatement",
-                                    "argument": null
-                                };
+                                returnStmtAst = new ReturnAst(null);
                                 replace_node(node, returnStmtAst);
                             }
                             break;

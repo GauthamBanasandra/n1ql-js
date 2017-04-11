@@ -3,7 +3,7 @@ if(res1.isInstance){
         if(res2.isInstance){
            res2.x =  res2.iter(function(j){
                 if(i==j){
-                    return res2.stopIter({code:'break'});
+                    return res2.stopIter({'code':'break'});
                 }
             });
         }
@@ -20,7 +20,7 @@ else {
         if(res2.isInstance){
             res2.x = res2.iter(function(j){
                 if(i==j) {
-                    return res2.stopIter({code:'break'});
+                    return res2.stopIter({'code':'break'});
                 }
             });
         }
