@@ -232,6 +232,11 @@ function get_ast(code, esprima, estraverse, escodegen) {
         this.argument = argument;
     }
 
+    function ExprStmtAst() {
+        Ast.call(this, 'ExpressionStatement');
+        this.expression = {};
+    }
+
     function Arg(code, args) {
         this.code = code;
         this.args = args;
@@ -352,8 +357,6 @@ function get_ast(code, esprima, estraverse, escodegen) {
                                 returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
                                 // Add 'arg' as the argument to 'stopIter()'.
                                 stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
-                                // debug.
-                                console.log(returnStmtAst);
                                 replace_node(node, returnStmtAst);
                             }
                             break;
@@ -365,9 +368,20 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             break;
                         case 'ReturnStatement':
                             if (returnMod.isReplaceReq(node)) {
-                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                // Return statement may or may not have arguments.
+                                // In case there's no argument, we populate it with null.
+                                var argStr = node.argument ? escodegen.generate(node.argument) : null;
+                                arg = new Arg('return', '(' + argStr + ')');
+                                argsAst = esprima.parse('(' + arg + ')');
 
-                                console.log('need to replace return node ', node);
+                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
+                                replace_node(node, returnStmtAst);
+
+                                if (!(arg in postIter)) {
+                                    postIter.push(arg);
+                                }
                             }
                             break;
                         case 'IfStatement':
@@ -427,6 +441,10 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     break;
                 case LoopModifier.CONST.LABELED_BREAK:
                     caseAst.consequent.push(new LabeledBreakAst(postIter.args));
+                    break;
+                case LoopModifier.CONST.RETURN:
+                    var returnArg = postIter.args ? esprima.parse(postIter.args).body[0].expression : null;
+                    caseAst.consequent.push(new ReturnAst(returnArg));
                     break;
             }
 

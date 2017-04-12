@@ -1,0 +1,17 @@
+function query(){
+	if(res.isInstance) {
+		res.x=res.iter(function(row){
+			return res.stopIter({'code':'return', 'args':'(null)'});
+		});
+		switch(res.x.code+res.x.args){
+			case 'return(null)':
+				return null;			
+		}
+	} else {
+			for(var row of res) {
+				return;
+		}
+	}
+
+	return;
+}
