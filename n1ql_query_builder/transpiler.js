@@ -260,6 +260,23 @@ function get_ast(code) {
         this.argument = argument;
     }
 
+    function StopIterAst(inst) {
+        Ast.call(this, 'CallExpression');
+        this.callee = {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+                "type": "Identifier",
+                "name": inst
+            },
+            "property": {
+                "type": "Identifier",
+                "name": "stopIter"
+            }
+        };
+        this.arguments = [];
+    }
+
     function Arg(code, args) {
         this.code = code;
         this.args = args;
@@ -363,7 +380,7 @@ function get_ast(code) {
                         case 'BreakStatement':
                             // Labeled break statement.
                             if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
                                 // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
                                 // object otherwise.
@@ -373,15 +390,15 @@ function get_ast(code) {
                                     postIter.push(arg);
                                 } // Unlabeled break statement.
                             } else if (!node.label && breakMod.isReplaceReq()) {
-                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 arg = new Arg(LoopModifier.CONST.BREAK);
                                 argsAst = esprima.parse('(' + arg + ')');
                             }
 
                             if (stopIterAst && argsAst) {
-                                returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
+                                returnStmtAst = new ReturnAst(stopIterAst);
                                 // Add 'arg' as the argument to 'stopIter()'.
-                                stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                stopIterAst.arguments.push(argsAst.body[0].expression);
                                 replace_node(node, returnStmtAst);
                             }
                             break;
@@ -393,9 +410,9 @@ function get_ast(code) {
                                 } else {
                                     arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
                                     argsAst = esprima.parse('(' + arg + ')');
-                                    stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
-                                    returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
-                                    stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                    stopIterAst = new StopIterAst(nodeCopy.right.name);
+                                    returnStmtAst = new ReturnAst(stopIterAst);
+                                    stopIterAst.arguments.push(argsAst.body[0].expression);
                                     replace_node(node, returnStmtAst);
 
                                     if (!(arg in postIter)) {
@@ -417,9 +434,9 @@ function get_ast(code) {
                                 arg = new Arg(LoopModifier.CONST.RETURN, '(' + argStr + ')');
                                 argsAst = esprima.parse('(' + arg + ')');
 
-                                stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
-                                stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
-                                returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
+                                stopIterAst = new StopIterAst(nodeCopy.right.name);
+                                stopIterAst.arguments.push(argsAst.body[0].expression);
+                                returnStmtAst = new ReturnAst(stopIterAst);
                                 replace_node(node, returnStmtAst);
 
                                 if (!(arg in postIter)) {
