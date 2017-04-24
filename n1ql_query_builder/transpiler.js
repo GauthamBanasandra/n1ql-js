@@ -6,13 +6,16 @@ var fs = require('fs'),
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
 
-console.log(escodegen.generate(get_ast(code, esprima, estraverse, escodegen), {
+console.log(escodegen.generate(get_ast(code), {
     comment: true
 }));
 
-// TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be handled in the
-// lex. TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
-function get_ast(code, esprima, estraverse, escodegen) {
+// TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
+// redundant.
+// TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
+// handled in the lex.
+// TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
+function get_ast(code) {
     function Stack() {
         var stack = [];
 
@@ -84,6 +87,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 associations.add('SwitchStatement');
                 associations.add('WhileStatement');
                 break;
+            case LoopModifier.CONST.LABELED_CONTINUE:
             case LoopModifier.CONST.LABELED_BREAK:
                 associations.add('LabeledStatement');
                 break;
@@ -114,6 +118,10 @@ function get_ast(code, esprima, estraverse, escodegen) {
                         break;
                     case LoopModifier.CONST.RETURN:
                         node.returnStackIndex = this.stackIndex;
+                        break;
+                    case LoopModifier.CONST.LABELED_CONTINUE:
+                        console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
+                        node.lblContinueStackIndex = this.stackIndex;
                         break;
                     default:
                         throw 'Invalid modifier type';
@@ -146,6 +154,10 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             return ancestorStack.pop();
                         }
                         break;
+                    case LoopModifier.CONST.LABELED_CONTINUE:
+                        if (this.stackIndex === ancestorStack.peek().lblContinueStackIndex) {
+                            return ancestorStack.pop();
+                        }
                     default:
                         throw 'Invalid modifier type';
                 }
@@ -176,6 +188,8 @@ function get_ast(code, esprima, estraverse, escodegen) {
 
                     return !(/FunctionDeclaration/.test(ancestorStack.peek().type) ||
                     /FunctionExpression/.test(ancestorStack.peek().type));
+                case LoopModifier.CONST.LABELED_CONTINUE:
+                    return !ancestorStack.contains(args);
                 default:
                     throw 'Invalid modifier type';
             }
@@ -190,8 +204,9 @@ function get_ast(code, esprima, estraverse, escodegen) {
     LoopModifier.CONST = {
         BREAK: 'break',
         CONTINUE: 'continue',
-        LABELED_BREAK: 'labelled_break',
-        RETURN: 'return'
+        LABELED_BREAK: 'labeled_break',
+        RETURN: 'return',
+        LABELED_CONTINUE: 'labeled_continue'
     };
 
     function Ast(_type) {
@@ -224,17 +239,25 @@ function get_ast(code, esprima, estraverse, escodegen) {
         this.label = {
             "type": "Identifier",
             "name": label
-        }
+        };
+    }
+
+    function ContinueAst() {
+        Ast.call(this, 'ContinueStatement');
+        this.label = null;
+    }
+
+    function LabeledContinueAst(label) {
+        ContinueAst.call(this);
+        this.label = {
+            "type": "Identifier",
+            "name": label
+        };
     }
 
     function ReturnAst(argument) {
         Ast.call(this, 'ReturnStatement');
         this.argument = argument;
-    }
-
-    function ExprStmtAst() {
-        Ast.call(this, 'ExpressionStatement');
-        this.expression = {};
     }
 
     function Arg(code, args) {
@@ -319,6 +342,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     ++continueMod.stackIndex;
                     ++lblBreakMod.stackIndex;
                     ++returnMod.stackIndex;
+                    ++lblContinueMod.stackIndex;
 
                     if (node.isGen) {
                         return;
@@ -328,6 +352,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     continueMod.pushIfAssoc(node);
                     lblBreakMod.pushIfAssoc(node);
                     returnMod.pushIfAssoc(node);
+                    lblContinueMod.pushIfAssoc(node);
 
                     var arg,
                         stopIterAst,
@@ -361,7 +386,23 @@ function get_ast(code, esprima, estraverse, escodegen) {
                             }
                             break;
                         case 'ContinueStatement':
-                            if (continueMod.isReplaceReq()) {
+                            if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
+                                if (nodeCopy.label === node.label.name) {
+                                    returnStmtAst = new ReturnAst(null);
+                                    replace_node(node, returnStmtAst);
+                                } else {
+                                    arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
+                                    argsAst = esprima.parse('(' + arg + ')');
+                                    stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
+                                    returnStmtAst = new ReturnAst(stopIterAst.body[0].expression);
+                                    stopIterAst.body[0].expression.arguments.push(argsAst.body[0].expression);
+                                    replace_node(node, returnStmtAst);
+
+                                    if (!(arg in postIter)) {
+                                        postIter.push(arg);
+                                    }
+                                }
+                            } else if (continueMod.isReplaceReq()) {
                                 returnStmtAst = new ReturnAst(null);
                                 replace_node(node, returnStmtAst);
                             }
@@ -371,7 +412,9 @@ function get_ast(code, esprima, estraverse, escodegen) {
                                 // Return statement may or may not have arguments.
                                 // In case there's no argument, we populate it with null.
                                 var argStr = node.argument ? escodegen.generate(node.argument) : null;
-                                arg = new Arg('return', '(' + argStr + ')');
+                                // Must enclose the return statement's argument within an expression '()'.
+                                // Otherwise, it causes an error when returning anonymous function.
+                                arg = new Arg(LoopModifier.CONST.RETURN, '(' + argStr + ')');
                                 argsAst = esprima.parse('(' + arg + ')');
 
                                 stopIterAst = esprima.parse(nodeCopy.right.name + ".stopIter();");
@@ -442,6 +485,9 @@ function get_ast(code, esprima, estraverse, escodegen) {
                 case LoopModifier.CONST.LABELED_BREAK:
                     caseAst.consequent.push(new LabeledBreakAst(postIter.args));
                     break;
+                case LoopModifier.CONST.LABELED_CONTINUE:
+                    caseAst.consequent.push(new LabeledContinueAst(postIter.args));
+                    break;
                 case LoopModifier.CONST.RETURN:
                     var returnArg = postIter.args ? esprima.parse(postIter.args).body[0].expression : null;
                     caseAst.consequent.push(new ReturnAst(returnArg));
@@ -510,6 +556,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
     var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
     var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
     var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
+    var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
 
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {
@@ -518,7 +565,7 @@ function get_ast(code, esprima, estraverse, escodegen) {
     });
 
     estraverse.traverse(ast, {
-        leave: function (node) {
+        leave: function (node, parent) {
             // Perform variable substitution in query constructor.
             if (is_n1ql_node(node) && node.arguments.length > 0) {
                 var queryAst = get_query_ast(node.arguments[0].quasis[0].value.raw);
@@ -533,8 +580,16 @@ function get_ast(code, esprima, estraverse, escodegen) {
                     convert_to_block_stmt(node);
                 }
 
+                if (/LabeledStatement/.test(parent.type)) {
+                    node.label = parent.label.name;
+                    parent.remLabel = true;
+                }
+
                 var iterAst = get_iter_compatible_ast(node);
                 replace_node(node, deep_copy(iterAst));
+            } else if (/LabeledStatement/.test(node.type) && node.remLabel) {
+                // debug.
+                // console.log('need to remove label');
             }
         }
     });
