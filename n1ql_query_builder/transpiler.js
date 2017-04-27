@@ -60,8 +60,28 @@ function get_ast(code) {
         }
     }
 
+    function AncestorStack() {
+        Stack.call(this);
+
+        this.findAncestor = function (comparator) {
+            var temp = new Stack();
+            var found = false;
+
+            while (this.getSize() > 0 && !found) {
+                var node = this.pop();
+                temp.push(node);
+                found = comparator(deep_copy(node));
+            }
+            while (temp.getSize() > 0) {
+                this.push(temp.pop());
+            }
+
+            return found ? node : null;
+        };
+    }
+
     function LoopModifier(modifier) {
-        var ancestorStack = new Stack();
+        var ancestorStack = new AncestorStack();
         this.modType = modifier;
         this.stackIndex = -1;
 
@@ -158,6 +178,7 @@ function get_ast(code) {
                         if (this.stackIndex === ancestorStack.peek().lblContinueStackIndex) {
                             return ancestorStack.pop();
                         }
+                        break;
                     default:
                         throw 'Invalid modifier type';
                 }
@@ -178,8 +199,13 @@ function get_ast(code) {
                     return ancestorStack.getSize() > 0 && /ForOfStatement/.test(ancestorStack.peek().type);
                 // For labelled break, the replacement criteria is the absence of the label which the break is
                 // associated with.
+                case LoopModifier.CONST.LABELED_CONTINUE:
                 case LoopModifier.CONST.LABELED_BREAK:
-                    return !ancestorStack.contains(args);
+                    return !ancestorStack.findAncestor(function (node) {
+                        if (/LabeledStatement/.test(node.type)) {
+                            return args === node.label.name;
+                        }
+                    });
                 // For return statement, the replacement criteria is the absence of a function on TOS.
                 case LoopModifier.CONST.RETURN:
                     if (ancestorStack.getSize() === 0) {
@@ -188,8 +214,6 @@ function get_ast(code) {
 
                     return !(/FunctionDeclaration/.test(ancestorStack.peek().type) ||
                     /FunctionExpression/.test(ancestorStack.peek().type));
-                case LoopModifier.CONST.LABELED_CONTINUE:
-                    return !ancestorStack.contains(args);
                 default:
                     throw 'Invalid modifier type';
             }
@@ -344,147 +368,155 @@ function get_ast(code) {
     }
 
     // Returns an iterator construct for a given for-of loop ast.
-    // We currently support only for for-of loop. forEach might be supported in the future.
-    function get_iter_ast(forOfNode, mode) {
+    function get_iter_consequent_ast(forOfNode) {
         // List to store post iteration exit conditions.
         var postIter = [];
         // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
         var iterProp = 'x';
         var nodeCopy = deep_copy(forOfNode);
 
-        if (mode === 'for_of') {
-            estraverse.traverse(nodeCopy, {
-                enter: function (node) {
-                    ++breakMod.stackIndex;
-                    ++continueMod.stackIndex;
-                    ++lblBreakMod.stackIndex;
-                    ++returnMod.stackIndex;
-                    ++lblContinueMod.stackIndex;
+        estraverse.traverse(nodeCopy, {
+            enter: function (node) {
+                ++breakMod.stackIndex;
+                ++continueMod.stackIndex;
+                ++lblBreakMod.stackIndex;
+                ++returnMod.stackIndex;
+                ++lblContinueMod.stackIndex;
 
-                    if (node.isGen) {
-                        return;
-                    }
+                if (node.isGen) {
+                    return;
+                }
 
-                    breakMod.pushIfAssoc(node);
-                    continueMod.pushIfAssoc(node);
-                    lblBreakMod.pushIfAssoc(node);
-                    returnMod.pushIfAssoc(node);
-                    lblContinueMod.pushIfAssoc(node);
+                breakMod.pushIfAssoc(node);
+                continueMod.pushIfAssoc(node);
+                lblBreakMod.pushIfAssoc(node);
+                returnMod.pushIfAssoc(node);
+                lblContinueMod.pushIfAssoc(node);
 
-                    var arg,
-                        stopIterAst,
-                        argsAst,
-                        returnStmtAst;
-                    // If any of the exit criteria is encountered, then that statement may be replaced.
-                    switch (node.type) {
-                        case 'BreakStatement':
-                            // Labeled break statement.
-                            if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                                stopIterAst = new StopIterAst(nodeCopy.right.name);
-                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
-                                // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
-                                // object otherwise.
-                                argsAst = esprima.parse('(' + arg + ')');
+                var arg,
+                    stopIterAst,
+                    argsAst,
+                    returnStmtAst;
+                // If any of the exit criteria is encountered, then that statement may be replaced.
+                switch (node.type) {
+                    case 'BreakStatement':
+                        // Labeled break statement.
+                        if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                            stopIterAst = new StopIterAst(nodeCopy.right.name);
+                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
+                            // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
+                            // object otherwise.
+                            argsAst = esprima.parse('(' + arg + ')');
 
-                                if (!(arg in postIter)) {
-                                    postIter.push(arg);
-                                } // Unlabeled break statement.
-                            } else if (!node.label && breakMod.isReplaceReq()) {
-                                stopIterAst = new StopIterAst(nodeCopy.right.name);
-                                arg = new Arg(LoopModifier.CONST.BREAK);
-                                argsAst = esprima.parse('(' + arg + ')');
-                            }
+                            if (!(arg in postIter)) {
+                                postIter.push(arg);
+                            } // Unlabeled break statement.
+                        } else if (!node.label && breakMod.isReplaceReq()) {
+                            stopIterAst = new StopIterAst(nodeCopy.right.name);
+                            arg = new Arg(LoopModifier.CONST.BREAK);
+                            argsAst = esprima.parse('(' + arg + ')');
+                        }
 
-                            if (stopIterAst && argsAst) {
-                                returnStmtAst = new ReturnAst(stopIterAst);
-                                // Add 'arg' as the argument to 'stopIter()'.
-                                stopIterAst.arguments.push(argsAst.body[0].expression);
-                                replace_node(node, returnStmtAst);
-                            }
-                            break;
-                        case 'ContinueStatement':
-                            if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
-                                if (nodeCopy.label === node.label.name) {
-                                    returnStmtAst = new ReturnAst(null);
-                                    replace_node(node, returnStmtAst);
-                                } else {
-                                    arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
-                                    argsAst = esprima.parse('(' + arg + ')');
-                                    stopIterAst = new StopIterAst(nodeCopy.right.name);
-                                    returnStmtAst = new ReturnAst(stopIterAst);
-                                    stopIterAst.arguments.push(argsAst.body[0].expression);
-                                    replace_node(node, returnStmtAst);
-
-                                    if (!(arg in postIter)) {
-                                        postIter.push(arg);
-                                    }
-                                }
-                            } else if (continueMod.isReplaceReq()) {
+                        if (stopIterAst && argsAst) {
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            // Add 'arg' as the argument to 'stopIter()'.
+                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                            replace_node(node, returnStmtAst);
+                        }
+                        break;
+                    case 'ContinueStatement':
+                        if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
+                            if (nodeCopy.label === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
                                 replace_node(node, returnStmtAst);
-                            }
-                            break;
-                        case 'ReturnStatement':
-                            if (returnMod.isReplaceReq(node)) {
-                                // Return statement may or may not have arguments.
-                                // In case there's no argument, we populate it with null.
-                                var argStr = node.argument ? escodegen.generate(node.argument) : null;
-                                // Must enclose the return statement's argument within an expression '()'.
-                                // Otherwise, it causes an error when returning anonymous function.
-                                arg = new Arg(LoopModifier.CONST.RETURN, '(' + argStr + ')');
+                            } else {
+                                arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
                                 argsAst = esprima.parse('(' + arg + ')');
-
                                 stopIterAst = new StopIterAst(nodeCopy.right.name);
-                                stopIterAst.arguments.push(argsAst.body[0].expression);
                                 returnStmtAst = new ReturnAst(stopIterAst);
+                                stopIterAst.arguments.push(argsAst.body[0].expression);
                                 replace_node(node, returnStmtAst);
 
                                 if (!(arg in postIter)) {
                                     postIter.push(arg);
                                 }
                             }
-                            break;
-                        case 'IfStatement':
-                            if (!/BlockStatement/.test(node.type)) {
-                                convert_to_block_stmt(node);
+                        } else if (continueMod.isReplaceReq()) {
+                            returnStmtAst = new ReturnAst(null);
+                            replace_node(node, returnStmtAst);
+                        }
+                        break;
+                    case 'ReturnStatement':
+                        if (returnMod.isReplaceReq(node)) {
+                            // Return statement may or may not have arguments.
+                            // In case there's no argument, we populate it with null.
+                            var argStr = node.argument ? escodegen.generate(node.argument) : null;
+                            // Must enclose the return statement's argument within an expression '()'.
+                            // Otherwise, it causes an error when returning anonymous function.
+                            arg = new Arg(LoopModifier.CONST.RETURN, '(' + argStr + ')');
+                            argsAst = esprima.parse('(' + arg + ')');
+
+                            stopIterAst = new StopIterAst(nodeCopy.right.name);
+                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            replace_node(node, returnStmtAst);
+
+                            if (!(arg in postIter)) {
+                                postIter.push(arg);
                             }
-                            break;
-                    }
-                },
-                leave: function (node) {
-                    breakMod.popIfAssoc();
-                    continueMod.popIfAssoc();
-                    lblBreakMod.popIfAssoc();
-                    returnMod.popIfAssoc();
-
-                    --breakMod.stackIndex;
-                    --continueMod.stackIndex;
-                    --lblBreakMod.stackIndex;
-                    --returnMod.stackIndex;
+                        }
+                        break;
+                    case 'IfStatement':
+                        if (!/BlockStatement/.test(node.type)) {
+                            convert_to_block_stmt(node);
+                        }
+                        break;
                 }
-            });
-            var iter = esprima.parse(
-                forOfNode.right.name + '.' + iterProp + '=' + forOfNode.right.name +
-                '.iter(function (' + (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name) + '){});'
-            ).body[0];
-            iter.expression.right.arguments[0].body = nodeCopy.body;
+            },
+            leave: function (node) {
+                breakMod.popIfAssoc();
+                continueMod.popIfAssoc();
+                lblBreakMod.popIfAssoc();
+                returnMod.popIfAssoc();
+                lblContinueMod.popIfAssoc();
 
-            var iterBlockAst = esprima.parse('{}').body[0];
-            iterBlockAst.body.push(iter);
-
-            var postIterAst = get_post_iter_ast(forOfNode.right.name, iterProp, postIter);
-            if (postIterAst) {
-                iterBlockAst.body.push(postIterAst);
+                --breakMod.stackIndex;
+                --continueMod.stackIndex;
+                --lblBreakMod.stackIndex;
+                --returnMod.stackIndex;
+                --lblContinueMod.stackIndex;
             }
+        });
+        var iter = esprima.parse(
+            forOfNode.right.name + '.' + iterProp + '=' + forOfNode.right.name +
+            '.iter(function (' + (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name) + '){});'
+        ).body[0];
+        iter.expression.right.arguments[0].body = nodeCopy.body;
 
-            return iterBlockAst;
+        var iterBlockAst = esprima.parse('{}').body[0];
+        iterBlockAst.body.push(iter);
+
+        var postIterAst = get_post_iter_consequent_ast(forOfNode.right.name, iterProp, postIter);
+        if (postIterAst) {
+            iterBlockAst.body.push(postIterAst);
         }
 
-        throw 'Invalid arg ' + mode + ' for get_iter_ast';
+        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
+        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
+        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
+        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
+        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+
+        return iterBlockAst;
+
+    }
+
+    function get_iter_alternate_ast(forOfNode) {
+        return forOfNode;
     }
 
     // Returns a switch-case block to perform post-iteration steps.
-    function get_post_iter_ast(iterVar, prop, postIterStmts) {
+    function get_post_iter_consequent_ast(iterVar, prop, postIterStmts) {
         if (postIterStmts.length <= 0) {
             return null;
         }
@@ -517,20 +549,20 @@ function get_ast(code) {
         return switchAst;
     }
 
-    // Returns iterator consturct with dynamic type checking.
+    // Returns iterator construct with dynamic type checking.
     function get_iter_compatible_ast(forOfNode) {
         // Make a copy of the 'for ... of ...' loop.
         var nodeCopy = deep_copy(forOfNode);
 
-        // Iterator AST.
-        var iterAst = get_iter_ast(nodeCopy, 'for_of');
-
         // 'if ... else ...' which perform dynamic type checking.
         var ifElseAst = esprima.parse('if(' + forOfNode.right.name + '.isInstance){}else{}').body[0];
+
+        // Iterator AST.
+        var iterAst = get_iter_consequent_ast(nodeCopy);
         // Push the iterator AST into 'if' block.
         ifElseAst.consequent.body = iterAst.body;
         // Push the user-written 'for ... of ...' loop into 'else' block.
-        ifElseAst.alternate.body.push(forOfNode);
+        ifElseAst.alternate.body.push(get_iter_alternate_ast(forOfNode));
 
         // Mark all the nodes of 'ifElseAst' to avoid repeated operations.
         estraverse.traverse(ifElseAst, {
