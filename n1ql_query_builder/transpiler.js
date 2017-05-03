@@ -5,10 +5,9 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
-
-console.log(escodegen.generate(get_ast(code), {
-    comment: true
-}));
+var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
+console.log(transpiledCode);
+// esprima.parse(transpiledCode);
 
 // TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
 // redundant.
@@ -42,6 +41,20 @@ function get_ast(code) {
             return stack.length;
         };
 
+        this.cloneStack = function () {
+            var clone = new Stack();
+
+            for (var item of stack) {
+                clone.push(deep_copy(item));
+            }
+
+            return clone;
+        };
+
+        this.reverseElements = function () {
+            stack.reverse();
+        };
+
         this.contains = function (item) {
             for (var _item of stack) {
                 if (_item === item) {
@@ -63,21 +76,58 @@ function get_ast(code) {
     function AncestorStack() {
         Stack.call(this);
 
-        this.findAncestor = function (comparator) {
+        function getOrPopAncestor(_this, comparator, pop) {
             var temp = new Stack();
             var found = false;
 
-            while (this.getSize() > 0 && !found) {
-                var node = this.pop();
+            while (_this.getSize() > 0 && !found) {
+                var node = _this.pop();
                 temp.push(node);
                 found = comparator(deep_copy(node));
             }
+
+            if (pop) {
+                temp.pop();
+            }
+
             while (temp.getSize() > 0) {
-                this.push(temp.pop());
+                _this.push(temp.pop());
             }
 
             return found ? node : null;
+        }
+
+        this.getAncestor = function (comparator) {
+            return getOrPopAncestor(this, comparator, false);
         };
+
+        this.popNode = function (comparator) {
+            return getOrPopAncestor(this, comparator, true);
+        };
+
+        this.getTopNodeOfType = function (nodeType) {
+            return this.getAncestor(function (node) {
+                return nodeType === node.type;
+            });
+        };
+
+        this.popTopNodeOfType = function (nodeType) {
+            return this.popNode(function (node) {
+                return nodeType === node.type;
+            });
+        };
+
+        this.cloneAncestorStack = function () {
+            var clone = new AncestorStack();
+            var stackClone = this.cloneStack();
+
+            while (stackClone.getSize() > 0) {
+                clone.push(stackClone.pop());
+            }
+            clone.reverseElements();
+
+            return clone;
+        }
     }
 
     function LoopModifier(modifier) {
@@ -185,6 +235,7 @@ function get_ast(code) {
             }
         };
 
+
         this.getSize = function () {
             return ancestorStack.getSize();
         };
@@ -197,11 +248,11 @@ function get_ast(code) {
                 case LoopModifier.CONST.CONTINUE:
                 case LoopModifier.CONST.BREAK:
                     return ancestorStack.getSize() > 0 && /ForOfStatement/.test(ancestorStack.peek().type);
+                case LoopModifier.CONST.LABELED_CONTINUE:
                 // For labelled break, the replacement criteria is the absence of the label which the break is
                 // associated with.
-                case LoopModifier.CONST.LABELED_CONTINUE:
                 case LoopModifier.CONST.LABELED_BREAK:
-                    return !ancestorStack.findAncestor(function (node) {
+                    return !ancestorStack.getAncestor(function (node) {
                         if (/LabeledStatement/.test(node.type)) {
                             return args === node.label.name;
                         }
@@ -230,11 +281,47 @@ function get_ast(code) {
         CONTINUE: 'continue',
         LABELED_BREAK: 'labeled_break',
         RETURN: 'return',
-        LABELED_CONTINUE: 'labeled_continue'
+        LABELED_CONTINUE: 'labeled_continue',
     };
 
-    function Ast(_type) {
-        this.type = _type;
+    function StackHelper(ancestorStack) {
+        this.ancestorStack = ancestorStack.cloneAncestorStack();
+
+        this.getTopForOfNode = function () {
+            return this.ancestorStack.getTopNodeOfType('ForOfStatement');
+        };
+
+        this.popTopForOfNode = function () {
+            return this.ancestorStack.popTopNodeOfType('ForOfStatement');
+        };
+
+        this.searchStack = function (comparator) {
+            var temp = new Stack();
+            var returnArgs = {};
+
+            while (this.ancestorStack.getSize() > 0) {
+                var node = this.ancestorStack.pop();
+                temp.push(node);
+
+                if (comparator.targetComparator(deep_copy(node))) {
+                    returnArgs = {targetFound: true, stopNode: deep_copy(node)};
+                    break;
+                } else if (comparator.stopComparator(deep_copy(node))) {
+                    returnArgs = {targetFound: false, stopNode: deep_copy(node)};
+                    break;
+                }
+            }
+
+            while (temp.getSize() > 0) {
+                this.ancestorStack.push(temp.pop());
+            }
+
+            return returnArgs;
+        };
+    }
+
+    function Ast(type) {
+        this.type = type;
     }
 
     function SwitchAst(discriminantAst) {
@@ -301,9 +388,10 @@ function get_ast(code) {
         this.arguments = [];
     }
 
-    function Arg(code, args) {
+    function Arg(code, args, bubble) {
         this.code = code;
         this.args = args;
+        this.bubble = bubble;
 
         this.toString = function () {
             var obj = {};
@@ -368,7 +456,13 @@ function get_ast(code) {
     }
 
     // Returns an iterator construct for a given for-of loop ast.
-    function get_iter_consequent_ast(forOfNode) {
+    function get_iter_consequent_ast(forOfNode, stackHelper) {
+        var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
+        var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
+        var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
+        var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
+        var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
+
         // List to store post iteration exit conditions.
         var postIter = [];
         // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
@@ -383,10 +477,6 @@ function get_ast(code) {
                 ++returnMod.stackIndex;
                 ++lblContinueMod.stackIndex;
 
-                if (node.isGen) {
-                    return;
-                }
-
                 breakMod.pushIfAssoc(node);
                 continueMod.pushIfAssoc(node);
                 lblBreakMod.pushIfAssoc(node);
@@ -397,13 +487,28 @@ function get_ast(code) {
                     stopIterAst,
                     argsAst,
                     returnStmtAst;
+
+                if (node.isAnnotated) {
+                    arg = new Arg(node.metaData.code, node.metaData.args, node.metaData.bubble);
+
+                    if (!(arg in postIter)) {
+                        postIter.push(arg);
+                    }
+                }
+
+                if (node.isGen) {
+                    return;
+                }
+
                 // If any of the exit criteria is encountered, then that statement may be replaced.
                 switch (node.type) {
                     case 'BreakStatement':
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                            stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
+                            // TODO:    Might want to check for null.
+                            var instName = stackHelper.getTopForOfNode().right.name;
+                            stopIterAst = new StopIterAst(instName);
+                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
                             // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
                             // object otherwise.
                             argsAst = esprima.parse('(' + arg + ')');
@@ -496,7 +601,11 @@ function get_ast(code) {
         var iterBlockAst = esprima.parse('{}').body[0];
         iterBlockAst.body.push(iter);
 
-        var postIterAst = get_post_iter_consequent_ast(forOfNode.right.name, iterProp, postIter);
+
+        // Pop the top for-of node.
+        stackHelper.popTopForOfNode();
+
+        var postIterAst = get_post_iter_ast(forOfNode.right.name, iterProp, postIter, stackHelper);
         if (postIterAst) {
             iterBlockAst.body.push(postIterAst);
         }
@@ -511,16 +620,25 @@ function get_ast(code) {
 
     }
 
-    function get_iter_alternate_ast(forOfNode) {
-        return forOfNode;
+    function get_iter_alternate_ast(forOfNode, stackHelper) {
+        var nodeCopy = deep_copy(forOfNode);
+
+        // Start from here -
+        /*
+         x:for (var r of res1) {
+            break x;
+         }
+
+         First move the for-of associated with label, to the else block.
+         Do an ancestor check to find out whether 'break x' must be replaced or not.
+         If so, the steps are similar to what is followed in get_iter_consequent_ast's 'Labeled break case'.
+         Traverse G.A.S to find label, if there's a for-of node, then just stopIter and annotate.
+         */
+        return nodeCopy;
     }
 
     // Returns a switch-case block to perform post-iteration steps.
-    function get_post_iter_consequent_ast(iterVar, prop, postIterStmts) {
-        if (postIterStmts.length <= 0) {
-            return null;
-        }
-
+    function get_post_iter_ast(iterVar, prop, postIterStmts, stackHelper) {
         var discriminantAst = esprima.parse(iterVar + '.' + prop + '.code' + '+' + iterVar + '.' + prop + '.args').body[0].expression;
         var switchAst = new SwitchAst(discriminantAst);
 
@@ -532,7 +650,40 @@ function get_ast(code) {
                 case LoopModifier.CONST.CONTINUE:
                     break;
                 case LoopModifier.CONST.LABELED_BREAK:
-                    caseAst.consequent.push(new LabeledBreakAst(postIter.args));
+                    if (postIter.bubble) {
+                        var lookup = stackHelper.searchStack({
+                            targetComparator: function (node) {
+                                return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
+                            },
+                            stopComparator: function (node) {
+                                return /ForOfStatement/.test(node.type);
+                            }
+                        });
+                        if (lookup.targetFound) {
+                            console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
+
+                            if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
+                                var doNotPushCase = true;
+                            } else {
+                                caseAst.consequent.push(new LabeledBreakAst(postIter.args));
+                            }
+                        } else {
+                            console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                            var stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            var arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args, true);
+                            var argsAst = esprima.parse('(' + arg + ')');
+                            var returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst.arguments.push(argsAst.body[0].expression);
+
+                            returnStmtAst.isAnnotated = true;
+                            returnStmtAst.metaData = postIter;
+
+                            caseAst.consequent.push(returnStmtAst);
+                        }
+                    } else {
+                        caseAst.consequent.push(new LabeledBreakAst(postIter.args));
+                    }
                     break;
                 case LoopModifier.CONST.LABELED_CONTINUE:
                     caseAst.consequent.push(new LabeledContinueAst(postIter.args));
@@ -543,38 +694,36 @@ function get_ast(code) {
                     break;
             }
 
-            switchAst.cases.push(caseAst);
+            if (!doNotPushCase) {
+                switchAst.cases.push(caseAst);
+            }
         }
 
-        return switchAst;
+        return switchAst.cases.length > 0 ? switchAst : null;
     }
 
     // Returns iterator construct with dynamic type checking.
     function get_iter_compatible_ast(forOfNode) {
-        // Make a copy of the 'for ... of ...' loop.
-        var nodeCopy = deep_copy(forOfNode);
+        var stackHelper = new StackHelper(globalAncestorStack);
 
+        // TODO:    Add a class for if-else statements.
         // 'if ... else ...' which perform dynamic type checking.
         var ifElseAst = esprima.parse('if(' + forOfNode.right.name + '.isInstance){}else{}').body[0];
 
         // Iterator AST.
-        var iterAst = get_iter_consequent_ast(nodeCopy);
+        var iterConsequentAst = get_iter_consequent_ast(forOfNode, stackHelper);
         // Push the iterator AST into 'if' block.
-        ifElseAst.consequent.body = iterAst.body;
+        ifElseAst.consequent.body = iterConsequentAst.body;
         // Push the user-written 'for ... of ...' loop into 'else' block.
-        ifElseAst.alternate.body.push(get_iter_alternate_ast(forOfNode));
+        ifElseAst.alternate.body.push(get_iter_alternate_ast(forOfNode, stackHelper));
 
-        // Mark all the nodes of 'ifElseAst' to avoid repeated operations.
         estraverse.traverse(ifElseAst, {
             enter: function (node) {
+                // Mark all the nodes of 'ifElseAst' to avoid repeated operations.
                 node.isGen = true;
-            }
-        });
 
-        // Traverse all the for-of loops in the 'else' block and mark them as visited - so that we don't
-        // recursively convert these into iterator constructs.
-        estraverse.traverse(nodeCopy, {
-            enter: function (node) {
+                // Traverse all the for-of loops in the 'else' block and mark them as visited - so that we don't
+                // recursively convert these into iterator constructs.
                 if (/ForOfStatement/.test(node.type))
                     node.isVisited = true;
             }
@@ -601,11 +750,7 @@ function get_ast(code) {
             /N1qlQuery/.test(node.callee.name);
     }
 
-    var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
-    var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
-    var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
-    var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
-    var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
+    var globalAncestorStack = new AncestorStack();
 
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {
@@ -614,6 +759,9 @@ function get_ast(code) {
     });
 
     estraverse.traverse(ast, {
+        enter: function (node) {
+            globalAncestorStack.push(node);
+        },
         leave: function (node, parent) {
             // Perform variable substitution in query constructor.
             if (is_n1ql_node(node) && node.arguments.length > 0) {
@@ -621,7 +769,7 @@ function get_ast(code) {
                 replace_node(node, deep_copy(queryAst));
             }
 
-            // TODO : Handle the case when the source of 'for ... of ...' is of type x.y
+            // TODO : Handle the case when the source of for-of loop is of type x.y
             // Modifies all the 'for ... of ...' constructs to support iteration.
             // Takes care to see to it that it visits the node only once.
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
@@ -638,8 +786,9 @@ function get_ast(code) {
                 replace_node(node, deep_copy(iterAst));
             } else if (/LabeledStatement/.test(node.type) && node.remLabel) {
                 // debug.
-                // console.log('need to remove label');
             }
+
+            globalAncestorStack.pop();
         }
     });
 
