@@ -7,7 +7,7 @@ var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
 var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
 console.log(transpiledCode);
-// esprima.parse(transpiledCode);
+esprima.parse(transpiledCode);
 
 // TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
 // redundant.
@@ -297,17 +297,17 @@ function get_ast(code) {
 
         this.searchStack = function (comparator) {
             var temp = new Stack();
-            var returnArgs = {};
+            var returnArgs = {targetFound: false};
 
             while (this.ancestorStack.getSize() > 0) {
                 var node = this.ancestorStack.pop();
                 temp.push(node);
 
                 if (comparator.targetComparator(deep_copy(node))) {
-                    returnArgs = {targetFound: true, stopNode: deep_copy(node)};
+                    returnArgs = {targetFound: true, stopNode: deep_copy(node), searchInterrupted: false};
                     break;
                 } else if (comparator.stopComparator(deep_copy(node))) {
-                    returnArgs = {targetFound: false, stopNode: deep_copy(node)};
+                    returnArgs = {searchInterrupted: true, stopNode: deep_copy(node)};
                     break;
                 }
             }
@@ -343,6 +343,15 @@ function get_ast(code) {
     function BreakAst() {
         Ast.call(this, 'BreakStatement');
         this.label = null;
+    }
+
+    function LabeledStmtAst(label, body) {
+        Ast.call(this, 'LabeledStatement');
+        this.label = {
+            "type": "Identifier",
+            "name": label
+        };
+        this.body = body;
     }
 
     function LabeledBreakAst(label) {
@@ -491,9 +500,13 @@ function get_ast(code) {
                 if (node.isAnnotated) {
                     arg = new Arg(node.metaData.code, node.metaData.args, node.metaData.bubble);
 
-                    if (!(arg in postIter)) {
-                        postIter.push(arg);
+                    if (postIter.indexOf(arg.toString()) === -1) {
+                        postIter.push(arg.toString());
                     }
+                    // Remove the annotation if it's already present.
+                    // This is needed to prevent the else-block from replacing the already annotated node.
+                    delete node.isAnnotated;
+                    delete node.metaData;
                 }
 
                 if (node.isGen) {
@@ -617,24 +630,125 @@ function get_ast(code) {
         console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
 
         return iterBlockAst;
-
     }
 
     function get_iter_alternate_ast(forOfNode, stackHelper) {
         var nodeCopy = deep_copy(forOfNode);
+        var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
+        var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
+        var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
+        var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
+        var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
 
-        // Start from here -
-        /*
-         x:for (var r of res1) {
-            break x;
-         }
+        // debug.
+        // console.log('input for else code:\n', escodegen.generate(nodeCopy), '\n');
 
-         First move the for-of associated with label, to the else block.
-         Do an ancestor check to find out whether 'break x' must be replaced or not.
-         If so, the steps are similar to what is followed in get_iter_consequent_ast's 'Labeled break case'.
-         Traverse G.A.S to find label, if there's a for-of node, then just stopIter and annotate.
-         */
-        return nodeCopy;
+        estraverse.traverse(nodeCopy, {
+            enter: function (node) {
+                var lookup,
+                    stopIterAst,
+                    arg,
+                    argsAst,
+                    returnStmtAst;
+
+                if (node.isAnnotated) {
+                    lookup = stackHelper.searchStack({
+                        targetComparator: function (item) {
+                            return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
+                        },
+                        stopComparator: function (item) {
+                            return /ForOfStatement/.test(item.type);
+                        }
+                    });
+                    if (lookup.targetFound) {
+                        replace_node(node, new LabeledBreakAst(node.metaData.args));
+                    }
+                    if (lookup.searchInterrupted) {
+                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.metaData.args, true);
+                        argsAst = esprima.parse('(' + arg + ')');
+                        returnStmtAst = new ReturnAst(stopIterAst);
+                        stopIterAst.arguments.push(argsAst.body[0].expression);
+
+                        returnStmtAst.isAnnotated = true;
+                        returnStmtAst.metaData = {
+                            code: LoopModifier.CONST.LABELED_BREAK,
+                            args: node.metaData.args,
+                            bubble: true
+                        };
+                        replace_node(node, returnStmtAst);
+                    }
+
+                    return;
+                }
+
+                ++breakMod.stackIndex;
+                ++continueMod.stackIndex;
+                ++lblBreakMod.stackIndex;
+                ++returnMod.stackIndex;
+                ++lblContinueMod.stackIndex;
+
+                breakMod.pushIfAssoc(node);
+                continueMod.pushIfAssoc(node);
+                lblBreakMod.pushIfAssoc(node);
+                returnMod.pushIfAssoc(node);
+                lblContinueMod.pushIfAssoc(node);
+
+                if (/BreakStatement/.test(node.type) && node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                    lookup = stackHelper.searchStack({
+                        targetComparator: function (item) {
+                            return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
+                        },
+                        stopComparator: function (item) {
+                            return /ForOfStatement/.test(item.type);
+                        }
+                    });
+                    if (lookup.searchInterrupted) {
+                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
+                        argsAst = esprima.parse('(' + arg + ')');
+                        returnStmtAst = new ReturnAst(stopIterAst);
+                        stopIterAst.arguments.push(argsAst.body[0].expression);
+
+                        returnStmtAst.isAnnotated = true;
+                        returnStmtAst.metaData = {
+                            code: LoopModifier.CONST.LABELED_BREAK,
+                            args: node.label.name,
+                            bubble: true
+                        };
+                        replace_node(node, returnStmtAst);
+                    }
+                }
+            },
+            leave: function (node) {
+                breakMod.popIfAssoc();
+                continueMod.popIfAssoc();
+                lblBreakMod.popIfAssoc();
+                returnMod.popIfAssoc();
+                lblContinueMod.popIfAssoc();
+
+                --breakMod.stackIndex;
+                --continueMod.stackIndex;
+                --lblBreakMod.stackIndex;
+                --returnMod.stackIndex;
+                --lblContinueMod.stackIndex;
+            }
+        });
+
+        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
+        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
+        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
+        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
+        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+
+        // debug.
+        // console.log('else code:\n', escodegen.generate(nodeCopy), '\n\n\n\n\n');
+
+        return nodeCopy.parentLabel ? new LabeledStmtAst(nodeCopy.parentLabel, nodeCopy) : nodeCopy;
     }
 
     // Returns a switch-case block to perform post-iteration steps.
@@ -667,7 +781,8 @@ function get_ast(code) {
                             } else {
                                 caseAst.consequent.push(new LabeledBreakAst(postIter.args));
                             }
-                        } else {
+                        }
+                        if (lookup.searchInterrupted) {
                             console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                             var stopIterAst = new StopIterAst(lookup.stopNode.right.name);
@@ -778,14 +893,14 @@ function get_ast(code) {
                 }
 
                 if (/LabeledStatement/.test(parent.type)) {
-                    node.label = parent.label.name;
+                    node.parentLabel = parent.label.name;
                     parent.remLabel = true;
                 }
 
                 var iterAst = get_iter_compatible_ast(node);
                 replace_node(node, deep_copy(iterAst));
             } else if (/LabeledStatement/.test(node.type) && node.remLabel) {
-                // debug.
+                replace_node(node, node.body);
             }
 
             globalAncestorStack.pop();
