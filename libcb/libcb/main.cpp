@@ -26,7 +26,7 @@ lcb_CMDN1QL cmd;
 int main(int argc, const char *argv[]) {
     memset(&options, 0, sizeof(options));
     options.version = 3;
-    options.v.v3.connstr = "couchbase://localhost";
+    options.v.v3.connstr = "couchbase://localhost:8091/beer-sample";
     
     err = lcb_create(&instance, &options);
     if (err != LCB_SUCCESS) {

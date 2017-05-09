@@ -25,7 +25,7 @@ QueryEngine::QueryEngine()
     // Allocate memory for the handle.
     memset(&options, 0, sizeof(options));
     options.version = 3;
-    options.v.v3.connstr = "couchbase://localhost";
+    options.v.v3.connstr = "couchbase://localhost/beer-sample";
     
     // Initialize the handle.
     err = lcb_create(&instance, &options);

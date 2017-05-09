@@ -1,0 +1,3 @@
+/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/CMakeFiles/rebuild_cache.dir
+/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/CMakeFiles/edit_cache.dir
+/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/CMakeFiles/jsify.dir

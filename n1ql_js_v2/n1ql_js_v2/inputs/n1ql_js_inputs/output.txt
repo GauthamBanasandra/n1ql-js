@@ -1,0 +1,10 @@
+function n1ql() {
+    var bucket = '`beer-sample`';
+    var res = new N1qlQuery('SELECT * FROM'+bucket+';');
+    
+    res.iter(function(row){
+             log(row);
+    });
+}
+
+n1ql();

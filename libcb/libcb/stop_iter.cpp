@@ -46,7 +46,7 @@ int main()
     // Allocate memory for the handle.
     memset(&options, 0, sizeof(options));
     options.version = 3;
-    options.v.v3.connstr = "couchbase://localhost";
+    options.v.v3.connstr = "couchbase://localhost:8091/beer-sample";
 
     // Initialize the handle.
     err = lcb_create(&instance, &options);
@@ -69,7 +69,7 @@ int main()
     // Structure for writing the query.
     lcb_CMDN1QL cmd = {0};
     lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
-    err = lcb_n1p_setstmtz(n1ql_params, "SELECT * FROM default;");
+    err = lcb_n1p_setstmtz(n1ql_params, "SELECT * FROM `beer-sample` limit 5;");
     if (err != LCB_SUCCESS)
         end(instance, "unable to build query string", err);
 

@@ -1,0 +1,6 @@
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+SET (LEX_LINK_FLAG "-ll")
+SET(CMAKE_CXX_FLAGS "${LEX_LINK_FLAG}")
+FIND_PACKAGE(FLEX)
+FLEX_TARGET(jsify_lex n1ql_js_lex.l ${CMAKE_CURRENT_BINARY_DIR}/n1ql_js_lex.cpp)
+ADD_EXECUTABLE(jsify main.cpp n1ql_js_lex.cpp)

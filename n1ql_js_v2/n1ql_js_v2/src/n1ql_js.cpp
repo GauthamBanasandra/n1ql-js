@@ -23,6 +23,8 @@ std::string TranspileAndExec(std::string input_source){
     
     V8Env v8Env;
     std::string transpiled_js = v8Env.Build(transpiler_js_src, plain_js, EXEC_TRANSPILER);
+    std::cout <<"transpiled js" << std::endl << transpiled_js << std::endl;
+    
     q_engine = new QueryEngine();
     
     v8Env.ExecJs(transpiled_js);
