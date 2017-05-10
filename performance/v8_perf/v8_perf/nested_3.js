@@ -19,18 +19,23 @@ function run(size) {
     var res1 = generate_data(size),
         res2 = generate_data(size),
         res3 = generate_data(size),
-        sum = 0,
         normalIterations = 0,
         transpiledIterations = 0;
 
+    var str = '{"key":"This is key", "value":"This is value"}';
+
     var start = getTime();
     // Normal code.
-    for (var item1 of res1)
-        for (var item2 of res2)
-        	for (var item3 of res3) {
-            sum += item1;
-            ++normalIterations;
+    for (var item1 of res1) {
+        item1 = JSON.parse(str);
+        for (var item2 of res2) {
+            item2 = JSON.parse(str);
+            for (var item3 of res3) {
+                item3 = JSON.parse(str);
+                ++normalIterations;
+            }
         }
+    }
     var end = getTime();
 
 
@@ -38,76 +43,82 @@ function run(size) {
 
     res1 = new N1qlQuery(size);
     res2 = new N1qlQuery(size);
-  	res3 = new N1qlQuery(size);
-    transpiledIterations = sum = 0;
+    res3 = new N1qlQuery(size);
+    transpiledIterations = 0;
 
     start = getTime();
     // Transpiled code.
-  if (res1.isInstance) {
-    res1.x = res1.iter(function (item1) {
-                       if (res2.isInstance) {
-                       res2.x = res2.iter(function (item2) {
-                                          if (res3.isInstance) {
-                                          res3.x = res3.iter(function (item3) {
-                                                             sum += item1;
-                                                             ++transpiledIterations;
-                                                             });
-                                          } else {
-                                          for (var item3 of res3) {
-                                          sum += item1;
-                                          ++transpiledIterations;
-                                          }
-                                          }
-                                          });
-                       } else {
-                       for (var item2 of res2) {
-                       if (res3.isInstance) {
-                       res3.x = res3.iter(function (item3) {
-                                          sum += item1;
-                                          ++transpiledIterations;
-                                          });
-                       } else {
-                       for (var item3 of res3) {
-                       sum += item1;
-                       ++transpiledIterations;
-                       }
-                       }
-                       }
-                       }
-                       });
-  } else {
-    for (var item1 of res1) {
-      if (res2.isInstance) {
-        res2.x = res2.iter(function (item2) {
-                           if (res3.isInstance) {
-                           res3.x = res3.iter(function (item3) {
-                                              sum += item1;
-                                              ++transpiledIterations;
-                                              });
-                           } else {
-                           for (var item3 of res3) {
-                           sum += item1;
-                           ++transpiledIterations;
-                           }
-                           }
-                           });
-      } else {
-        for (var item2 of res2) {
-          if (res3.isInstance) {
-            res3.x = res3.iter(function (item3) {
-                               sum += item1;
-                               ++transpiledIterations;
-                               });
-          } else {
-            for (var item3 of res3) {
-              sum += item1;
-              ++transpiledIterations;
+    if (res1.isInstance) {
+        res1.x = res1.iter(function (item1) {
+            item1 = JSON.parse(item1);
+            if (res2.isInstance) {
+                res2.x = res2.iter(function (item2) {
+                    item2 = JSON.parse(item2);
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (item3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        });
+                    } else {
+                        for (var item3 of res3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        }
+                    }
+                });
+            } else {
+                for (var item2 of res2) {
+                    item2 = JSON.parse(item2);
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (item3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        });
+                    } else {
+                        for (var item3 of res3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        }
+                    }
+                }
             }
-          }
+        });
+    } else {
+        for (var item1 of res1) {
+            item1 = JSON.parse(item1);
+            if (res2.isInstance) {
+                res2.x = res2.iter(function (item2) {
+                    item2 = JSON.parse(item2);
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (item3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        });
+                    } else {
+                        for (var item3 of res3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        }
+                    }
+                });
+            } else {
+                for (var item2 of res2) {
+                    item2 = JSON.parse(item2);
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (item3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        });
+                    } else {
+                        for (var item3 of res3) {
+                            item3 = JSON.parse(item3);
+                            ++transpiledIterations;
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
     end = getTime();
 
     var transpiledCodeTime = end - start;
@@ -138,7 +149,7 @@ function median(data) {
     return data.length % 2 ? data[mid] : (data[mid - 1] + data[mid]) / 2;
 }
 
-const SIZE = 100,
+const SIZE = 1000,
     RUNS = 20;
 var runs = [];
 for (var i = 0; i < RUNS; ++i) {

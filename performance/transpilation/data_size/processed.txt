@@ -1,163 +1,193 @@
-Statistical profiling result from isolate-0x102801600-v8.log, (612 ticks, 37 unaccounted, 0 excluded).
+Statistical profiling result from isolate-0x102801600-v8.log, (684 ticks, 51 unaccounted, 0 excluded).
 
  [Shared libraries]:
    ticks  total  nonlib   name
-     13    2.1%          /usr/lib/system/libsystem_c.dylib
-     10    1.6%          /usr/lib/system/libsystem_kernel.dylib
-      6    1.0%          /usr/lib/system/libsystem_pthread.dylib
-      3    0.5%          /usr/lib/system/libsystem_platform.dylib
-      3    0.5%          /usr/lib/system/libsystem_malloc.dylib
-      1    0.2%          /usr/lib/system/libdyld.dylib
+     13    1.9%          /usr/lib/system/libsystem_kernel.dylib
+      8    1.2%          /usr/lib/system/libsystem_c.dylib
+      6    0.9%          /usr/lib/system/libsystem_malloc.dylib
+      2    0.3%          /usr/lib/system/libsystem_platform.dylib
+      1    0.1%          /usr/lib/system/libsystem_pthread.dylib
 
  [JavaScript]:
    ticks  total  nonlib   name
-     39    6.4%    6.8%  LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     19    3.1%    3.3%  Stub: GrowArrayElementsStub
-     16    2.6%    2.8%  LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:7:27
-     12    2.0%    2.1%  Stub: CEntryStub {1}
-     11    1.8%    1.9%  Stub: StringAddStub
-     11    1.8%    1.9%  Builtin: ArgumentsAdaptorTrampoline
-      7    1.1%    1.2%  Stub: RecordWriteStub
-      7    1.1%    1.2%  Stub: BinaryOpICStub
-      7    1.1%    1.2%  LazyCompile: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:66:37
-      7    1.1%    1.2%  LazyCompile: *InnerArrayForEach native array.js:777:27
-      6    1.0%    1.0%  Builtin: CallFunction_ReceiverIsAny
-      5    0.8%    0.9%  Stub: NumberToStringStub
-      5    0.8%    0.9%  LazyCompile: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:48:27
-      4    0.7%    0.7%  Stub: HasPropertyStub
-      3    0.5%    0.5%  Stub: ForInFilterStub
-      2    0.3%    0.3%  Stub: ToBooleanICStub
-      2    0.3%    0.3%  Stub: BinaryOpWithAllocationSiteStub(ADD_CreateAllocationMementos:Generic*String->String)
-      2    0.3%    0.3%  Stub: BinaryOpICStub {1}
-      2    0.3%    0.3%  LazyCompile: ~InnerArrayForEach native array.js:777:27
-      1    0.2%    0.2%  Stub: ToNameStub
-      1    0.2%    0.2%  Stub: BinaryOpICWithAllocationSiteStub(ADD_CreateAllocationMementos:Generic*String->String)
-      1    0.2%    0.2%  Builtin: ToNumber
-      1    0.2%    0.2%  Builtin: CallFunction_ReceiverIsNullOrUndefined
-      1    0.2%    0.2%  Builtin: CallFunction_ReceiverIsNotNullOrUndefined
+     51    7.5%    7.8%  LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+     26    3.8%    4.0%  Stub: GrowArrayElementsStub
+     21    3.1%    3.2%  LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     12    1.8%    1.8%  LazyCompile: *next native array-iterator.js:28:27
+     12    1.8%    1.8%  LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:7:27
+     11    1.6%    1.7%  Stub: StringAddStub
+      5    0.7%    0.8%  Stub: NumberToStringStub
+      4    0.6%    0.6%  LazyCompile: *<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:61:37
+      3    0.4%    0.5%  Stub: RecordWriteStub
+      3    0.4%    0.5%  Stub: FastArrayPushStub
+      3    0.4%    0.5%  Stub: CEntryStub {1}
+      3    0.4%    0.5%  Builtin: CallFunction_ReceiverIsAny
+      2    0.3%    0.3%  Stub: ForInFilterStub
+      2    0.3%    0.3%  LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      2    0.3%    0.3%  LazyCompile: ~generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:7:27
+      2    0.3%    0.3%  Handler: next
+      2    0.3%    0.3%  Builtin: CallFunction_ReceiverIsNotNullOrUndefined
+      1    0.1%    0.2%  Stub: ToNameStub
+      1    0.1%    0.2%  Stub: CEntryStub
+      1    0.1%    0.2%  LazyCompile: *N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
 
  [C++]:
    ticks  total  nonlib   name
-     29    4.7%    5.0%  v8::internal::(anonymous namespace)::CopyObjectToObjectElements(v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, int)
-     25    4.1%    4.3%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
-     18    2.9%    3.1%  v8::internal::Scavenger::ScavengeObjectSlow(v8::internal::HeapObject**, v8::internal::HeapObject*)
-     17    2.8%    3.0%  v8::internal::IntToCString(int, v8::internal::Vector<char>)
-     15    2.5%    2.6%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::StaticScavengeVisitor<(v8::internal::PromotionMode)1> >(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
-     15    2.5%    2.6%  v8::internal::Factory::SetNumberStringCache(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::String>)
-     14    2.3%    2.4%  v8::internal::Factory::NewStringFromOneByte(v8::internal::Vector<unsigned char const>, v8::internal::PretenureFlag)
-     14    2.3%    2.4%  node::ContextifyScript::New(v8::FunctionCallbackInfo<v8::Value> const&)
-     14    2.3%    2.4%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::SemiSpaceCopyObject<(v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
-     11    1.8%    1.9%  v8::internal::AllocationMemento* v8::internal::Heap::FindAllocationMemento<(v8::internal::Heap::FindMementoMode)1>(v8::internal::HeapObject*)
-      9    1.5%    1.6%  v8::internal::Heap::IteratePromotedObjectPointers(v8::internal::HeapObject*, unsigned char*, unsigned char*, bool, void (*)(v8::internal::HeapObject**, v8::internal::HeapObject*))
-      8    1.3%    1.4%  void v8::internal::BodyDescriptorApply<v8::internal::CallIterateBody, void, v8::internal::HeapObject*, int, v8::internal::ObjectVisitor*>(v8::internal::InstanceType, v8::internal::HeapObject*, int, v8::internal::ObjectVisitor*)
-      8    1.3%    1.4%  v8::internal::IncrementalMarking::MarkGrey(v8::internal::Heap*, v8::internal::HeapObject*)
-      8    1.3%    1.4%  v8::internal::Heap::AllocateRawOneByteString(int, v8::internal::PretenureFlag)
-      8    1.3%    1.4%  v8::internal::Heap::AllocateFixedArrayWithFiller(int, v8::internal::PretenureFlag, v8::internal::Object*)
-      7    1.1%    1.2%  v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::EvacuateShortcutCandidate(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*)
-      7    1.1%    1.2%  v8::internal::PagedSpace::AllocateRawUnaligned(int, v8::internal::PagedSpace::UpdateSkipList)
-      7    1.1%    1.2%  v8::internal::IncrementalMarking::MarkBlack(v8::internal::HeapObject*, int)
-      7    1.1%    1.2%  v8::internal::Factory::NumberToString(v8::internal::Handle<v8::internal::Object>, bool)
-      6    1.0%    1.0%  v8::internal::IncrementalMarking::Step(long, v8::internal::IncrementalMarking::CompletionAction, v8::internal::IncrementalMarking::ForceMarkingAction, v8::internal::IncrementalMarking::ForceCompletionAction)
-      6    1.0%    1.0%  v8::internal::Factory::NewRawOneByteString(int, v8::internal::PretenureFlag)
-      5    0.8%    0.9%  v8::internal::Space::AllocationStep(unsigned char*, int)
-      5    0.8%    0.9%  v8::internal::Heap::IteratePromotedObject(v8::internal::HeapObject*, int, bool, void (*)(v8::internal::HeapObject**, v8::internal::HeapObject*))
-      5    0.8%    0.9%  v8::internal::(anonymous namespace)::ElementsAccessorBase<v8::internal::(anonymous namespace)::FastPackedSmiElementsAccessor, v8::internal::(anonymous namespace)::ElementsKindTraits<(v8::internal::ElementsKind)0> >::PrependElementIndices(v8::internal::Handle<v8::internal::JSObject>, v8::internal::Handle<v8::internal::FixedArrayBase>, v8::internal::Handle<v8::internal::FixedArray>, v8::internal::GetKeysConversion, v8::internal::PropertyFilter)
-      4    0.7%    0.7%  void v8::internal::Heap::UpdateAllocationSite<(v8::internal::Heap::UpdateAllocationSiteMode)0>(v8::internal::HeapObject*, v8::base::TemplateHashMapImpl<v8::base::DefaultAllocationPolicy>*)
-      4    0.7%    0.7%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::IncrementalMarkingMarkingVisitor>(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
-      4    0.7%    0.7%  v8::internal::LiveObjectIterator<(v8::internal::LiveObjectIterationMode)0>::Next()
-      4    0.7%    0.7%  v8::internal::HeapObject::SizeFromMap(v8::internal::Map*)
-      4    0.7%    0.7%  v8::internal::Heap::DoScavenge(v8::internal::ObjectVisitor*, unsigned char*, v8::internal::PromotionMode)
-      3    0.5%    0.5%  void v8::internal::RelocInfo::Visit<v8::internal::IncrementalMarkingMarkingVisitor>(v8::internal::Heap*)
-      3    0.5%    0.5%  v8::internal::Scavenger::ScavengeObject(v8::internal::HeapObject**, v8::internal::HeapObject*)
-      3    0.5%    0.5%  v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-      3    0.5%    0.5%  v8::internal::Heap::AllocateRaw(int, v8::internal::AllocationSpace, v8::internal::AllocationAlignment)
-      3    0.5%    0.5%  node::Binding(v8::FunctionCallbackInfo<v8::Value> const&)
-      2    0.3%    0.3%  void v8::internal::Heap::UpdateAllocationSite<(v8::internal::Heap::UpdateAllocationSiteMode)1>(v8::internal::HeapObject*, v8::base::TemplateHashMapImpl<v8::base::DefaultAllocationPolicy>*)
-      2    0.3%    0.3%  void v8::internal::BodyDescriptorBase::IteratePointers<v8::internal::MarkCompactMarkingVisitor>(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
-      2    0.3%    0.3%  v8::internal::PromotionQueue::remove(v8::internal::HeapObject**, int*, bool*)
-      2    0.3%    0.3%  v8::internal::MemoryChunk::Initialize(v8::internal::Heap*, unsigned char*, unsigned long, unsigned char*, unsigned char*, v8::internal::Executability, v8::internal::Space*, v8::base::VirtualMemory*)
+     31    4.5%    4.7%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
+     30    4.4%    4.6%  v8::internal::(anonymous namespace)::CopyObjectToObjectElements(v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, int)
+     22    3.2%    3.4%  v8::internal::IntToCString(int, v8::internal::Vector<char>)
+     16    2.3%    2.4%  v8::internal::Heap::AllocateRawOneByteString(int, v8::internal::PretenureFlag)
+     16    2.3%    2.4%  v8::internal::Factory::NewStringFromOneByte(v8::internal::Vector<unsigned char const>, v8::internal::PretenureFlag)
+     14    2.0%    2.1%  node::ContextifyScript::New(v8::FunctionCallbackInfo<v8::Value> const&)
+     14    2.0%    2.1%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
+     12    1.8%    1.8%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::SemiSpaceCopyObject<(v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
+     11    1.6%    1.7%  void v8::internal::Heap::UpdateAllocationSite<(v8::internal::Heap::UpdateAllocationSiteMode)0>(v8::internal::HeapObject*, v8::base::TemplateHashMapImpl<v8::base::DefaultAllocationPolicy>*)
+     11    1.6%    1.7%  void v8::internal::BodyDescriptorApply<v8::internal::CallIterateBody, void, v8::internal::HeapObject*, int, v8::internal::ObjectVisitor*>(v8::internal::InstanceType, v8::internal::HeapObject*, int, v8::internal::ObjectVisitor*)
+     11    1.6%    1.7%  v8::internal::Factory::NumberToString(v8::internal::Handle<v8::internal::Object>, bool)
+     10    1.5%    1.5%  v8::internal::compiler::GraphReducer::ReduceTop()
+     10    1.5%    1.5%  v8::internal::Scavenger::ScavengeObjectSlow(v8::internal::HeapObject**, v8::internal::HeapObject*)
+     10    1.5%    1.5%  v8::internal::IncrementalMarking::Step(long, v8::internal::IncrementalMarking::CompletionAction, v8::internal::IncrementalMarking::ForceMarkingAction, v8::internal::IncrementalMarking::ForceCompletionAction)
+     10    1.5%    1.5%  v8::internal::Factory::SetNumberStringCache(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::String>)
+      8    1.2%    1.2%  v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::EvacuateShortcutCandidate(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*)
+      8    1.2%    1.2%  v8::internal::PromotionQueue::remove(v8::internal::HeapObject**, int*, bool*)
+      8    1.2%    1.2%  v8::internal::PagedSpace::AllocateRawUnaligned(int, v8::internal::PagedSpace::UpdateSkipList)
+      8    1.2%    1.2%  v8::internal::Heap::IteratePromotedObjectPointers(v8::internal::HeapObject*, unsigned char*, unsigned char*, bool, void (*)(v8::internal::HeapObject**, v8::internal::HeapObject*))
+      7    1.0%    1.1%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::StaticScavengeVisitor<(v8::internal::PromotionMode)1> >(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
+      7    1.0%    1.1%  v8::internal::Factory::NewRawOneByteString(int, v8::internal::PretenureFlag)
+      7    1.0%    1.1%  v8::internal::AllocationMemento* v8::internal::Heap::FindAllocationMemento<(v8::internal::Heap::FindMementoMode)1>(v8::internal::HeapObject*)
+      6    0.9%    0.9%  v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
+      6    0.9%    0.9%  v8::internal::IncrementalMarking::MarkBlack(v8::internal::HeapObject*, int)
+      5    0.7%    0.8%  v8::internal::Heap::AllocateFixedArrayWithFiller(int, v8::internal::PretenureFlag, v8::internal::Object*)
+      4    0.6%    0.6%  v8::internal::Space::AllocationStep(unsigned char*, int)
+      4    0.6%    0.6%  v8::internal::Heap::IteratePromotedObject(v8::internal::HeapObject*, int, bool, void (*)(v8::internal::HeapObject**, v8::internal::HeapObject*))
+      4    0.6%    0.6%  v8::internal::Heap::AllocateRaw(int, v8::internal::AllocationSpace, v8::internal::AllocationAlignment)
+      3    0.4%    0.5%  v8::internal::compiler::GraphTrimmer::TrimGraph()
+      3    0.4%    0.5%  v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::EvacuateShortcutCandidate(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*)
+      3    0.4%    0.5%  v8::internal::MemoryChunk::Initialize(v8::internal::Heap*, unsigned char*, unsigned long, unsigned char*, unsigned char*, v8::internal::Executability, v8::internal::Space*, v8::base::VirtualMemory*)
+      3    0.4%    0.5%  v8::internal::IncrementalMarking::MarkGrey(v8::internal::Heap*, v8::internal::HeapObject*)
+      2    0.3%    0.3%  v8::internal::compiler::ValueNumberingReducer::Reduce(v8::internal::compiler::Node*)
+      2    0.3%    0.3%  v8::internal::compiler::UnhandledSortHelper(v8::internal::compiler::LiveRange*, v8::internal::compiler::LiveRange*)
+      2    0.3%    0.3%  v8::internal::compiler::StateValuesAccess::iterator::Advance()
+      2    0.3%    0.3%  v8::internal::compiler::Scheduler::PrepareUses()
+      2    0.3%    0.3%  v8::internal::compiler::ScheduleLateNodeVisitor::ProcessQueue(v8::internal::compiler::Node*)
+      2    0.3%    0.3%  v8::internal::compiler::ScheduleEarlyNodeVisitor::VisitNode(v8::internal::compiler::Node*)
+      2    0.3%    0.3%  v8::internal::TranslationBuffer::Add(int, v8::internal::Zone*)
+      2    0.3%    0.3%  v8::internal::StatsCounter::Increment()
+      2    0.3%    0.3%  v8::internal::ParserBase<v8::internal::Parser>::ParseAssignmentExpression(bool, v8::internal::ExpressionClassifier<v8::internal::ParserBaseTraits<v8::internal::Parser> >*, bool*)
       2    0.3%    0.3%  v8::internal::List<v8::internal::PromotionQueue::Entry, v8::internal::FreeStoreAllocationPolicy>::Remove(int)
-      2    0.3%    0.3%  v8::internal::InnerPointerToCodeCache::GetCacheEntry(unsigned char*)
-      2    0.3%    0.3%  v8::internal::Assembler::jmp(v8::internal::Label*, v8::internal::Label::Distance)
-      2    0.3%    0.3%  v8::internal::Assembler::j(v8::internal::Condition, v8::internal::Label*, v8::internal::Label::Distance)
-      2    0.3%    0.3%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
-      2    0.3%    0.3%  bool v8::internal::Heap::ShouldBePromoted<(v8::internal::PromotionMode)0>(unsigned char*, int)
-      1    0.2%    0.2%  void v8::internal::MarkCompactCollector::EvacuateVisitorBase::MigrateObject<(v8::internal::MarkCompactCollector::EvacuateVisitorBase::MigrationMode)1>(v8::internal::HeapObject*, v8::internal::HeapObject*, int, v8::internal::AllocationSpace)
-      1    0.2%    0.2%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::RecordMigratedSlotVisitor>(v8::internal::HeapObject*, int, int, v8::internal::RecordMigratedSlotVisitor*)
-      1    0.2%    0.2%  void v8::internal::BodyDescriptorApply<v8::internal::CallIterateBody, void, v8::internal::HeapObject*, int, v8::internal::RecordMigratedSlotVisitor*>(v8::internal::InstanceType, v8::internal::HeapObject*, int, v8::internal::RecordMigratedSlotVisitor*)
-      1    0.2%    0.2%  v8::internal::TypeFeedbackVector::GetKind(v8::internal::FeedbackVectorSlot) const
-      1    0.2%    0.2%  v8::internal::String::CalculateLineEnds(v8::internal::Handle<v8::internal::String>, bool)
-      1    0.2%    0.2%  v8::internal::StaticMarkingVisitor<v8::internal::MarkCompactMarkingVisitor>::VisitSharedFunctionInfoStrongCode(v8::internal::Heap*, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::StaticMarkingVisitor<v8::internal::IncrementalMarkingMarkingVisitor>::VisitWeakCell(v8::internal::Map*, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::StaticMarkingVisitor<v8::internal::IncrementalMarkingMarkingVisitor>::VisitJSFunction(v8::internal::Map*, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::StackFrameIteratorBase::StackFrameIteratorBase(v8::internal::Isolate*, bool)
-      1    0.2%    0.2%  v8::internal::StackFrameIterator::Advance()
-      1    0.2%    0.2%  v8::internal::StackFrame::GetCallerState(v8::internal::StackFrame::State*) const
-      1    0.2%    0.2%  v8::internal::StackFrame::ComputeType(v8::internal::StackFrameIteratorBase const*, v8::internal::StackFrame::State*)
-      1    0.2%    0.2%  v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::RecordCopiedObject(v8::internal::Heap*, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::EvacuateShortcutCandidate(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::ScavengeVisitor::VisitPointer(v8::internal::Object**)
-      1    0.2%    0.2%  v8::internal::Scanner::ScanIdentifierOrKeyword()
-      1    0.2%    0.2%  v8::internal::Parser::ParseBlock(v8::internal::ZoneList<v8::internal::AstRawString const*>*, bool*)
-      1    0.2%    0.2%  v8::internal::MarkCompactCollector::EvacuateNewSpaceVisitor::Visit(v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::MarkCompactCollector::EvacuateNewSpaceVisitor::AllocateInLab(int, v8::internal::AllocationAlignment)
-      1    0.2%    0.2%  v8::internal::LookupIterator::NotFound(v8::internal::JSReceiver*) const
-      1    0.2%    0.2%  v8::internal::LookupIterator::LookupIterator(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Name>, v8::internal::Handle<v8::internal::JSReceiver>, v8::internal::LookupIterator::Configuration)
-      1    0.2%    0.2%  v8::internal::List<v8::internal::PromotionQueue::Entry, v8::internal::FreeStoreAllocationPolicy>::Add(v8::internal::PromotionQueue::Entry const&, v8::internal::FreeStoreAllocationPolicy)
-      1    0.2%    0.2%  v8::internal::LAllocator::ResolveControlFlow()
-      1    0.2%    0.2%  v8::internal::LAllocator::FreeSpillSlot(v8::internal::LiveRange*)
-      1    0.2%    0.2%  v8::internal::JSReceiver::ValidateAndApplyPropertyDescriptor(v8::internal::Isolate*, v8::internal::LookupIterator*, bool, v8::internal::PropertyDescriptor*, v8::internal::PropertyDescriptor*, v8::internal::Object::ShouldThrow, v8::internal::Handle<v8::internal::Name>)
-      1    0.2%    0.2%  v8::internal::JSObject::MigrateToMap(v8::internal::Handle<v8::internal::JSObject>, v8::internal::Handle<v8::internal::Map>, int)
-      1    0.2%    0.2%  v8::internal::JSFunction::EnsureLiterals(v8::internal::Handle<v8::internal::JSFunction>)
-      1    0.2%    0.2%  v8::internal::IteratePromotedObjectsVisitor::VisitPointers(v8::internal::Object**, v8::internal::Object**)
-      1    0.2%    0.2%  v8::internal::IncrementalMarkingMarkingVisitor::VisitFixedArrayIncremental(v8::internal::Map*, v8::internal::HeapObject*)
-      1    0.2%    0.2%  v8::internal::IncrementalMarking::WhiteToGreyAndPush(v8::internal::HeapObject*, v8::internal::MarkBit)
-      1    0.2%    0.2%  v8::internal::HeapObject::IterateBody(v8::internal::InstanceType, int, v8::internal::ObjectVisitor*)
-      1    0.2%    0.2%  v8::internal::Heap::CommittedMemory()
-      1    0.2%    0.2%  v8::internal::FullCodeGenerator::VisitForStackValue(v8::internal::Expression*)
-      1    0.2%    0.2%  v8::internal::FixStaleLeftTrimmedHandlesVisitor::VisitPointers(v8::internal::Object**, v8::internal::Object**)
-      1    0.2%    0.2%  v8::internal::Factory::NewNumberFromUint(unsigned int, v8::internal::PretenureFlag)
-      1    0.2%    0.2%  v8::internal::Deserializer::ReadObject(int, v8::internal::Object**)
-      1    0.2%    0.2%  v8::internal::Deserializer::ReadData(v8::internal::Object**, v8::internal::Object**, int, unsigned char*)
-      1    0.2%    0.2%  v8::internal::ContextSlotCache::Clear()
-      1    0.2%    0.2%  v8::internal::CompareIC::ComputeCondition(v8::internal::Token::Value)
-      1    0.2%    0.2%  v8::internal::Assembler::bind_to(v8::internal::Label*, int)
-      1    0.2%    0.2%  v8::internal::(anonymous namespace)::EncodeInt(v8::internal::ZoneVector<unsigned char>&, int)
-      1    0.2%    0.2%  v8::base::AccountingAllocator::Allocate(unsigned long)
-      1    0.2%    0.2%  std::__1::__tree<std::__1::__value_type<v8::internal::compiler::CodeAssembler::Variable::Impl*, v8::internal::compiler::Node*>, std::__1::__map_value_compare<v8::internal::compiler::CodeAssembler::Variable::Impl*, std::__1::__value_type<v8::internal::compiler::CodeAssembler::Variable::Impl*, v8::internal::compiler::Node*>, std::__1::less<v8::internal::compiler::CodeAssembler::Variable::Impl*>, true>, std::__1::allocator<std::__1::__value_type<v8::internal::compiler::CodeAssembler::Variable::Impl*, v8::internal::compiler::Node*> > >::destroy(std::__1::__tree_node<std::__1::__value_type<v8::internal::compiler::CodeAssembler::Variable::Impl*, v8::internal::compiler::Node*>, void*>*)
-      1    0.2%    0.2%  node::TTYWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+      2    0.3%    0.3%  v8::internal::List<v8::internal::PromotionQueue::Entry, v8::internal::FreeStoreAllocationPolicy>::Add(v8::internal::PromotionQueue::Entry const&, v8::internal::FreeStoreAllocationPolicy)
+      2    0.3%    0.3%  v8::internal::HeapObject::SizeFromMap(v8::internal::Map*)
+      2    0.3%    0.3%  v8::internal::Heap::FullSizeNumberStringCacheLength()
+      2    0.3%    0.3%  v8::internal::(anonymous namespace)::ElementsAccessorBase<v8::internal::(anonymous namespace)::FastPackedSmiElementsAccessor, v8::internal::(anonymous namespace)::ElementsKindTraits<(v8::internal::ElementsKind)0> >::PrependElementIndices(v8::internal::Handle<v8::internal::JSObject>, v8::internal::Handle<v8::internal::FixedArrayBase>, v8::internal::Handle<v8::internal::FixedArray>, v8::internal::GetKeysConversion, v8::internal::PropertyFilter)
+      2    0.3%    0.3%  std::__1::deque<v8::internal::compiler::LivenessAnalyzerBlock::Entry, v8::internal::zone_allocator<v8::internal::compiler::LivenessAnalyzerBlock::Entry> >::push_back(v8::internal::compiler::LivenessAnalyzerBlock::Entry&&)
+      2    0.3%    0.3%  node::TTYWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+      2    0.3%    0.3%  node::Binding(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.1%    0.2%  void v8::internal::RelocInfo::Visit<v8::internal::MarkCompactMarkingVisitor>(v8::internal::Heap*)
+      1    0.1%    0.2%  void v8::internal::Heap::UpdateAllocationSite<(v8::internal::Heap::UpdateAllocationSiteMode)1>(v8::internal::HeapObject*, v8::base::TemplateHashMapImpl<v8::base::DefaultAllocationPolicy>*)
+      1    0.1%    0.2%  void v8::internal::BodyDescriptorBase::IteratePointers<v8::internal::MarkCompactMarkingVisitor>(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
+      1    0.1%    0.2%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::IncrementalMarkingMarkingVisitor>(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
+      1    0.1%    0.2%  void std::__1::__tree_left_rotate<std::__1::__tree_node_base<void*>*>(std::__1::__tree_node_base<void*>*)
+      1    0.1%    0.2%  v8::internal::compiler::Typer::Visitor::Reduce(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::TopLevelLiveRange::AddUsePosition(v8::internal::compiler::UsePosition*)
+      1    0.1%    0.2%  v8::internal::compiler::TopLevelLiveRange::AddUseInterval(v8::internal::compiler::LifetimePosition, v8::internal::compiler::LifetimePosition, v8::internal::Zone*)
+      1    0.1%    0.2%  v8::internal::compiler::StateValuesCache::GetValuesNodeFromCache(v8::internal::compiler::Node**, unsigned long)
+      1    0.1%    0.2%  v8::internal::compiler::StateValuesAccess::size()
+      1    0.1%    0.2%  v8::internal::compiler::Scheduler::UpdatePlacement(v8::internal::compiler::Node*, v8::internal::compiler::Scheduler::Placement)
+      1    0.1%    0.2%  v8::internal::compiler::Scheduler::DecrementUnscheduledUseCount(v8::internal::compiler::Node*, int, v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::ScheduleLateNodeVisitor::VisitNode(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::ScheduleEarlyNodeVisitor::PropagateMinimumPositionToNode(v8::internal::compiler::BasicBlock*, v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::RepresentationSelector::VisitStateValues(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::RepresentationSelector::RunTruncationPropagationPhase()
+      1    0.1%    0.2%  v8::internal::compiler::RegisterAllocator::SplitAndSpillRangesDefinedByMemoryOperand(bool)
+      1    0.1%    0.2%  v8::internal::compiler::RegisterAllocationData::GetOrCreateLiveRangeFor(int)
+      1    0.1%    0.2%  v8::internal::compiler::ReferenceMapPopulator::PopulateReferenceMaps()
+      1    0.1%    0.2%  v8::internal::compiler::OperatorProperties::HasFrameStateInput(v8::internal::compiler::Operator const*)
+      1    0.1%    0.2%  v8::internal::compiler::NonLiveFrameStateSlotReplacer::ClearNonLiveFrameStateSlots(v8::internal::compiler::Node*, v8::internal::BitVector*)
+      1    0.1%    0.2%  v8::internal::compiler::NodeProperties::PastEffectIndex(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::Node::ClearInputs(int, int)
+      1    0.1%    0.2%  v8::internal::compiler::MachineOperatorReducer::Reduce(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::LoopFinderImpl::SetLoopMarkForLoopHeader(v8::internal::compiler::Node*, int)
+      1    0.1%    0.2%  v8::internal::compiler::LiveRangeBuilder::FixedFPLiveRangeFor(int, v8::internal::MachineRepresentation)
+      1    0.1%    0.2%  v8::internal::compiler::LiveRange::FirstIntersection(v8::internal::compiler::LiveRange*) const
+      1    0.1%    0.2%  v8::internal::compiler::JSTypedLowering::Reduce(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::InstructionSelector::VisitStore(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::InstructionSelector::VisitBlock(v8::internal::compiler::BasicBlock*)
+      1    0.1%    0.2%  v8::internal::compiler::InstructionSelector::SelectInstructions()
+      1    0.1%    0.2%  v8::internal::compiler::GraphReducer::Reduce(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::GraphReducer::Recurse(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::Graph::NewNodeUnchecked(v8::internal::compiler::Operator const*, int, v8::internal::compiler::Node* const*, bool)
+      1    0.1%    0.2%  v8::internal::compiler::DeadCodeElimination::ReduceLoopOrMerge(v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::ConstraintBuilder::ResolvePhis(v8::internal::compiler::InstructionBlock const*)
+      1    0.1%    0.2%  v8::internal::compiler::CodeGenerator::TranslateStateValueDescriptor(v8::internal::compiler::StateValueDescriptor*, v8::internal::Translation*, v8::internal::compiler::InstructionOperandIterator*)
+      1    0.1%    0.2%  v8::internal::compiler::CodeGenerator::AddTranslationForOperand(v8::internal::Translation*, v8::internal::compiler::Instruction*, v8::internal::compiler::InstructionOperand*, v8::internal::MachineType)
+      1    0.1%    0.2%  v8::internal::compiler::AstGraphBuilder::Environment::Environment(v8::internal::compiler::AstGraphBuilder::Environment*, v8::internal::compiler::LivenessAnalyzerBlock*)
+      1    0.1%    0.2%  v8::internal::compiler::AstGraphBuilder::Environment::Checkpoint(v8::internal::BailoutId, v8::internal::compiler::OutputFrameStateCombine, bool)
+      1    0.1%    0.2%  v8::internal::compiler::AreUseIntervalsIntersecting(v8::internal::compiler::UseInterval*, v8::internal::compiler::UseInterval*)
+      1    0.1%    0.2%  v8::internal::compiler::(anonymous namespace)::Equals(v8::internal::compiler::Node*, v8::internal::compiler::Node*)
+      1    0.1%    0.2%  v8::internal::compiler::(anonymous namespace)::BlockEffectControlMap::For(v8::internal::compiler::BasicBlock*, v8::internal::compiler::BasicBlock*)
+      1    0.1%    0.2%  v8::internal::Zone::New(unsigned long)
+      1    0.1%    0.2%  v8::internal::String::CalculateLineEnds(v8::internal::Handle<v8::internal::String>, bool)
+      1    0.1%    0.2%  v8::internal::StaticMarkingVisitor<v8::internal::MarkCompactMarkingVisitor>::VisitSharedFunctionInfoStrongCode(v8::internal::Heap*, v8::internal::HeapObject*)
+      1    0.1%    0.2%  v8::internal::StackFrameIteratorBase::SingletonFor(v8::internal::StackFrame::Type)
+      1    0.1%    0.2%  v8::internal::SharedFunctionInfo::AddToOptimizedCodeMap(v8::internal::Handle<v8::internal::SharedFunctionInfo>, v8::internal::Handle<v8::internal::Context>, v8::internal::MaybeHandle<v8::internal::Code>, v8::internal::Handle<v8::internal::LiteralsArray>, v8::internal::BailoutId)
+      1    0.1%    0.2%  v8::internal::Scope::CheckConflictingVarDeclarations()
+      1    0.1%    0.2%  v8::internal::ScavengeVisitor::VisitPointer(v8::internal::Object**)
+      1    0.1%    0.2%  v8::internal::Scanner::Next()
+      1    0.1%    0.2%  v8::internal::Scanner::HandleLeadSurrogate()
+      1    0.1%    0.2%  v8::internal::RelocIterator::AdvanceReadLongPCJump()
+      1    0.1%    0.2%  v8::internal::PromotionQueue::SetNewLimit(unsigned char*)
+      1    0.1%    0.2%  v8::internal::PostorderProcessor::SetupSuccessors(v8::internal::Zone*, v8::internal::HBasicBlock*, v8::internal::HBasicBlock*)
+      1    0.1%    0.2%  v8::internal::PointersUpdatingVisitor::VisitPointers(v8::internal::Object**, v8::internal::Object**)
+      1    0.1%    0.2%  v8::internal::Parser::ParseStatementListItem(bool*)
+      1    0.1%    0.2%  v8::internal::Parser::ParseEagerFunctionBody(v8::internal::AstRawString const*, int, v8::internal::ParserFormalParameters const&, v8::internal::FunctionKind, v8::internal::FunctionLiteral::FunctionType, bool*)
+      1    0.1%    0.2%  v8::internal::MarkCompactCollector::EmptyMarkingDeque()
+      1    0.1%    0.2%  v8::internal::LookupIterator::WriteDataValue(v8::internal::Handle<v8::internal::Object>)
+      1    0.1%    0.2%  v8::internal::LiveRange::Covers(v8::internal::LifetimePosition)
+      1    0.1%    0.2%  v8::internal::KeyedLoadIC::Load(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>)
+      1    0.1%    0.2%  v8::internal::IteratePromotedObjectsVisitor::VisitPointers(v8::internal::Object**, v8::internal::Object**)
+      1    0.1%    0.2%  v8::internal::IncrementalMarking::WhiteToGreyAndPush(v8::internal::HeapObject*, v8::internal::MarkBit)
+      1    0.1%    0.2%  v8::internal::HeapObject::IterateBody(v8::internal::InstanceType, int, v8::internal::ObjectVisitor*)
+      1    0.1%    0.2%  v8::internal::Heap::Scavenge()
+      1    0.1%    0.2%  v8::internal::Heap::InitializeJSObjectBody(v8::internal::JSObject*, v8::internal::Map*, int)
+      1    0.1%    0.2%  v8::internal::Heap::GarbageCollectionEpilogue()
+      1    0.1%    0.2%  v8::internal::Heap::DoScavenge(v8::internal::ObjectVisitor*, unsigned char*, v8::internal::PromotionMode)
+      1    0.1%    0.2%  v8::internal::Expression::IsPropertyName() const
+      1    0.1%    0.2%  v8::internal::ConsString* v8::internal::String::VisitFlat<v8::internal::StringCharacterStream>(v8::internal::StringCharacterStream*, v8::internal::String*, int)
+      1    0.1%    0.2%  v8::internal::BitVector::BitVector(int, v8::internal::Zone*)
+      1    0.1%    0.2%  v8::internal::AstValueFactory::GetString(unsigned int, bool, v8::internal::Vector<unsigned char const>)
+      1    0.1%    0.2%  v8::internal::Assembler::testb(v8::internal::Register, v8::internal::Immediate)
+      1    0.1%    0.2%  v8::internal::Assembler::shift(v8::internal::Register, v8::internal::Immediate, int, int)
+      1    0.1%    0.2%  v8::internal::Assembler::movp(v8::internal::Register, void*, v8::internal::RelocInfo::Mode)
+      1    0.1%    0.2%  v8::base::bits::RoundUpToPowerOfTwo32(unsigned int)
+      1    0.1%    0.2%  v8::base::TemplateHashMapImpl<v8::internal::ZoneAllocationPolicy>::Probe(void*, unsigned int) const
+      1    0.1%    0.2%  node::Cwd(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.1%    0.2%  bool v8::internal::Heap::ShouldBePromoted<(v8::internal::PromotionMode)0>(unsigned char*, int)
 
  [Summary]:
    ticks  total  nonlib   name
-    172   28.1%   29.9%  JavaScript
-    367   60.0%   63.7%  C++
-    167   27.3%   29.0%  GC
-     36    5.9%          Shared libraries
-     37    6.0%          Unaccounted
+    167   24.4%   25.5%  JavaScript
+    436   63.7%   66.7%  C++
+    162   23.7%   24.8%  GC
+     30    4.4%          Shared libraries
+     51    7.5%          Unaccounted
 
  [C++ entry points]:
    ticks    cpp   total   name
-     93   40.6%   15.2%  v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-     44   19.2%    7.2%  v8::internal::Runtime_GrowArrayElements(int, v8::internal::Object**, v8::internal::Isolate*)
-     18    7.9%    2.9%  v8::internal::Builtin_HandleApiCall(int, v8::internal::Object**, v8::internal::Isolate*)
-     15    6.6%    2.5%  v8::internal::Runtime_ForInEnumerate(int, v8::internal::Object**, v8::internal::Isolate*)
-     12    5.2%    2.0%  v8::internal::Runtime_Interrupt(int, v8::internal::Object**, v8::internal::Isolate*)
-     11    4.8%    1.8%  v8::internal::Runtime_CompileLazy(int, v8::internal::Object**, v8::internal::Isolate*)
-     10    4.4%    1.6%  v8::internal::Runtime_AllocateInTargetSpace(int, v8::internal::Object**, v8::internal::Isolate*)
-     10    4.4%    1.6%  v8::internal::Runtime_AllocateInNewSpace(int, v8::internal::Object**, v8::internal::Isolate*)
-      2    0.9%    0.3%  v8::internal::Runtime_StoreIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      2    0.9%    0.3%  v8::internal::Runtime_NewObject(int, v8::internal::Object**, v8::internal::Isolate*)
-      2    0.9%    0.3%  v8::internal::Runtime_KeyedStoreIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::StackFrame::GetCallerState(v8::internal::StackFrame::State*) const
-      1    0.4%    0.2%  v8::internal::Runtime_ToBooleanIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_RegExpExec(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_LoadIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_InstanceOf(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_CompileForOnStackReplacement(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_CompareIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_BinaryOpIC_MissWithAllocationSite(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Runtime_AllocateHeapNumber(int, v8::internal::Object**, v8::internal::Isolate*)
-      1    0.4%    0.2%  v8::internal::Builtin_ObjectCreate(int, v8::internal::Object**, v8::internal::Isolate*)
+    112   37.6%   16.4%  v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
+     43   14.4%    6.3%  v8::internal::Runtime_GrowArrayElements(int, v8::internal::Object**, v8::internal::Isolate*)
+     39   13.1%    5.7%  v8::internal::Runtime_CompileOptimized_NotConcurrent(int, v8::internal::Object**, v8::internal::Isolate*)
+     38   12.8%    5.6%  v8::internal::Runtime_CompileForOnStackReplacement(int, v8::internal::Object**, v8::internal::Isolate*)
+     19    6.4%    2.8%  v8::internal::Builtin_HandleApiCall(int, v8::internal::Object**, v8::internal::Isolate*)
+     14    4.7%    2.0%  v8::internal::Runtime_CompileLazy(int, v8::internal::Object**, v8::internal::Isolate*)
+     11    3.7%    1.6%  v8::internal::Runtime_ForInEnumerate(int, v8::internal::Object**, v8::internal::Isolate*)
+     10    3.4%    1.5%  v8::internal::Runtime_AllocateInTargetSpace(int, v8::internal::Object**, v8::internal::Isolate*)
+      3    1.0%    0.4%  v8::internal::Runtime_StoreIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
+      2    0.7%    0.3%  v8::internal::Runtime_NewObject(int, v8::internal::Object**, v8::internal::Isolate*)
+      2    0.7%    0.3%  v8::internal::Runtime_Interrupt(int, v8::internal::Object**, v8::internal::Isolate*)
+      2    0.7%    0.3%  v8::internal::Runtime_AllocateInNewSpace(int, v8::internal::Object**, v8::internal::Isolate*)
+      1    0.3%    0.1%  v8::internal::Runtime_KeyedLoadIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
+      1    0.3%    0.1%  v8::internal::Runtime_CreateObjectLiteral(int, v8::internal::Object**, v8::internal::Isolate*)
+      1    0.3%    0.1%  v8::internal::Runtime_CompareIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
 
  [Bottom up (heavy) profile]:
   Note: percentage shows a share of a particular caller in the total
@@ -165,105 +195,108 @@ Statistical profiling result from isolate-0x102801600-v8.log, (612 ticks, 37 una
   Callers occupying less than 2.0% are not shown.
 
    ticks parent  name
-     39    6.4%  LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     39  100.0%    LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     39  100.0%      Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-     39  100.0%        LazyCompile: ~Module._compile module.js:511:37
-     39  100.0%          LazyCompile: ~Module._extensions..js module.js:578:37
-     39  100.0%            LazyCompile: ~Module.load module.js:479:33
+     51    7.5%  UNKNOWN
 
-     37    6.0%  UNKNOWN
+     51    7.5%  LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+     51  100.0%    LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     51  100.0%      Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+     51  100.0%        LazyCompile: ~Module._compile module.js:511:37
+     51  100.0%          LazyCompile: ~Module._extensions..js module.js:578:37
+     51  100.0%            LazyCompile: ~Module.load module.js:479:33
 
-     29    4.7%  v8::internal::(anonymous namespace)::CopyObjectToObjectElements(v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, int)
-     29  100.0%    v8::internal::Runtime_GrowArrayElements(int, v8::internal::Object**, v8::internal::Isolate*)
-     29  100.0%      LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:7:27
-     20   69.0%        LazyCompile: ~N1qlQuery /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:16:23
-     20  100.0%          LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     20  100.0%            Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-      9   31.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-      9  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-      9  100.0%            LazyCompile: ~Module._compile module.js:511:37
+     31    4.5%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
 
-     25    4.1%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
+     30    4.4%  v8::internal::(anonymous namespace)::CopyObjectToObjectElements(v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, v8::internal::FixedArrayBase*, v8::internal::ElementsKind, unsigned int, int)
+     30  100.0%    v8::internal::Runtime_GrowArrayElements(int, v8::internal::Object**, v8::internal::Isolate*)
+     30  100.0%      LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:7:27
+     22   73.3%        LazyCompile: ~N1qlQuery /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:16:23
+     18   81.8%          LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     18  100.0%            Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      4   18.2%          LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      4  100.0%            Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      5   16.7%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      5  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      5  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      3   10.0%        LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      3  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      3  100.0%            LazyCompile: ~Module._compile module.js:511:37
 
-     19    3.1%  Stub: GrowArrayElementsStub
-     19  100.0%    LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:7:27
-     13   68.4%      LazyCompile: ~N1qlQuery /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:16:23
-     13  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     13  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-     13  100.0%            LazyCompile: ~Module._compile module.js:511:37
-      6   31.6%      LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-      6  100.0%        Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-      6  100.0%          LazyCompile: ~Module._compile module.js:511:37
-      6  100.0%            LazyCompile: ~Module._extensions..js module.js:578:37
-
-     18    2.9%  v8::internal::Scavenger::ScavengeObjectSlow(v8::internal::HeapObject**, v8::internal::HeapObject*)
-
-     17    2.8%  v8::internal::IntToCString(int, v8::internal::Vector<char>)
-     17  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-     17  100.0%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     17  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     17  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-     17  100.0%            LazyCompile: ~Module._compile module.js:511:37
-
-     16    2.6%  LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:7:27
-     14   87.5%    LazyCompile: ~N1qlQuery /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:16:23
-     14  100.0%      LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     14  100.0%        Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-     14  100.0%          LazyCompile: ~Module._compile module.js:511:37
-     14  100.0%            LazyCompile: ~Module._extensions..js module.js:578:37
-      2   12.5%    LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:7:27
-      2  100.0%      LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-      2  100.0%        Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-      2  100.0%          LazyCompile: ~Module._compile module.js:511:37
-      2  100.0%            LazyCompile: ~Module._extensions..js module.js:578:37
-
-     15    2.5%  void v8::internal::BodyDescriptorBase::IterateBodyImpl<v8::internal::StaticScavengeVisitor<(v8::internal::PromotionMode)1> >(v8::internal::Heap*, v8::internal::HeapObject*, int, int)
-
-     15    2.5%  v8::internal::Factory::SetNumberStringCache(v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::String>)
-     15  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-     15  100.0%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     15  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     15  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
+     26    3.8%  Stub: GrowArrayElementsStub
+     26  100.0%    LazyCompile: *generate_data /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:7:27
+     17   65.4%      LazyCompile: ~N1qlQuery /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:16:23
+     15   88.2%        LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     15  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
      15  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      2   11.8%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      2  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      2  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      5   19.2%      LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      5  100.0%        Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      5  100.0%          LazyCompile: ~Module._compile module.js:511:37
+      5  100.0%            LazyCompile: ~Module._extensions..js module.js:578:37
+      4   15.4%      LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      4  100.0%        Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      4  100.0%          LazyCompile: ~Module._compile module.js:511:37
+      4  100.0%            LazyCompile: ~Module._extensions..js module.js:578:37
 
-     14    2.3%  v8::internal::Factory::NewStringFromOneByte(v8::internal::Vector<unsigned char const>, v8::internal::PretenureFlag)
-     14  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-     14  100.0%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     14  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     14  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
+     22    3.2%  v8::internal::IntToCString(int, v8::internal::Vector<char>)
+     22  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
+     20   90.9%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+     20  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     20  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+     20  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      2    9.1%      LazyCompile: *N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+      2  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      2  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      2  100.0%            LazyCompile: ~Module._compile module.js:511:37
+
+     21    3.1%  LazyCompile: *run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     21  100.0%    Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+     21  100.0%      LazyCompile: ~Module._compile module.js:511:37
+     21  100.0%        LazyCompile: ~Module._extensions..js module.js:578:37
+     21  100.0%          LazyCompile: ~Module.load module.js:479:33
+     21  100.0%            LazyCompile: ~tryModuleLoad module.js:444:23
+
+     16    2.3%  v8::internal::Heap::AllocateRawOneByteString(int, v8::internal::PretenureFlag)
+     16  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
+     14   87.5%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+     14  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     14  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
      14  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      2   12.5%      LazyCompile: *N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+      2  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      2  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      2  100.0%            LazyCompile: ~Module._compile module.js:511:37
 
-     14    2.3%  node::ContextifyScript::New(v8::FunctionCallbackInfo<v8::Value> const&)
+     16    2.3%  v8::internal::Factory::NewStringFromOneByte(v8::internal::Vector<unsigned char const>, v8::internal::PretenureFlag)
+     16  100.0%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
+     12   75.0%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+     12  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+     12  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+     12  100.0%            LazyCompile: ~Module._compile module.js:511:37
+      4   25.0%      LazyCompile: *N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:24:30
+      4  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:6:13
+      4  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/old_code.txt:1:11
+      4  100.0%            LazyCompile: ~Module._compile module.js:511:37
+
+     14    2.0%  node::ContextifyScript::New(v8::FunctionCallbackInfo<v8::Value> const&)
      14  100.0%    v8::internal::Builtin_HandleApiCall(int, v8::internal::Object**, v8::internal::Isolate*)
-     14  100.0%      LazyCompile: ~runInThisContext bootstrap_node.js:429:28
-     14  100.0%        LazyCompile: ~NativeModule.compile bootstrap_node.js:511:44
-     14  100.0%          LazyCompile: ~NativeModule.require bootstrap_node.js:445:34
-      3   21.4%            Function: ~<anonymous> module.js:1:11
-      2   14.3%            LazyCompile: ~startup bootstrap_node.js:12:19
-      2   14.3%            Function: ~<anonymous> util.js:1:11
-      2   14.3%            Function: ~<anonymous> tty.js:1:11
-      2   14.3%            Function: ~<anonymous> stream.js:1:11
-      1    7.1%            LazyCompile: ~setupGlobalVariables bootstrap_node.js:192:32
-      1    7.1%            LazyCompile: ~setupGlobalTimeouts bootstrap_node.js:226:31
-      1    7.1%            Function: ~<anonymous> timers.js:1:11
-
-     14    2.3%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)1, (v8::internal::PromotionMode)1, (v8::internal::LoggingAndProfiling)0>::SemiSpaceCopyObject<(v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
-
-     13    2.1%  /usr/lib/system/libsystem_c.dylib
-     11   84.6%    v8::internal::Runtime_NumberToStringSkipCache(int, v8::internal::Object**, v8::internal::Isolate*)
-     11  100.0%      LazyCompile: ~N1qlQuery.iter /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:21:30
-     11  100.0%        LazyCompile: ~run /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:6:13
-     11  100.0%          Function: ~<anonymous> /Users/gautham/projects/github/n1ql-js/performance/transpilation/data_size/multiple_runs.js:1:11
-     11  100.0%            LazyCompile: ~Module._compile module.js:511:37
-      1    7.7%    v8::internal::Runtime_KeyedStoreIC_Miss(int, v8::internal::Object**, v8::internal::Isolate*)
-      1  100.0%      LazyCompile: ~Console console.js:5:17
-      1  100.0%        Function: ~<anonymous> console.js:1:11
-      1  100.0%          LazyCompile: ~NativeModule.compile bootstrap_node.js:511:44
-      1  100.0%            LazyCompile: ~NativeModule.require bootstrap_node.js:445:34
-      1    7.7%    v8::internal::Runtime_CompileLazy(int, v8::internal::Object**, v8::internal::Isolate*)
-      1  100.0%      LazyCompile: ~fs.openSync fs.js:555:23
-      1  100.0%        LazyCompile: ~fs.readFileSync fs.js:465:27
+     13   92.9%      LazyCompile: ~runInThisContext bootstrap_node.js:429:28
+     13  100.0%        LazyCompile: ~NativeModule.compile bootstrap_node.js:511:44
+     13  100.0%          LazyCompile: ~NativeModule.require bootstrap_node.js:445:34
+      2   15.4%            LazyCompile: ~startup bootstrap_node.js:12:19
+      2   15.4%            LazyCompile: ~setupGlobalVariables bootstrap_node.js:192:32
+      2   15.4%            Function: ~<anonymous> tty.js:1:11
+      2   15.4%            Function: ~<anonymous> stream.js:1:11
+      1    7.7%            LazyCompile: ~setupGlobalTimeouts bootstrap_node.js:226:31
+      1    7.7%            Function: ~<anonymous> util.js:1:11
+      1    7.7%            Function: ~<anonymous> timers.js:1:11
+      1    7.7%            Function: ~<anonymous> module.js:1:11
+      1    7.7%            Function: ~<anonymous> buffer.js:1:11
+      1    7.1%      LazyCompile: ~exports.runInThisContext vm.js:77:36
+      1  100.0%        LazyCompile: ~Module._compile module.js:511:37
       1  100.0%          LazyCompile: ~Module._extensions..js module.js:578:37
       1  100.0%            LazyCompile: ~Module.load module.js:479:33
+
+     14    2.0%  bool v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::PromoteObject<(v8::internal::ScavengingVisitor<(v8::internal::MarksHandling)0, (v8::internal::PromotionMode)0, (v8::internal::LoggingAndProfiling)0>::ObjectContents)1, (v8::internal::AllocationAlignment)0>(v8::internal::Map*, v8::internal::HeapObject**, v8::internal::HeapObject*, int)
 

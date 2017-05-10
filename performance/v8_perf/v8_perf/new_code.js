@@ -14,13 +14,13 @@ function run(size) {
 
     function N1qlQuery(size) {
         this.isInstance = true;
-      this.metaData = {};
-      // The definition for iter is provided by C++.
-      	this.iter = iter;
-      	this.stopIter = function (stopData) {
-        this.stopSignal = true;
-        this.metaData = stopData;
-      }
+        this.metaData = {};
+        // The definition for iter is provided by C++.
+        this.iter = iter;
+        this.stopIter = function (stopData) {
+            this.stopSignal = true;
+            this.metaData = stopData;
+        }
     }
 
     var res1 = generate_data(size),
@@ -28,10 +28,11 @@ function run(size) {
         normalIterations = 0,
         transpiledIterations = 0;
 
+    var str = '{"key":"This is key", "value":"This is value"}';
     var start = getTime();
     // Normal code.
     for (var item1 of res1) {
-        sum += item1;
+        var item1 = JSON.parse(str);
         ++normalIterations;
     }
     var end = getTime();
@@ -47,7 +48,7 @@ function run(size) {
     // Transpiled code.
     if (res1.isInstance) {
         res1.x = res1.iter(function (item1) {
-            sum += item1;
+            item1 = JSON.parse(item1);
             ++transpiledIterations;
         });
     } else {
@@ -86,7 +87,7 @@ function median(data) {
     return data.length % 2 ? data[mid] : (data[mid - 1] + data[mid]) / 2;
 }
 
-const SIZE = 10000000,
+const SIZE = 5000000,
     RUNS = 20;
 var runs = [];
 for (var i = 0; i < RUNS; ++i) {

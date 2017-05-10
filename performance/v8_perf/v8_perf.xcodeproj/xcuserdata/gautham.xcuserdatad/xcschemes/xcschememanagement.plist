@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>parsing_perf.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>v8_perf.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -13,6 +18,11 @@
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>AC12E5E01EC00E74002FF101</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AC1AC96B1EC2F7D500BAFE1E</key>
 		<dict>
 			<key>primary</key>
 			<true/>

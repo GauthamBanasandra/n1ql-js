@@ -10,16 +10,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 
 // Data size. Ensure that this size and the size in Js file match.
-#define SIZE 10000000
+#define SIZE 1000
 // Js source file to execute.
-#define SOURCE "/Users/gautham/projects/github/n1ql-js/performance/v8_perf/v8_perf/new_code.js"
+#define SOURCE "/Users/gautham/projects/github/n1ql-js/performance/v8_perf/v8_perf/nested_3.js"
 
 using namespace v8;
+
+std::vector<const char *> callback_args;
+v8::Local<v8::Function> json_parse;
 
 class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
@@ -38,38 +42,17 @@ std::string ReadFile(std::string file_path) {
   return source;
 }
 
-void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
+void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &Args) {
+  v8::Local<v8::Function> ffunc = v8::Local<v8::Function>::Cast(Args[0]);
   v8::Isolate *isolate = v8::Isolate::GetCurrent();
-  v8::Local<v8::Function> ffunc = v8::Local<v8::Function>::Cast(args[0]);
-  
-  v8::Local<v8::Value> callback_args[1];
+
   for (int i = 0; i < SIZE; ++i) {
-    callback_args[0] = v8::Number::New(isolate, 0);
-    ffunc->Call(ffunc, 1, callback_args);
+    v8::Local<v8::Value> args[1];
+    args[0] = v8::String::NewFromUtf8(isolate, callback_args[i]);
+//    args[0] = json_parse->Call(json_parse, 1, &args[0]);
+
+    ffunc->Call(ffunc, 1, args);
   }
-}
-
-const char *ToCString(const v8::String::Utf8Value &value) {
-  return *value ? *value : "<std::string conversion failed>";
-}
-
-const char *ToJson(v8::Isolate *isolate, v8::Handle<v8::Value> object) {
-  v8::HandleScope handle_scope(isolate);
-
-  v8::Local<v8::Context> context = isolate->GetCurrentContext();
-  v8::Local<v8::Object> global = context->Global();
-
-  v8::Local<v8::Object> JSON =
-      global->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject();
-  v8::Local<v8::Function> JSON_stringify = v8::Local<v8::Function>::Cast(
-      JSON->Get(v8::String::NewFromUtf8(isolate, "stringify")));
-
-  v8::Local<v8::Value> result;
-  v8::Local<v8::Value> args[1];
-  args[0] = {object};
-  result = JSON_stringify->Call(context->Global(), 1, args);
-  v8::String::Utf8Value str(result->ToString());
-  return ToCString(str);
 }
 
 void Print(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -113,6 +96,11 @@ int main(int argc, char *argv[]) {
 
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
 
+    for (int i = 0; i < SIZE; ++i) {
+      callback_args.push_back(
+          "{\"key\":\"This is the key\", \"value\":\"This is the value\"}");
+    }
+
     global->Set(v8::String::NewFromUtf8(isolate, "log"),
                 v8::FunctionTemplate::New(isolate, Print));
     global->Set(v8::String::NewFromUtf8(isolate, "iter"),
@@ -125,6 +113,15 @@ int main(int argc, char *argv[]) {
 
     // Enter the context for compiling and running the hello world script.
     Context::Scope context_scope(context);
+
+    v8::Local<v8::Object> json =
+        isolate->GetCurrentContext()
+            ->Global()
+            ->Get(v8::String::NewFromUtf8(isolate, "JSON"))
+            ->ToObject();
+
+    json_parse =
+        json->Get(v8::String::NewFromUtf8(isolate, "parse")).As<v8::Function>();
 
     std::string src = ReadFile(SOURCE);
     // Create a string containing the JavaScript source code.

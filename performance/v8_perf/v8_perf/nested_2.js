@@ -18,17 +18,19 @@ function run(size) {
 
     var res1 = generate_data(size),
         res2 = generate_data(size),
-        sum = 0,
         normalIterations = 0,
         transpiledIterations = 0;
 
+    var str = '{"key":"This is key", "value":"This is value"}';
     var start = getTime();
     // Normal code.
-    for (var item1 of res1)
+    for (var item1 of res1) {
+        var item1 = JSON.parse(str);
         for (var item2 of res2) {
-            sum += item1;
+            var item2 = JSON.parse(str);
             ++normalIterations;
         }
+    }
     var end = getTime();
 
 
@@ -36,35 +38,37 @@ function run(size) {
 
     res1 = new N1qlQuery(size);
     res2 = new N1qlQuery(size);
-    transpiledIterations = sum = 0;
+    transpiledIterations = 0;
 
 
     start = getTime();
     // Transpiled code.
     if (res1.isInstance) {
         res1.x = res1.iter(function (item1) {
+            item1 = JSON.parse(item1);
             if (res2.isInstance) {
                 res2.x = res2.iter(function (item2) {
-                    sum += item1;
+                    item2 = JSON.parse(item2);
                     ++transpiledIterations;
                 });
             } else {
                 for (var item2 of res2) {
-                    sum += item1;
+                    item2 = JSON.parse(item2);
                     ++transpiledIterations;
                 }
             }
         });
     } else {
         for (var item1 of res1) {
+            item1 = JSON.parse(item1);
             if (res2.isInstance) {
                 res2.x = res2.iter(function (item2) {
-                    sum += item1;
+                    item2 = JSON.parse(item2);
                     ++transpiledIterations;
                 });
             } else {
                 for (var item2 of res2) {
-                    sum += item1;
+                    item2 = JSON.parse(item2);
                     ++transpiledIterations;
                 }
             }
@@ -100,7 +104,7 @@ function median(data) {
     return data.length % 2 ? data[mid] : (data[mid - 1] + data[mid]) / 2;
 }
 
-const SIZE = 100,
+const SIZE = 10000,
     RUNS = 20;
 var runs = [];
 for (var i = 0; i < RUNS; ++i) {
