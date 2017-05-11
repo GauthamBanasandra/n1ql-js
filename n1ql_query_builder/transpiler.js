@@ -7,7 +7,7 @@ var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
 var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
 console.log(transpiledCode);
-esprima.parse(transpiledCode);
+// esprima.parse(transpiledCode);
 
 // TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
 // redundant.
@@ -537,6 +537,7 @@ function get_ast(code) {
                         }
                         break;
                     case 'ContinueStatement':
+                        // Labeled continue statement.
                         if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                             if (nodeCopy.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
@@ -552,7 +553,7 @@ function get_ast(code) {
                                 if (postIter.indexOf(arg.toString()) === -1) {
                                     postIter.push(arg);
                                 }
-                            }
+                            }// Unlabeled continue statement.
                         } else if (continueMod.isReplaceReq()) {
                             returnStmtAst = new ReturnAst(null);
                             replace_node(node, returnStmtAst);
@@ -655,24 +656,21 @@ function get_ast(code) {
                             return /ForOfStatement/.test(item.type);
                         }
                     });
-                    if (lookup.targetFound) {
+                    if (lookup.targetFound && !lookup.searchInterrupted) {
                         replace_node(node, new LabeledBreakAst(node.metaData.args));
                     }
                     if (lookup.searchInterrupted) {
                         console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.metaData.args, true);
+                        arg = new Arg(node.metaData.code, node.metaData.args, true);
                         argsAst = esprima.parse('(' + arg + ')');
                         returnStmtAst = new ReturnAst(stopIterAst);
                         stopIterAst.arguments.push(argsAst.body[0].expression);
 
                         returnStmtAst.isAnnotated = true;
-                        returnStmtAst.metaData = {
-                            code: LoopModifier.CONST.LABELED_BREAK,
-                            args: node.metaData.args,
-                            bubble: true
-                        };
+                        returnStmtAst.metaData = node.metaData;
+
                         replace_node(node, returnStmtAst);
                     }
 
@@ -870,10 +868,15 @@ function get_ast(code) {
     });
 
     estraverse.traverse(ast, {
-        enter: function (node) {
+        enter: function (node, parent) {
             globalAncestorStack.push(node);
+
+            if (/ForOfStatement/.test(node.type) && !node.isVisited && /LabeledStatement/.test(parent.type)) {
+                node.parentLabel = parent.label.name;
+                parent.remLabel = true;
+            }
         },
-        leave: function (node, parent) {
+        leave: function (node) {
             // Perform variable substitution in query constructor.
             if (is_n1ql_node(node) && node.arguments.length > 0) {
                 var queryAst = get_query_ast(node.arguments[0].quasis[0].value.raw);
@@ -886,11 +889,6 @@ function get_ast(code) {
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
                 if (!/BlockStatement/.test(node.body.type)) {
                     convert_to_block_stmt(node);
-                }
-
-                if (/LabeledStatement/.test(parent.type)) {
-                    node.parentLabel = parent.label.name;
-                    parent.remLabel = true;
                 }
 
                 var iterAst = get_iter_compatible_ast(node);
