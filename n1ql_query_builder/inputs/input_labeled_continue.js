@@ -1,6 +1,2 @@
-x: for (var r of res1) {
-    y: while(true) {
-        break y;
-    }
+x:for (var r of res)
     continue x;
-}

@@ -55,15 +55,6 @@ function get_ast(code) {
             stack.reverse();
         };
 
-        this.contains = function (item) {
-            for (var _item of stack) {
-                if (_item === item) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
         // debug.
         this.printAll = function () {
             for (var item of stack) {
@@ -124,6 +115,7 @@ function get_ast(code) {
             while (stackClone.getSize() > 0) {
                 clone.push(stackClone.pop());
             }
+
             clone.reverseElements();
 
             return clone;
@@ -503,6 +495,7 @@ function get_ast(code) {
                     if (postIter.indexOf(arg.toString()) === -1) {
                         postIter.push(arg.toString());
                     }
+
                     // Remove the annotation if it's already present.
                     // This is needed to prevent the else-block from replacing the already annotated node.
                     delete node.isAnnotated;
@@ -516,6 +509,7 @@ function get_ast(code) {
                 // If any of the exit criteria is encountered, then that statement may be replaced.
                 switch (node.type) {
                     case 'BreakStatement':
+                        stopIterAst = argsAst = null;
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             // TODO:    Might want to check for null.
@@ -526,7 +520,7 @@ function get_ast(code) {
                             // object otherwise.
                             argsAst = esprima.parse('(' + arg + ')');
 
-                            if (!(arg in postIter)) {
+                            if (postIter.indexOf(arg.toString()) === -1) {
                                 postIter.push(arg);
                             } // Unlabeled break statement.
                         } else if (!node.label && breakMod.isReplaceReq()) {
@@ -544,7 +538,7 @@ function get_ast(code) {
                         break;
                     case 'ContinueStatement':
                         if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
-                            if (nodeCopy.label === node.label.name) {
+                            if (nodeCopy.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
                                 replace_node(node, returnStmtAst);
                             } else {
@@ -555,7 +549,7 @@ function get_ast(code) {
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
                                 replace_node(node, returnStmtAst);
 
-                                if (!(arg in postIter)) {
+                                if (postIter.indexOf(arg.toString()) === -1) {
                                     postIter.push(arg);
                                 }
                             }
@@ -579,7 +573,8 @@ function get_ast(code) {
                             returnStmtAst = new ReturnAst(stopIterAst);
                             replace_node(node, returnStmtAst);
 
-                            if (!(arg in postIter)) {
+                            // TODO:    Need to bubble up return statement too.
+                            if (postIter.indexOf(arg.toString()) === -1) {
                                 postIter.push(arg);
                             }
                         }
@@ -605,6 +600,7 @@ function get_ast(code) {
                 --lblContinueMod.stackIndex;
             }
         });
+        // TODO :   Create a class for iter().
         var iter = esprima.parse(
             forOfNode.right.name + '.' + iterProp + '=' + forOfNode.right.name +
             '.iter(function (' + (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name) + '){});'
@@ -613,7 +609,6 @@ function get_ast(code) {
 
         var iterBlockAst = esprima.parse('{}').body[0];
         iterBlockAst.body.push(iter);
-
 
         // Pop the top for-of node.
         stackHelper.popTopForOfNode();
@@ -757,6 +752,7 @@ function get_ast(code) {
         var switchAst = new SwitchAst(discriminantAst);
 
         for (var postIterStmt of postIterStmts) {
+            // TODO :   Changing 'var postIter' to 'const postIter' causes a unit test to fail. Investigate this issue.
             var postIter = JSON.parse(postIterStmt);
             var caseAst = new CaseAst(postIter.code + postIter.args);
             switch (postIter.code) {
@@ -773,7 +769,7 @@ function get_ast(code) {
                                 return /ForOfStatement/.test(node.type);
                             }
                         });
-                        if (lookup.targetFound) {
+                        if (lookup.targetFound && !lookup.searchInterrupted) {
                             console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                             if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
