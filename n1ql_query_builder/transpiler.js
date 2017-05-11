@@ -7,7 +7,7 @@ var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
 var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
 console.log(transpiledCode);
-// esprima.parse(transpiledCode);
+esprima.parse(transpiledCode);
 
 // TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
 // redundant.
@@ -392,6 +392,7 @@ function get_ast(code) {
     function Arg(code, args, bubble) {
         this.code = code;
         this.args = args;
+        // TODO :   'bubble' is redundant. Remove it.
         this.bubble = bubble;
 
         this.toString = function () {
@@ -541,19 +542,19 @@ function get_ast(code) {
                         if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                             if (nodeCopy.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
-                                replace_node(node, returnStmtAst);
                             } else {
                                 arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
                                 argsAst = esprima.parse('(' + arg + ')');
                                 stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
-                                replace_node(node, returnStmtAst);
 
                                 if (postIter.indexOf(arg.toString()) === -1) {
                                     postIter.push(arg);
                                 }
-                            }// Unlabeled continue statement.
+                            }
+                            replace_node(node, returnStmtAst);
+                            // Unlabeled continue statement.
                         } else if (continueMod.isReplaceReq()) {
                             returnStmtAst = new ReturnAst(null);
                             replace_node(node, returnStmtAst);
@@ -657,16 +658,37 @@ function get_ast(code) {
                         }
                     });
                     if (lookup.targetFound && !lookup.searchInterrupted) {
-                        replace_node(node, new LabeledBreakAst(node.metaData.args));
+                        switch (node.metaData.code) {
+                            case LoopModifier.CONST.LABELED_BREAK:
+                                replace_node(node, new LabeledBreakAst(node.metaData.args));
+                                break;
+                            case LoopModifier.CONST.LABELED_CONTINUE:
+                                replace_node(node, new LabeledContinueAst(node.metaData.args));
+                                break;
+                        }
                     }
                     if (lookup.searchInterrupted) {
                         console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
-
-                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                        arg = new Arg(node.metaData.code, node.metaData.args, true);
-                        argsAst = esprima.parse('(' + arg + ')');
-                        returnStmtAst = new ReturnAst(stopIterAst);
-                        stopIterAst.arguments.push(argsAst.body[0].expression);
+                        switch (node.metaData.code) {
+                            case LoopModifier.CONST.LABELED_BREAK:
+                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                arg = new Arg(node.metaData.code, node.metaData.args, node.metaData.bubble);
+                                argsAst = esprima.parse('(' + arg + ')');
+                                returnStmtAst = new ReturnAst(stopIterAst);
+                                stopIterAst.arguments.push(argsAst.body[0].expression);
+                                break;
+                            case LoopModifier.CONST.LABELED_CONTINUE:
+                                if (lookup.stopNode.parentLabel === node.metaData.args) {
+                                    returnStmtAst = new ReturnAst(null);
+                                } else {
+                                    stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                    arg = new Arg(node.metaData.code, node.metaData.args);
+                                    argsAst = esprima.parse('(' + arg + ')');
+                                    returnStmtAst = new ReturnAst(stopIterAst);
+                                    stopIterAst.arguments.push(argsAst.body[0].expression);
+                                }
+                                break;
+                        }
 
                         returnStmtAst.isAnnotated = true;
                         returnStmtAst.metaData = node.metaData;
@@ -689,32 +711,69 @@ function get_ast(code) {
                 returnMod.pushIfAssoc(node);
                 lblContinueMod.pushIfAssoc(node);
 
-                if (/BreakStatement/.test(node.type) && node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                    lookup = stackHelper.searchStack({
-                        targetComparator: function (item) {
-                            return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
-                        },
-                        stopComparator: function (item) {
-                            return /ForOfStatement/.test(item.type);
+                switch (node.type) {
+                    case 'BreakStatement':
+                        // TODO :   Only labeled break case is being handled here. What about the unlabeled break case?
+                        if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                            lookup = stackHelper.searchStack({
+                                targetComparator: function (item) {
+                                    return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
+                                },
+                                stopComparator: function (item) {
+                                    return /ForOfStatement/.test(item.type);
+                                }
+                            });
+                            if (lookup.searchInterrupted) {
+                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
+                                argsAst = esprima.parse('(' + arg + ')');
+                                returnStmtAst = new ReturnAst(stopIterAst);
+                                stopIterAst.arguments.push(argsAst.body[0].expression);
+
+                                returnStmtAst.isAnnotated = true;
+                                returnStmtAst.metaData = {
+                                    code: LoopModifier.CONST.LABELED_BREAK,
+                                    args: node.label.name,
+                                    bubble: true
+                                };
+                                replace_node(node, returnStmtAst);
+                            }
                         }
-                    });
-                    if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                        break;
+                    case 'ContinueStatement':
+                        if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
+                            lookup = stackHelper.searchStack({
+                                targetComparator: function (item) {
+                                    return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
+                                },
+                                stopComparator: function (item) {
+                                    return /ForOfStatement/.test(item.type);
+                                }
+                            });
+                            if (lookup.searchInterrupted) {
+                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
-                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
-                        argsAst = esprima.parse('(' + arg + ')');
-                        returnStmtAst = new ReturnAst(stopIterAst);
-                        stopIterAst.arguments.push(argsAst.body[0].expression);
+                                if (lookup.stopNode.parentLabel === node.label.name) {
+                                    returnStmtAst = new ReturnAst(null);
+                                } else {
+                                    stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                    arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
+                                    argsAst = esprima.parse('(' + arg + ')');
+                                    returnStmtAst = new ReturnAst(stopIterAst);
+                                    stopIterAst.arguments.push(argsAst.body[0].expression);
+                                }
 
-                        returnStmtAst.isAnnotated = true;
-                        returnStmtAst.metaData = {
-                            code: LoopModifier.CONST.LABELED_BREAK,
-                            args: node.label.name,
-                            bubble: true
-                        };
-                        replace_node(node, returnStmtAst);
-                    }
+                                returnStmtAst.isAnnotated = true;
+                                returnStmtAst.metaData = {
+                                    code: LoopModifier.CONST.LABELED_CONTINUE,
+                                    args: node.label.name
+                                };
+                                replace_node(node, returnStmtAst);
+                            }
+                        }
+                        break;
                 }
             },
             leave: function (node) {
@@ -746,20 +805,22 @@ function get_ast(code) {
 
     // Returns a switch-case block to perform post-iteration steps.
     function get_post_iter_ast(iterVar, prop, postIterStmts, stackHelper) {
-        var discriminantAst = esprima.parse(iterVar + '.' + prop + '.code' + '+' + iterVar + '.' + prop + '.args').body[0].expression;
-        var switchAst = new SwitchAst(discriminantAst);
+        var discriminantAst = esprima.parse(iterVar + '.' + prop + '.code' + '+' + iterVar + '.' + prop + '.args').body[0].expression,
+            switchAst = new SwitchAst(discriminantAst),
+            postIter, caseAst, lookup, stopIterAst, arg, argsAst, returnStmtAst, doNotPushCase;
 
         for (var postIterStmt of postIterStmts) {
             // TODO :   Changing 'var postIter' to 'const postIter' causes a unit test to fail. Investigate this issue.
-            var postIter = JSON.parse(postIterStmt);
-            var caseAst = new CaseAst(postIter.code + postIter.args);
+            postIter = JSON.parse(postIterStmt);
+            caseAst = new CaseAst(postIter.code + postIter.args);
+
             switch (postIter.code) {
                 case LoopModifier.CONST.BREAK:
                 case LoopModifier.CONST.CONTINUE:
                     break;
                 case LoopModifier.CONST.LABELED_BREAK:
                     if (postIter.bubble) {
-                        var lookup = stackHelper.searchStack({
+                        lookup = stackHelper.searchStack({
                             targetComparator: function (node) {
                                 return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
                             },
@@ -771,7 +832,7 @@ function get_ast(code) {
                             console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                             if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
-                                var doNotPushCase = true;
+                                doNotPushCase = true;
                             } else {
                                 caseAst.consequent.push(new LabeledBreakAst(postIter.args));
                             }
@@ -779,10 +840,10 @@ function get_ast(code) {
                         if (lookup.searchInterrupted) {
                             console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
-                            var stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                            var arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args, true);
-                            var argsAst = esprima.parse('(' + arg + ')');
-                            var returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args, true);
+                            argsAst = esprima.parse('(' + arg + ')');
+                            returnStmtAst = new ReturnAst(stopIterAst);
                             stopIterAst.arguments.push(argsAst.body[0].expression);
 
                             returnStmtAst.isAnnotated = true;
@@ -795,7 +856,41 @@ function get_ast(code) {
                     }
                     break;
                 case LoopModifier.CONST.LABELED_CONTINUE:
-                    caseAst.consequent.push(new LabeledContinueAst(postIter.args));
+                    lookup = stackHelper.searchStack({
+                        targetComparator: function (node) {
+                            return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
+                        },
+                        stopComparator: function (node) {
+                            return /ForOfStatement/.test(node.type);
+                        }
+                    });
+                    if (lookup.targetFound && !lookup.searchInterrupted) {
+                        console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
+
+                        if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
+                            doNotPushCase = true;
+                        } else {
+                            caseAst.consequent.push(new LabeledContinueAst(postIter.args));
+                        }
+                    }
+                    if (lookup.searchInterrupted) {
+                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                        if (lookup.stopNode.parentLabel === postIter.args) {
+                            returnStmtAst = new ReturnAst(null);
+                        } else {
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, postIter.args);
+                            argsAst = esprima.parse('(' + arg + ')');
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                        }
+
+                        returnStmtAst.isAnnotated = true;
+                        returnStmtAst.metaData = postIter;
+
+                        caseAst.consequent.push(returnStmtAst);
+                    }
                     break;
                 case LoopModifier.CONST.RETURN:
                     var returnArg = postIter.args ? esprima.parse(postIter.args).body[0].expression : null;
