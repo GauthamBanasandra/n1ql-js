@@ -389,9 +389,9 @@ function get_ast(code) {
         this.arguments = [];
     }
 
-    function Arg(code, args) {
-        this.code = code;
-        this.args = args;
+    function Arg(arg) {
+        this.code = arg.code;
+        this.args = arg.args;
 
         this.toString = function () {
             var obj = {};
@@ -489,7 +489,7 @@ function get_ast(code) {
                     returnStmtAst;
 
                 if (node.isAnnotated) {
-                    arg = new Arg(node.metaData.code, node.metaData.args);
+                    arg = new Arg({code: node.metaData.code, args: node.metaData.args});
 
                     if (postIter.indexOf(arg.toString()) === -1) {
                         postIter.push(arg.toString());
@@ -514,7 +514,7 @@ function get_ast(code) {
                             // TODO:    Might want to check for null.
                             var instName = stackHelper.getTopForOfNode().right.name;
                             stopIterAst = new StopIterAst(instName);
-                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
+                            arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
                             // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
                             // object otherwise.
                             argsAst = esprima.parse('(' + arg + ')');
@@ -525,7 +525,7 @@ function get_ast(code) {
                         } else if (!node.label && breakMod.isReplaceReq()) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
                             // TODO :   Unlabeled break is handled slightly different from unlabeled continue. Why?
-                            arg = new Arg(LoopModifier.CONST.BREAK);
+                            arg = new Arg({code: LoopModifier.CONST.BREAK});
                             argsAst = esprima.parse('(' + arg + ')');
                         }
 
@@ -542,7 +542,7 @@ function get_ast(code) {
                             if (nodeCopy.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
                             } else {
-                                arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
+                                arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
                                 argsAst = esprima.parse('(' + arg + ')');
                                 stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 returnStmtAst = new ReturnAst(stopIterAst);
@@ -566,7 +566,7 @@ function get_ast(code) {
                             var argStr = node.argument ? escodegen.generate(node.argument) : null;
                             // Must enclose the return statement's argument within an expression '()'.
                             // Otherwise, it causes an error when returning anonymous function.
-                            arg = new Arg(LoopModifier.CONST.RETURN, '(' + argStr + ')');
+                            arg = new Arg({code: LoopModifier.CONST.RETURN, args: '(' + argStr + ')'});
                             argsAst = esprima.parse('(' + arg + ')');
 
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
@@ -671,7 +671,7 @@ function get_ast(code) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg(node.metaData.code, node.metaData.args);
+                                arg = new Arg({code: node.metaData.code, args: node.metaData.args});
                                 argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -681,7 +681,7 @@ function get_ast(code) {
                                     returnStmtAst = new ReturnAst(null);
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg(node.metaData.code, node.metaData.args);
+                                    arg = new Arg({code: node.metaData.code, args: node.metaData.args});
                                     argsAst = esprima.parse('(' + arg + ')');
                                     returnStmtAst = new ReturnAst(stopIterAst);
                                     stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -726,7 +726,7 @@ function get_ast(code) {
                                 console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
+                                arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
                                 argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -757,7 +757,7 @@ function get_ast(code) {
                                     returnStmtAst = new ReturnAst(null);
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, node.label.name);
+                                    arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
                                     argsAst = esprima.parse('(' + arg + ')');
                                     returnStmtAst = new ReturnAst(stopIterAst);
                                     stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -838,7 +838,7 @@ function get_ast(code) {
                         console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args);
+                        arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: postIter.args});
                         argsAst = esprima.parse('(' + arg + ')');
                         returnStmtAst = new ReturnAst(stopIterAst);
                         stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -874,7 +874,7 @@ function get_ast(code) {
                             returnStmtAst = new ReturnAst(null);
                         } else {
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                            arg = new Arg(LoopModifier.CONST.LABELED_CONTINUE, postIter.args);
+                            arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: postIter.args});
                             argsAst = esprima.parse('(' + arg + ')');
                             returnStmtAst = new ReturnAst(stopIterAst);
                             stopIterAst.arguments.push(argsAst.body[0].expression);
