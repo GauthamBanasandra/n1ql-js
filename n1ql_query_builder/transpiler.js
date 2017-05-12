@@ -393,6 +393,36 @@ function get_ast(code) {
         this.code = arg.code;
         this.args = arg.args;
 
+        this.getAst = function () {
+            // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
+            // object otherwise.
+            var argsAst = esprima.parse('(' + this.toString() + ')').body[0].expression;
+            if (arg.appendData) {
+                if (!this.args) {
+                    throw '"args" field is needed to add "data" field';
+                }
+
+                var dataValueAst = esprima.parse(this.args).body[0].expression;
+                var dataAst = {
+                    "type": "Property",
+                    "key": {
+                        "type": "Literal",
+                        "value": "data",
+                        "raw": "'data'"
+                    },
+                    "computed": false,
+                    "value": dataValueAst,
+                    "kind": "init",
+                    "method": false,
+                    "shorthand": false
+                };
+
+                argsAst.properties.push(dataAst);
+            }
+
+            return argsAst;
+        };
+
         this.toString = function () {
             var obj = {};
             for (var key of Object.keys(this)) {
@@ -403,6 +433,30 @@ function get_ast(code) {
 
             return JSON.stringify(obj);
         }
+    }
+
+    function ReturnDataAst(iterVar, prop) {
+        Ast.call(this, 'ExpressionStatement');
+        this.expression = {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                    "type": "Identifier",
+                    "name": iterVar
+                },
+                "property": {
+                    "type": "Identifier",
+                    "name": prop
+                }
+            },
+            "property": {
+                "type": "Identifier",
+                "name": "data"
+            }
+        };
     }
 
     // Replaces source node with the target node and returns a reference to the new node.
@@ -485,7 +539,6 @@ function get_ast(code) {
 
                 var arg,
                     stopIterAst,
-                    argsAst,
                     returnStmtAst;
 
                 if (node.isAnnotated) {
@@ -508,16 +561,13 @@ function get_ast(code) {
                 // If any of the exit criteria is encountered, then that statement may be replaced.
                 switch (node.type) {
                     case 'BreakStatement':
-                        stopIterAst = argsAst = null;
+                        stopIterAst = arg = null;
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             // TODO:    Might want to check for null.
                             var instName = stackHelper.getTopForOfNode().right.name;
                             stopIterAst = new StopIterAst(instName);
                             arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
-                            // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
-                            // object otherwise.
-                            argsAst = esprima.parse('(' + arg + ')');
 
                             if (postIter.indexOf(arg.toString()) === -1) {
                                 postIter.push(arg);
@@ -526,13 +576,12 @@ function get_ast(code) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
                             // TODO :   Unlabeled break is handled slightly different from unlabeled continue. Why?
                             arg = new Arg({code: LoopModifier.CONST.BREAK});
-                            argsAst = esprima.parse('(' + arg + ')');
                         }
 
-                        if (stopIterAst && argsAst) {
+                        if (stopIterAst && arg) {
                             returnStmtAst = new ReturnAst(stopIterAst);
                             // Add 'arg' as the argument to 'stopIter()'.
-                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                            stopIterAst.arguments.push(arg.getAst());
                             replace_node(node, returnStmtAst);
                         }
                         break;
@@ -543,10 +592,9 @@ function get_ast(code) {
                                 returnStmtAst = new ReturnAst(null);
                             } else {
                                 arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
-                                argsAst = esprima.parse('(' + arg + ')');
                                 stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 returnStmtAst = new ReturnAst(stopIterAst);
-                                stopIterAst.arguments.push(argsAst.body[0].expression);
+                                stopIterAst.arguments.push(arg.getAst());
 
                                 if (postIter.indexOf(arg.toString()) === -1) {
                                     postIter.push(arg);
@@ -566,11 +614,13 @@ function get_ast(code) {
                             var argStr = node.argument ? escodegen.generate(node.argument) : null;
                             // Must enclose the return statement's argument within an expression '()'.
                             // Otherwise, it causes an error when returning anonymous function.
-                            arg = new Arg({code: LoopModifier.CONST.RETURN, args: '(' + argStr + ')'});
-                            argsAst = esprima.parse('(' + arg + ')');
-
+                            arg = new Arg({
+                                code: LoopModifier.CONST.RETURN,
+                                args: '(' + argStr + ')',
+                                appendData: true
+                            });
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                            stopIterAst.arguments.push(arg.getAst());
                             returnStmtAst = new ReturnAst(stopIterAst);
                             replace_node(node, returnStmtAst);
 
@@ -644,7 +694,6 @@ function get_ast(code) {
                 var lookup,
                     stopIterAst,
                     arg,
-                    argsAst,
                     returnStmtAst;
 
                 if (node.isAnnotated) {
@@ -672,9 +721,8 @@ function get_ast(code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                 arg = new Arg({code: node.metaData.code, args: node.metaData.args});
-                                argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
-                                stopIterAst.arguments.push(argsAst.body[0].expression);
+                                stopIterAst.arguments.push(arg.getAst());
                                 break;
                             case LoopModifier.CONST.LABELED_CONTINUE:
                                 if (lookup.stopNode.parentLabel === node.metaData.args) {
@@ -682,9 +730,8 @@ function get_ast(code) {
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                     arg = new Arg({code: node.metaData.code, args: node.metaData.args});
-                                    argsAst = esprima.parse('(' + arg + ')');
                                     returnStmtAst = new ReturnAst(stopIterAst);
-                                    stopIterAst.arguments.push(argsAst.body[0].expression);
+                                    stopIterAst.arguments.push(arg.getAst());
                                 }
                                 break;
                         }
@@ -727,9 +774,8 @@ function get_ast(code) {
 
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                 arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
-                                argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
-                                stopIterAst.arguments.push(argsAst.body[0].expression);
+                                stopIterAst.arguments.push(arg.getAst());
 
                                 returnStmtAst.isAnnotated = true;
                                 returnStmtAst.metaData = {
@@ -758,9 +804,8 @@ function get_ast(code) {
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                     arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
-                                    argsAst = esprima.parse('(' + arg + ')');
                                     returnStmtAst = new ReturnAst(stopIterAst);
-                                    stopIterAst.arguments.push(argsAst.body[0].expression);
+                                    stopIterAst.arguments.push(arg.getAst());
                                 }
 
                                 returnStmtAst.isAnnotated = true;
@@ -805,7 +850,7 @@ function get_ast(code) {
     function get_post_iter_ast(iterVar, prop, postIterStmts, stackHelper) {
         var discriminantAst = esprima.parse(iterVar + '.' + prop + '.code' + '+' + iterVar + '.' + prop + '.args').body[0].expression,
             switchAst = new SwitchAst(discriminantAst),
-            postIter, caseAst, lookup, stopIterAst, arg, argsAst, returnStmtAst, doNotPushCase;
+            postIter, caseAst, lookup, stopIterAst, arg, returnStmtAst, doNotPushCase;
 
         for (var postIterStmt of postIterStmts) {
             // TODO :   Changing 'var postIter' to 'const postIter' causes a unit test to fail. Investigate this issue.
@@ -839,9 +884,8 @@ function get_ast(code) {
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: postIter.args});
-                        argsAst = esprima.parse('(' + arg + ')');
                         returnStmtAst = new ReturnAst(stopIterAst);
-                        stopIterAst.arguments.push(argsAst.body[0].expression);
+                        stopIterAst.arguments.push(arg.getAst());
 
                         returnStmtAst.isAnnotated = true;
                         returnStmtAst.metaData = postIter;
@@ -875,9 +919,8 @@ function get_ast(code) {
                         } else {
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                             arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: postIter.args});
-                            argsAst = esprima.parse('(' + arg + ')');
                             returnStmtAst = new ReturnAst(stopIterAst);
-                            stopIterAst.arguments.push(argsAst.body[0].expression);
+                            stopIterAst.arguments.push(arg.getAst());
                         }
 
                         returnStmtAst.isAnnotated = true;
@@ -887,8 +930,8 @@ function get_ast(code) {
                     }
                     break;
                 case LoopModifier.CONST.RETURN:
-                    var returnArg = postIter.args ? esprima.parse(postIter.args).body[0].expression : null;
-                    caseAst.consequent.push(new ReturnAst(returnArg));
+                    returnStmtAst = new ReturnAst(new ReturnDataAst(iterVar, prop));
+                    caseAst.consequent.push(returnStmtAst);
                     break;
             }
 
