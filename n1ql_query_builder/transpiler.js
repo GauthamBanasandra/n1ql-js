@@ -389,11 +389,9 @@ function get_ast(code) {
         this.arguments = [];
     }
 
-    function Arg(code, args, bubble) {
+    function Arg(code, args) {
         this.code = code;
         this.args = args;
-        // TODO :   'bubble' is redundant. Remove it.
-        this.bubble = bubble;
 
         this.toString = function () {
             var obj = {};
@@ -491,7 +489,7 @@ function get_ast(code) {
                     returnStmtAst;
 
                 if (node.isAnnotated) {
-                    arg = new Arg(node.metaData.code, node.metaData.args, node.metaData.bubble);
+                    arg = new Arg(node.metaData.code, node.metaData.args);
 
                     if (postIter.indexOf(arg.toString()) === -1) {
                         postIter.push(arg.toString());
@@ -516,7 +514,7 @@ function get_ast(code) {
                             // TODO:    Might want to check for null.
                             var instName = stackHelper.getTopForOfNode().right.name;
                             stopIterAst = new StopIterAst(instName);
-                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
+                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
                             // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
                             // object otherwise.
                             argsAst = esprima.parse('(' + arg + ')');
@@ -526,6 +524,7 @@ function get_ast(code) {
                             } // Unlabeled break statement.
                         } else if (!node.label && breakMod.isReplaceReq()) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
+                            // TODO :   Unlabeled break is handled slightly different from unlabeled continue. Why?
                             arg = new Arg(LoopModifier.CONST.BREAK);
                             argsAst = esprima.parse('(' + arg + ')');
                         }
@@ -672,7 +671,7 @@ function get_ast(code) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg(node.metaData.code, node.metaData.args, node.metaData.bubble);
+                                arg = new Arg(node.metaData.code, node.metaData.args);
                                 argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -727,7 +726,7 @@ function get_ast(code) {
                                 console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name, true);
+                                arg = new Arg(LoopModifier.CONST.LABELED_BREAK, node.label.name);
                                 argsAst = esprima.parse('(' + arg + ')');
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(argsAst.body[0].expression);
@@ -735,8 +734,7 @@ function get_ast(code) {
                                 returnStmtAst.isAnnotated = true;
                                 returnStmtAst.metaData = {
                                     code: LoopModifier.CONST.LABELED_BREAK,
-                                    args: node.label.name,
-                                    bubble: true
+                                    args: node.label.name
                                 };
                                 replace_node(node, returnStmtAst);
                             }
@@ -819,40 +817,36 @@ function get_ast(code) {
                 case LoopModifier.CONST.CONTINUE:
                     break;
                 case LoopModifier.CONST.LABELED_BREAK:
-                    if (postIter.bubble) {
-                        lookup = stackHelper.searchStack({
-                            targetComparator: function (node) {
-                                return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
-                            },
-                            stopComparator: function (node) {
-                                return /ForOfStatement/.test(node.type);
-                            }
-                        });
-                        if (lookup.targetFound && !lookup.searchInterrupted) {
-                            console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
-
-                            if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
-                                doNotPushCase = true;
-                            } else {
-                                caseAst.consequent.push(new LabeledBreakAst(postIter.args));
-                            }
+                    lookup = stackHelper.searchStack({
+                        targetComparator: function (node) {
+                            return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
+                        },
+                        stopComparator: function (node) {
+                            return /ForOfStatement/.test(node.type);
                         }
-                        if (lookup.searchInterrupted) {
-                            console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                    });
+                    if (lookup.targetFound && !lookup.searchInterrupted) {
+                        console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
-                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                            arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args, true);
-                            argsAst = esprima.parse('(' + arg + ')');
-                            returnStmtAst = new ReturnAst(stopIterAst);
-                            stopIterAst.arguments.push(argsAst.body[0].expression);
-
-                            returnStmtAst.isAnnotated = true;
-                            returnStmtAst.metaData = postIter;
-
-                            caseAst.consequent.push(returnStmtAst);
+                        if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
+                            doNotPushCase = true;
+                        } else {
+                            caseAst.consequent.push(new LabeledBreakAst(postIter.args));
                         }
-                    } else {
-                        caseAst.consequent.push(new LabeledBreakAst(postIter.args));
+                    }
+                    if (lookup.searchInterrupted) {
+                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                        arg = new Arg(LoopModifier.CONST.LABELED_BREAK, postIter.args);
+                        argsAst = esprima.parse('(' + arg + ')');
+                        returnStmtAst = new ReturnAst(stopIterAst);
+                        stopIterAst.arguments.push(argsAst.body[0].expression);
+
+                        returnStmtAst.isAnnotated = true;
+                        returnStmtAst.metaData = postIter;
+
+                        caseAst.consequent.push(returnStmtAst);
                     }
                     break;
                 case LoopModifier.CONST.LABELED_CONTINUE:
