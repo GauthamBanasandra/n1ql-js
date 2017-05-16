@@ -32,9 +32,13 @@ std::map<std::string, std::string> tc_name_input = {
     {"NestedIfBreak", "./inputs/test_inputs/input_break_nested_if.txt"},
     {"NestedForBreak", "./inputs/test_inputs/input_break_nested_for.txt"},
     {"SwitchForBreak", "./inputs/test_inputs/input_break_switch_for.txt"},
-    {"Return", "./inputs/test_inputs/input_return.txt"},
-    {"ReturnArg", "./inputs/test_inputs/input_return_arg.txt"},
-    {"ReturnFunc", "./inputs/test_inputs/input_return_func.txt"},
+    {"Return1", "./inputs/test_inputs/input_return1.txt"},
+    {"Return2", "./inputs/test_inputs/input_return2.txt"},
+    {"Return3", "./inputs/test_inputs/input_return3.txt"},
+    {"Return4", "./inputs/test_inputs/input_return4.txt"},
+    {"Return5", "./inputs/test_inputs/input_return5.txt"},
+    {"Return6", "./inputs/test_inputs/input_return6.txt"},
+    {"Return7", "./inputs/test_inputs/input_return7.txt"},
     {"LabeledBreak1", "./inputs/test_inputs/input_labeled_break1.txt"},
     {"LabeledBreak2", "./inputs/test_inputs/input_labeled_break2.txt"},
     {"LabeledBreak3", "./inputs/test_inputs/input_labeled_break3.txt"},
@@ -49,6 +53,7 @@ std::map<std::string, std::string> tc_name_input = {
     {"LabeledContinue5", "./inputs/test_inputs/input_labeled_continue5.txt"},
     {"LabeledContinue6", "./inputs/test_inputs/input_labeled_continue6.txt"},
     {"LabeledContinue7", "./inputs/test_inputs/input_labeled_continue7.txt"},
+    {"Mixed1", "./inputs/test_inputs/input_mixed1.txt"},
     {"Break3n", "./inputs/test_inputs/input_break_3n.txt"}};
 
 std::map<std::string, std::string> tc_name_expected = {
@@ -66,9 +71,13 @@ std::map<std::string, std::string> tc_name_expected = {
     {"NestedIfBreak", "./inputs/test_expected/expected_break_nested_if.txt"},
     {"NestedForBreak", "./inputs/test_expected/expected_break_nested_for.txt"},
     {"SwitchForBreak", "./inputs/test_expected/expected_break_switch_for.txt"},
-    {"Return", "./inputs/test_expected/expected_return.txt"},
-    {"ReturnArg", "./inputs/test_expected/expected_return_arg.txt"},
-    {"ReturnFunc", "./inputs/test_expected/expected_return_func.txt"},
+    {"Return1", "./inputs/test_expected/expected_return1.txt"},
+    {"Return2", "./inputs/test_expected/expected_return2.txt"},
+    {"Return3", "./inputs/test_expected/expected_return3.txt"},
+    {"Return4", "./inputs/test_expected/expected_return4.txt"},
+    {"Return5", "./inputs/test_expected/expected_return5.txt"},
+    {"Return6", "./inputs/test_expected/expected_return6.txt"},
+    {"Return7", "./inputs/test_expected/expected_return7.txt"},
     {"LabeledBreak1", "./inputs/test_expected/expected_labeled_break1.txt"},
     {"LabeledBreak2", "./inputs/test_expected/expected_labeled_break2.txt"},
     {"LabeledBreak3", "./inputs/test_expected/expected_labeled_break3.txt"},
@@ -90,6 +99,7 @@ std::map<std::string, std::string> tc_name_expected = {
      "./inputs/test_expected/expected_labeled_continue6.txt"},
     {"LabeledContinue7",
      "./inputs/test_expected/expected_labeled_continue7.txt"},
+    {"Mixed1", "./inputs/test_expected/expected_mixed1.txt"},
     {"Break3n", "./inputs/test_expected/expected_break_3n.txt"}};
 
 TEST_P(TranspilerTest, TranspilationTest) {
@@ -126,10 +136,16 @@ INSTANTIATE_TEST_CASE_P(BreakAndContinue, TranspilerTest,
 INSTANTIATE_TEST_CASE_P(
     ReturnStmt, TranspilerTest,
     testing::Values(
-        TestParam("Return", "Testing for a trivial return scenario"),
-        TestParam("ReturnArg", "Scenario when return has an argument"),
-        TestParam("ReturnFunc",
-                  "Returning an anonymous function definition from iterator")));
+        TestParam("Return1", "Testing for a trivial return scenario"),
+        TestParam("Return2", "Scenario when return has an argument"),
+        TestParam("Return3",
+                  "Returning an anonymous function definition from iterator"),
+        TestParam("Return4", "Returning from three levels of nested iterator"),
+        TestParam("Return5", "Returning from two levels of nested iterator"),
+        TestParam("Return6",
+                  "Returning an anonymous function from 2 - iterator"),
+        TestParam("Return7",
+                  "An anonymous function in between from iterators")));
 
 INSTANTIATE_TEST_CASE_P(
     LabeledBreakStmt, TranspilerTest,
@@ -163,3 +179,8 @@ INSTANTIATE_TEST_CASE_P(
                   "Three nested iterators, continue to the outermost loop"),
         TestParam("LabeledContinue7",
                   "Three nested iterators, continue to the middle loop")));
+
+INSTANTIATE_TEST_CASE_P(
+    MixedExitCriteria, TranspilerTest,
+    testing::Values(TestParam(
+        "Mixed1", "Labeled break and return statements inside iterator")));

@@ -67,6 +67,7 @@ function get_ast(code) {
     function AncestorStack() {
         Stack.call(this);
 
+        // Returns or pops a node that satisfies the comparator.
         function getOrPopAncestor(_this, comparator, pop) {
             var temp = new Stack();
             var found = false;
@@ -110,12 +111,14 @@ function get_ast(code) {
 
         this.cloneAncestorStack = function () {
             var clone = new AncestorStack();
+            // Clone the stack.
             var stackClone = this.cloneStack();
 
             while (stackClone.getSize() > 0) {
                 clone.push(stackClone.pop());
             }
 
+            // Reverse the stack elements.
             clone.reverseElements();
 
             return clone;
@@ -276,6 +279,7 @@ function get_ast(code) {
         LABELED_CONTINUE: 'labeled_continue',
     };
 
+    // Utilities for AncestorStack
     function StackHelper(ancestorStack) {
         this.ancestorStack = ancestorStack.cloneAncestorStack();
 
@@ -287,9 +291,12 @@ function get_ast(code) {
             return this.ancestorStack.popTopNodeOfType('ForOfStatement');
         };
 
+        // Targeted search.
+        // The comparator should implement targetComparator - find the target node.
+        // stopComparator - stop searching if a particular node is found in the ancestor stack.
         this.searchStack = function (comparator) {
             var temp = new Stack();
-            var returnArgs = {targetFound: false};
+            var returnArgs = {};
 
             while (this.ancestorStack.getSize() > 0) {
                 var node = this.ancestorStack.pop();
@@ -299,7 +306,7 @@ function get_ast(code) {
                     returnArgs = {targetFound: true, stopNode: deep_copy(node), searchInterrupted: false};
                     break;
                 } else if (comparator.stopComparator(deep_copy(node))) {
-                    returnArgs = {searchInterrupted: true, stopNode: deep_copy(node)};
+                    returnArgs = {targetFound: false, stopNode: deep_copy(node), searchInterrupted: true};
                     break;
                 }
             }
@@ -308,6 +315,12 @@ function get_ast(code) {
                 this.ancestorStack.push(temp.pop());
             }
 
+            // A check to validate that targetFound and searchInterrupted are mutually exclusive.
+            if ((returnArgs.targetFound && returnArgs.searchInterrupted) ||
+                (!returnArgs.targetFound && !returnArgs.searchInterrupted)) {
+                throw 'Invalid case: targetFound=' + returnArgs.targetFound +
+                '\tsearchInterrupted=' + returnArgs.searchInterrupted;
+            }
             return returnArgs;
         };
     }
@@ -389,6 +402,7 @@ function get_ast(code) {
         this.arguments = [];
     }
 
+    // Class for maintaining the object that will be passed to 'stopIter'.
     function Arg(arg) {
         this.code = arg.code;
         this.args = arg.args;
@@ -397,12 +411,9 @@ function get_ast(code) {
             // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
             // object otherwise.
             var argsAst = esprima.parse('(' + this.toString() + ')').body[0].expression;
-            if (arg.appendData) {
-                if (!this.args) {
-                    throw '"args" field is needed to add "data" field';
-                }
 
-                var dataValueAst = esprima.parse(this.args).body[0].expression;
+            // Setting appendData to 'true' will generate the AST for 'args' and append it to 'argsAst'.
+            if (arg.appendData) {
                 var dataAst = {
                     "type": "Property",
                     "key": {
@@ -411,7 +422,7 @@ function get_ast(code) {
                         "raw": "'data'"
                     },
                     "computed": false,
-                    "value": dataValueAst,
+                    "value": this.getDataAst(),
                     "kind": "init",
                     "method": false,
                     "shorthand": false
@@ -423,6 +434,16 @@ function get_ast(code) {
             return argsAst;
         };
 
+        // Returns the AST for 'args'.
+        this.getDataAst = function () {
+            if (!this.args) {
+                throw '"args" field is needed to add "data" field';
+            }
+
+            return esprima.parse(this.args).body[0].expression;
+        };
+
+        // Stringify only the attributes of this class.
         this.toString = function () {
             var obj = {};
             for (var key of Object.keys(this)) {
@@ -435,6 +456,7 @@ function get_ast(code) {
         }
     }
 
+    // Returns AST of the form 'iterVar'.'prop'.data
     function ReturnDataAst(iterVar, prop) {
         Ast.call(this, 'ExpressionStatement');
         this.expression = {
@@ -541,8 +563,19 @@ function get_ast(code) {
                     stopIterAst,
                     returnStmtAst;
 
+                // Annotated nodes are those nodes that have been marked to be changed by the previous iteration.
                 if (node.isAnnotated) {
-                    arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                    switch (node.metaData.code) {
+                        case LoopModifier.CONST.RETURN:
+                            // For 'return', the 'iterVar' must be set to the current for-of loop's source.
+                            node.metaData.iterVar = nodeCopy.right.name;
+                            arg = JSON.stringify(node.metaData);
+                            break;
+                        default:
+                            // Currently expected to handle labeled break and continue statements.
+                            arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                            break;
+                    }
 
                     if (postIter.indexOf(arg.toString()) === -1) {
                         postIter.push(arg.toString());
@@ -622,12 +655,19 @@ function get_ast(code) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
                             stopIterAst.arguments.push(arg.getAst());
                             returnStmtAst = new ReturnAst(stopIterAst);
-                            replace_node(node, returnStmtAst);
 
-                            // TODO:    Need to bubble up return statement too.
-                            if (postIter.indexOf(arg.toString()) === -1) {
-                                postIter.push(arg);
+                            var postIterArgs = JSON.stringify({
+                                code: LoopModifier.CONST.RETURN,
+                                args: arg.args,
+                                iterVar: nodeCopy.right.name,
+                                targetFunction: node.targetFunction
+                            });
+
+                            if (postIter.indexOf(postIterArgs) === -1) {
+                                postIter.push(postIterArgs);
                             }
+
+                            replace_node(node, returnStmtAst);
                         }
                         break;
                     case 'IfStatement':
@@ -678,6 +718,7 @@ function get_ast(code) {
         return iterBlockAst;
     }
 
+    // Returns AST for 'else' block.
     function get_iter_alternate_ast(forOfNode, stackHelper) {
         var nodeCopy = deep_copy(forOfNode);
         var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
@@ -699,19 +740,36 @@ function get_ast(code) {
                 if (node.isAnnotated) {
                     lookup = stackHelper.searchStack({
                         targetComparator: function (item) {
-                            return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
+                            switch (node.metaData.code) {
+                                case LoopModifier.CONST.RETURN:
+                                    // For a 'return' statement, the target is to find the function that the 'return'
+                                    // statement was associated with, before transpilation.
+                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
+                                        && item.id.name === node.metaData.targetFunction;
+                                default:
+                                    // Handles both labeled break and continue statements.
+                                    return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
+                            }
                         },
                         stopComparator: function (item) {
                             return /ForOfStatement/.test(item.type);
                         }
                     });
-                    if (lookup.targetFound && !lookup.searchInterrupted) {
+                    if (lookup.targetFound) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 replace_node(node, new LabeledBreakAst(node.metaData.args));
                                 break;
                             case LoopModifier.CONST.LABELED_CONTINUE:
                                 replace_node(node, new LabeledContinueAst(node.metaData.args));
+                                break;
+                            case LoopModifier.CONST.RETURN:
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.RETURN,
+                                    args: node.metaData.args,
+                                    appendData: true
+                                });
+                                replace_node(node, new ReturnAst(arg.getDataAst()));
                                 break;
                         }
                     }
@@ -733,6 +791,16 @@ function get_ast(code) {
                                     returnStmtAst = new ReturnAst(stopIterAst);
                                     stopIterAst.arguments.push(arg.getAst());
                                 }
+                                break;
+                            case LoopModifier.CONST.RETURN:
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.RETURN,
+                                    args: node.metaData.args,
+                                    appendData: true
+                                });
+                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                stopIterAst.arguments.push(arg.getAst());
+                                returnStmtAst = new ReturnAst(stopIterAst);
                                 break;
                         }
 
@@ -817,6 +885,41 @@ function get_ast(code) {
                             }
                         }
                         break;
+                    case 'ReturnStatement':
+                        if (node.targetFunction) {
+                            lookup = stackHelper.searchStack({
+                                targetComparator: function (item) {
+                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
+                                        && item.id.name === node.targetFunction;
+                                },
+                                stopComparator: function (item) {
+                                    return /ForOfStatement/.test(item.type);
+                                }
+                            });
+                            if (lookup.searchInterrupted) {
+                                var argStr = node.argument ? escodegen.generate(node.argument) : null;
+
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.RETURN,
+                                    args: '(' + argStr + ')',
+                                    appendData: true
+                                });
+                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                                stopIterAst.arguments.push(arg.getAst());
+                                returnStmtAst = new ReturnAst(stopIterAst);
+
+                                returnStmtAst.isAnnotated = true;
+                                returnStmtAst.metaData = {
+                                    code: LoopModifier.CONST.RETURN,
+                                    args: arg.args,
+                                    iterVar: nodeCopy.right.name,
+                                    targetFunction: node.targetFunction
+                                };
+
+                                replace_node(node, returnStmtAst);
+                            }
+                        }
+                        break;
                 }
             },
             leave: function (node) {
@@ -850,9 +953,10 @@ function get_ast(code) {
     function get_post_iter_ast(iterVar, prop, postIterStmts, stackHelper) {
         var discriminantAst = esprima.parse(iterVar + '.' + prop + '.code' + '+' + iterVar + '.' + prop + '.args').body[0].expression,
             switchAst = new SwitchAst(discriminantAst),
-            postIter, caseAst, lookup, stopIterAst, arg, returnStmtAst, doNotPushCase;
+            postIter, caseAst, lookup, stopIterAst, arg, returnStmtAst, pushCase;
 
         for (var postIterStmt of postIterStmts) {
+            pushCase = true;
             // TODO :   Changing 'var postIter' to 'const postIter' causes a unit test to fail. Investigate this issue.
             postIter = JSON.parse(postIterStmt);
             caseAst = new CaseAst(postIter.code + postIter.args);
@@ -870,11 +974,11 @@ function get_ast(code) {
                             return /ForOfStatement/.test(node.type);
                         }
                     });
-                    if (lookup.targetFound && !lookup.searchInterrupted) {
+                    if (lookup.targetFound) {
                         console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
-                            doNotPushCase = true;
+                            pushCase = false;
                         } else {
                             caseAst.consequent.push(new LabeledBreakAst(postIter.args));
                         }
@@ -906,7 +1010,7 @@ function get_ast(code) {
                         console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
-                            doNotPushCase = true;
+                            pushCase = false;
                         } else {
                             caseAst.consequent.push(new LabeledContinueAst(postIter.args));
                         }
@@ -930,12 +1034,41 @@ function get_ast(code) {
                     }
                     break;
                 case LoopModifier.CONST.RETURN:
-                    returnStmtAst = new ReturnAst(new ReturnDataAst(iterVar, prop));
+                    lookup = stackHelper.searchStack({
+                        targetComparator: function (item) {
+                            return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
+                                && (item.id ? item.id.name : null) === postIter.targetFunction;
+                        },
+                        stopComparator: function (item) {
+                            return /ForOfStatement/.test(item.type);
+                        }
+                    });
+                    if (lookup.targetFound) {
+                        console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
+
+                        returnStmtAst = new ReturnAst(new ReturnDataAst(postIter.iterVar, prop));
+                    }
+                    if (lookup.searchInterrupted) {
+                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                        stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                        arg = new Arg({
+                            code: LoopModifier.CONST.RETURN,
+                            args: postIter.iterVar + '.' + prop + '.data',
+                            appendData: true
+                        });
+                        stopIterAst.arguments.push(arg.getAst());
+                        returnStmtAst = new ReturnAst(stopIterAst);
+
+                        returnStmtAst.isAnnotated = true;
+                        postIter.args = arg.args;
+                        returnStmtAst.metaData = postIter;
+                    }
                     caseAst.consequent.push(returnStmtAst);
                     break;
             }
 
-            if (!doNotPushCase) {
+            if (pushCase) {
                 switchAst.cases.push(caseAst);
             }
         }
@@ -1006,6 +1139,23 @@ function get_ast(code) {
             if (/ForOfStatement/.test(node.type) && !node.isVisited && /LabeledStatement/.test(parent.type)) {
                 node.parentLabel = parent.label.name;
                 parent.remLabel = true;
+            }
+            if (/ReturnStatement/.test(node.type)) {
+                var stackHelper = new StackHelper(globalAncestorStack);
+                var lookup = stackHelper.searchStack({
+                    targetComparator: function (item) {
+                        return /FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type);
+                    },
+                    stopComparator: function (item) {
+                        return false;
+                    }
+                });
+                if (lookup.targetFound) {
+                    console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
+
+                    // TODO :   Anonymous function might require some attention because comparing null doesn't make sense.
+                    node.targetFunction = lookup.stopNode.id ? lookup.stopNode.id.name : null;
+                }
             }
         },
         leave: function (node) {

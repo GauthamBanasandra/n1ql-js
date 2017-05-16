@@ -1,6 +1,0 @@
-function query(){
-	for(var row of res) {
-		return;
-	}
-	return;
-}
