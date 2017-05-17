@@ -160,6 +160,9 @@ function get_ast(code) {
                 associations.add('FunctionDeclaration');
                 associations.add('FunctionExpression');
                 break;
+            case LoopModifier.CONST.THROW:
+                associations.add('TryStatement');
+                break;
             default:
                 throw 'Invalid modifier';
         }
@@ -187,6 +190,9 @@ function get_ast(code) {
                     case LoopModifier.CONST.LABELED_CONTINUE:
                         console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
                         node.lblContinueStackIndex = this.stackIndex;
+                        break;
+                    case LoopModifier.CONST.THROW:
+                        node.throwStackIndex = this.stackIndex;
                         break;
                     default:
                         throw 'Invalid modifier type';
@@ -221,6 +227,11 @@ function get_ast(code) {
                         break;
                     case LoopModifier.CONST.LABELED_CONTINUE:
                         if (this.stackIndex === ancestorStack.peek().lblContinueStackIndex) {
+                            return ancestorStack.pop();
+                        }
+                        break;
+                    case LoopModifier.CONST.THROW:
+                        if (this.stackIndex === ancestorStack.peek().throwStackIndex) {
                             return ancestorStack.pop();
                         }
                         break;
@@ -260,6 +271,11 @@ function get_ast(code) {
 
                     return !(/FunctionDeclaration/.test(ancestorStack.peek().type) ||
                     /FunctionExpression/.test(ancestorStack.peek().type));
+                case LoopModifier.CONST.THROW:
+                    if (ancestorStack.getSize() === 0) {
+                        return true;
+                    }
+                    return !/TryStatement/.test(ancestorStack.peek().type);
                 default:
                     throw 'Invalid modifier type';
             }
@@ -277,6 +293,7 @@ function get_ast(code) {
         LABELED_BREAK: 'labeled_break',
         RETURN: 'return',
         LABELED_CONTINUE: 'labeled_continue',
+        THROW: 'throw'
     };
 
     // Utilities for AncestorStack
@@ -291,15 +308,13 @@ function get_ast(code) {
             return this.ancestorStack.popTopNodeOfType('ForOfStatement');
         };
 
-        // Targeted search.
-        // The comparator should implement targetComparator - find the target node.
-        // stopComparator - stop searching if a particular node is found in the ancestor stack.
-        this.searchStack = function (comparator) {
-            var temp = new Stack();
-            var returnArgs = {};
+        function search(_this, comparator, searchAll) {
+            var temp = new Stack(),
+                stopNodes = [],
+                returnArgs = {targetFound: false};
 
-            while (this.ancestorStack.getSize() > 0) {
-                var node = this.ancestorStack.pop();
+            while (_this.ancestorStack.getSize() > 0) {
+                var node = _this.ancestorStack.pop();
                 temp.push(node);
 
                 if (comparator.targetComparator(deep_copy(node))) {
@@ -307,22 +322,41 @@ function get_ast(code) {
                     break;
                 } else if (comparator.stopComparator(deep_copy(node))) {
                     returnArgs = {targetFound: false, stopNode: deep_copy(node), searchInterrupted: true};
-                    break;
+                    if (searchAll) {
+                        stopNodes.push(returnArgs.stopNode);
+                    } else {
+                        break;
+                    }
                 }
             }
 
             while (temp.getSize() > 0) {
-                this.ancestorStack.push(temp.pop());
+                _this.ancestorStack.push(temp.pop());
             }
 
             // A check to validate that targetFound and searchInterrupted are mutually exclusive.
-            if ((returnArgs.targetFound && returnArgs.searchInterrupted) ||
-                (!returnArgs.targetFound && !returnArgs.searchInterrupted)) {
+            if (returnArgs.targetFound && returnArgs.searchInterrupted) {
                 throw 'Invalid case: targetFound=' + returnArgs.targetFound +
                 '\tsearchInterrupted=' + returnArgs.searchInterrupted;
             }
+
+            if (searchAll && stopNodes.length > 0) {
+                returnArgs = {targetFound: false, stopNodes: stopNodes, searchInterrupted: true};
+            }
+
             return returnArgs;
+        }
+
+        // Targeted search.
+        // The comparator should implement targetComparator - find the target node.
+        // stopComparator - stop searching if a particular node is found in the ancestor stack.
+        this.searchStack = function (comparator) {
+            return search(this, comparator);
         };
+
+        this.searchAllStopNodes = function (comparator) {
+            return search(this, comparator, true);
+        }
     }
 
     function Ast(type) {
@@ -493,12 +527,20 @@ function get_ast(code) {
         return source;
     }
 
-    function insert_node(parentBody, insAfterNode, nodeToInsert) {
+    function insert_node(parentBody, refNode, nodeToInsert, insertAfter) {
         console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        console.assert(parentBody.indexOf(insAfterNode) !== -1, 'node not found in the parent body');
+        console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
 
-        var insertIndex = parentBody.indexOf(insAfterNode) + 1;
+        var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
         parentBody.splice(insertIndex, 0, nodeToInsert);
+    }
+
+    function delete_node(parentBody, nodeToDel) {
+        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+        console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
+
+        var deleteIndex = parentBody.indexOf(nodeToDel);
+        parentBody.splice(deleteIndex, 1);
     }
 
     function insert_array(parentBody, insAfterNode, arrayToInsert) {
@@ -538,6 +580,7 @@ function get_ast(code) {
         var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
         var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
         var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
+        var throwMod = new LoopModifier(LoopModifier.CONST.THROW);
 
         // List to store post iteration exit conditions.
         var postIter = [];
@@ -546,18 +589,20 @@ function get_ast(code) {
         var nodeCopy = deep_copy(forOfNode);
 
         estraverse.traverse(nodeCopy, {
-            enter: function (node) {
+            enter: function (node, parent) {
                 ++breakMod.stackIndex;
                 ++continueMod.stackIndex;
                 ++lblBreakMod.stackIndex;
                 ++returnMod.stackIndex;
                 ++lblContinueMod.stackIndex;
+                ++throwMod.stackIndex;
 
                 breakMod.pushIfAssoc(node);
                 continueMod.pushIfAssoc(node);
                 lblBreakMod.pushIfAssoc(node);
                 returnMod.pushIfAssoc(node);
                 lblContinueMod.pushIfAssoc(node);
+                throwMod.pushIfAssoc(node);
 
                 var arg,
                     stopIterAst,
@@ -566,6 +611,10 @@ function get_ast(code) {
                 // Annotated nodes are those nodes that have been marked to be changed by the previous iteration.
                 if (node.isAnnotated) {
                     switch (node.metaData.code) {
+                        case LoopModifier.CONST.THROW:
+                            // For an annotated 'throw' node, nothing needs to be passed to switch-case.
+                            // So, we just return.
+                            return;
                         case LoopModifier.CONST.RETURN:
                             // For 'return', the 'iterVar' must be set to the current for-of loop's source.
                             node.metaData.iterVar = nodeCopy.right.name;
@@ -670,6 +719,35 @@ function get_ast(code) {
                             replace_node(node, returnStmtAst);
                         }
                         break;
+                    case 'ThrowStatement':
+                        if (throwMod.isReplaceReq()) {
+                            // For a 'throw' statement, we need to either find the enclosing try-catch block,
+                            // or the list of for-of nodes that are on the way to the try-catch block.
+                            // Hence, we use 'searchAllStopNodes'.
+                            var lookup = stackHelper.searchAllStopNodes({
+                                targetComparator: function (item) {
+                                    return /TryStatement/.test(item.type);
+                                },
+                                stopComparator: function (item) {
+                                    return /ForOfStatement/.test(item.type);
+                                }
+                            });
+                            if (lookup.searchInterrupted) {
+                                // For each stopNode that is encountered, construct a 'stopIter' statement and insert it.
+                                for (var stopNode of lookup.stopNodes) {
+                                    stopIterAst = new StopIterAst(stopNode.right.name);
+                                    // The stopIter statements need to be annotated so that it is picked up by the
+                                    // 'else' block.
+                                    stopIterAst.isAnnotated = true;
+                                    stopIterAst.metaData = {
+                                        code: LoopModifier.CONST.THROW,
+                                        iterVar: stopNode.right.name
+                                    };
+                                    insert_node(parent.body, node, stopIterAst, false);
+                                }
+                            }
+                        }
+                        break;
                     case 'IfStatement':
                         if (!/BlockStatement/.test(node.type)) {
                             convert_to_block_stmt(node);
@@ -683,12 +761,14 @@ function get_ast(code) {
                 lblBreakMod.popIfAssoc();
                 returnMod.popIfAssoc();
                 lblContinueMod.popIfAssoc();
+                throwMod.popIfAssoc();
 
                 --breakMod.stackIndex;
                 --continueMod.stackIndex;
                 --lblBreakMod.stackIndex;
                 --returnMod.stackIndex;
                 --lblContinueMod.stackIndex;
+                --throwMod.stackIndex;
             }
         });
         // TODO :   Create a class for iter().
@@ -726,18 +806,26 @@ function get_ast(code) {
         var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
         var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
         var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
+        var throwMod = new LoopModifier(LoopModifier.CONST.THROW);
 
         // debug.
         // console.log('input for else code:\n', escodegen.generate(nodeCopy), '\n');
 
         estraverse.traverse(nodeCopy, {
-            enter: function (node) {
-                var lookup,
-                    stopIterAst,
-                    arg,
-                    returnStmtAst;
+            enter: function (node, parent) {
+                var lookup, stopIterAst, arg, returnStmtAst, stopNode = null;
 
                 if (node.isAnnotated) {
+                    // For an annotated 'throw' node - this is a stopIter statement, annotated by 'iter_consequent'.
+                    if (node.metaData.code === LoopModifier.CONST.THROW) {
+                        // Delete the 'stopIter' statement if its instance variable matches that of the current
+                        // for-of loop's source - because, w.k.t since the instance variable is not an iterator in the
+                        // else-block.
+                        if (nodeCopy.right.name === node.metaData.iterVar) {
+                            delete_node(parent.body, node);
+                        }
+                        return;
+                    }
                     lookup = stackHelper.searchStack({
                         targetComparator: function (item) {
                             switch (node.metaData.code) {
@@ -818,12 +906,14 @@ function get_ast(code) {
                 ++lblBreakMod.stackIndex;
                 ++returnMod.stackIndex;
                 ++lblContinueMod.stackIndex;
+                ++throwMod.stackIndex;
 
                 breakMod.pushIfAssoc(node);
                 continueMod.pushIfAssoc(node);
                 lblBreakMod.pushIfAssoc(node);
                 returnMod.pushIfAssoc(node);
                 lblContinueMod.pushIfAssoc(node);
+                throwMod.pushIfAssoc(node);
 
                 switch (node.type) {
                     case 'BreakStatement':
@@ -920,6 +1010,30 @@ function get_ast(code) {
                             }
                         }
                         break;
+                    case 'ThrowStatement':
+                        // We need to check and consider only those 'throw' statements that aren't generated.
+                        if (!node.isGen && throwMod.isReplaceReq()) {
+                            lookup = stackHelper.searchAllStopNodes({
+                                targetComparator: function (item) {
+                                    return /TryStatement/.test(item.type);
+                                },
+                                stopComparator: function (item) {
+                                    return /ForOfStatement/.test(item.type);
+                                }
+                            });
+                            if (lookup.searchInterrupted) {
+                                for (stopNode of lookup.stopNodes) {
+                                    stopIterAst = new StopIterAst(stopNode.right.name);
+                                    stopIterAst.isAnnotated = true;
+                                    stopIterAst.metaData = {
+                                        code: LoopModifier.CONST.THROW,
+                                        iterVar: stopNode.right.name
+                                    };
+                                    insert_node(parent.body, node, stopIterAst, false);
+                                }
+                            }
+                        }
+                        break;
                 }
             },
             leave: function (node) {
@@ -928,12 +1042,14 @@ function get_ast(code) {
                 lblBreakMod.popIfAssoc();
                 returnMod.popIfAssoc();
                 lblContinueMod.popIfAssoc();
+                throwMod.popIfAssoc();
 
                 --breakMod.stackIndex;
                 --continueMod.stackIndex;
                 --lblBreakMod.stackIndex;
                 --returnMod.stackIndex;
                 --lblContinueMod.stackIndex;
+                --throwMod.stackIndex;
             }
         });
 
