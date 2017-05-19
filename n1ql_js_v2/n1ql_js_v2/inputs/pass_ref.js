@@ -1,3 +1,8 @@
-createTimer(function (){
-            
-            });
+function timer(){
+  
+  createTimer(timerCallback);
+}
+
+timer();
+
+function timerCallback(){};

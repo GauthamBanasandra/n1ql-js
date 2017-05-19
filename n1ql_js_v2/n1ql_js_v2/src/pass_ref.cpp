@@ -50,6 +50,10 @@ void TimerFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     
     v8::String::Utf8Value func_name(function->GetName());
     if (func_name.length()) {
+      v8::Isolate *isolate = v8::Isolate::GetCurrent();
+      v8::Local<v8::Context> context = isolate->GetCurrentContext();
+      v8::Local<v8::Function> timer_func_ref = context->Global()->Get(function->GetName()).As<v8::Function>();
+      std::cout << "is reachable:\t" << !timer_func_ref->IsUndefined() << std::endl;
       std::cout << "name:\t" << *func_name << std::endl;
     } else {
       std::cout << "anonymous" << std::endl;

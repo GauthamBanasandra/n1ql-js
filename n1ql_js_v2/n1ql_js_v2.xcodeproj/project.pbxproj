@@ -10,6 +10,7 @@
 		AC0FBA491E792247002073B3 /* query_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA481E792247002073B3 /* query_engine.cpp */; };
 		AC0FBA4C1E797FBF002073B3 /* n1ql_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */; };
 		AC15CE8D1E6ECC0400B71475 /* libv8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0F141E6EC7B700706E47 /* libv8.dylib */; };
+		AC15FD0E1ECC8F30002CAE5C /* pass_ref.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC15FD021ECC8EC9002CAE5C /* pass_ref.cpp */; };
 		ACC5778E1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
 		ACC577921E6ED14D006D73EE /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577901E6ED14D006D73EE /* utils.cpp */; };
 		ACC577931E6ED14D006D73EE /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577901E6ED14D006D73EE /* utils.cpp */; };
@@ -30,6 +31,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		AC15FD051ECC8F14002CAE5C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		ACD8C4D81E6F0C03000A4E78 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -67,6 +77,9 @@
 		AC0FBA4A1E79225C002073B3 /* query_engine.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = query_engine.hpp; sourceTree = "<group>"; };
 		AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_js.cpp; sourceTree = "<group>"; };
 		AC0FBA4D1E79800D002073B3 /* n1ql_js.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = n1ql_js.hpp; sourceTree = "<group>"; };
+		AC15FD021ECC8EC9002CAE5C /* pass_ref.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = pass_ref.cpp; path = ../n1ql_js_v2/src/pass_ref.cpp; sourceTree = "<group>"; };
+		AC15FD071ECC8F14002CAE5C /* pass_ref */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pass_ref; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC15FD101ECC915B002CAE5C /* pass_ref.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = pass_ref.js; path = ../n1ql_js_v2/inputs/pass_ref.js; sourceTree = "<group>"; };
 		AC1B3F601E822AAF00627F84 /* estools.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estools.js; sourceTree = "<group>"; };
 		ACAB534F1E6FC29C00C9FE73 /* test_utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = test_utils.hpp; path = n1ql_js_v2/tests/test_utils.hpp; sourceTree = SOURCE_ROOT; };
 		ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = exec_js.cpp; sourceTree = "<group>"; };
@@ -100,6 +113,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AC15FD041ECC8F14002CAE5C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ACE512E31E6D2FE80094AFEC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -129,11 +149,21 @@
 			path = n1ql_js_inputs;
 			sourceTree = "<group>";
 		};
+		AC15FD081ECC8F14002CAE5C /* pass_ref */ = {
+			isa = PBXGroup;
+			children = (
+				AC15FD101ECC915B002CAE5C /* pass_ref.js */,
+				AC15FD021ECC8EC9002CAE5C /* pass_ref.cpp */,
+			);
+			path = pass_ref;
+			sourceTree = "<group>";
+		};
 		ACE512DD1E6D2FE80094AFEC = {
 			isa = PBXGroup;
 			children = (
 				ACE512E81E6D2FE80094AFEC /* n1ql_js_v2 */,
 				ACEA0EEA1E6E8D7800706E47 /* unit_tests */,
+				AC15FD081ECC8F14002CAE5C /* pass_ref */,
 				ACE512E71E6D2FE80094AFEC /* Products */,
 				ACEA0EDF1E6E8A0D00706E47 /* Frameworks */,
 			);
@@ -144,6 +174,7 @@
 			children = (
 				ACE512E61E6D2FE80094AFEC /* n1ql_js_v2 */,
 				ACEA0EE91E6E8D7800706E47 /* unit_tests */,
+				AC15FD071ECC8F14002CAE5C /* pass_ref */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -246,6 +277,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		AC15FD061ECC8F14002CAE5C /* pass_ref */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC15FD0B1ECC8F14002CAE5C /* Build configuration list for PBXNativeTarget "pass_ref" */;
+			buildPhases = (
+				AC15FD031ECC8F14002CAE5C /* Sources */,
+				AC15FD041ECC8F14002CAE5C /* Frameworks */,
+				AC15FD051ECC8F14002CAE5C /* CopyFiles */,
+				AC15FD0F1ECC9055002CAE5C /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = pass_ref;
+			productName = pass_ref;
+			productReference = AC15FD071ECC8F14002CAE5C /* pass_ref */;
+			productType = "com.apple.product-type.tool";
+		};
 		ACE512E51E6D2FE80094AFEC /* n1ql_js_v2 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = ACE512ED1E6D2FE80094AFEC /* Build configuration list for PBXNativeTarget "n1ql_js_v2" */;
@@ -293,6 +342,10 @@
 				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = Couchbase;
 				TargetAttributes = {
+					AC15FD061ECC8F14002CAE5C = {
+						CreatedOnToolsVersion = 8.3.2;
+						ProvisioningStyle = Automatic;
+					};
 					ACE512E51E6D2FE80094AFEC = {
 						CreatedOnToolsVersion = 8.2.1;
 						ProvisioningStyle = Automatic;
@@ -317,6 +370,7 @@
 			targets = (
 				ACE512E51E6D2FE80094AFEC /* n1ql_js_v2 */,
 				ACEA0EE81E6E8D7800706E47 /* unit_tests */,
+				AC15FD061ECC8F14002CAE5C /* pass_ref */,
 			);
 		};
 /* End PBXProject section */
@@ -348,9 +402,30 @@
 			shellPath = /bin/sh;
 			shellScript = "install_name_tool -change @rpath/libv8.dylib /Users/gautham/.cbdepscache/lib/libv8.dylib /Users/gautham/Library/Developer/Xcode/DerivedData/n1ql_js_v2-eaaxlarwiogrkaexqzrvmqjowzyj/Build/Products/Debug/unit_tests";
 		};
+		AC15FD0F1ECC9055002CAE5C /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "install_name_tool -change @rpath/libv8.dylib /Users/gautham/.cbdepscache/lib/libv8.dylib /Users/gautham/Library/Developer/Xcode/DerivedData/n1ql_js_v2-eaaxlarwiogrkaexqzrvmqjowzyj/Build/Products/Debug/pass_ref";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AC15FD031ECC8F14002CAE5C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC15FD0E1ECC8F30002CAE5C /* pass_ref.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ACE512E21E6D2FE80094AFEC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -384,6 +459,28 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		AC15FD0C1ECC8F14002CAE5C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = /Users/gautham/.cbdepscache/;
+				LIBRARY_SEARCH_PATHS = /Users/gautham/.cbdepscache/lib/;
+				OTHER_LDFLAGS = "-lv8";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AC15FD0D1ECC8F14002CAE5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = /Users/gautham/.cbdepscache/;
+				LIBRARY_SEARCH_PATHS = /Users/gautham/.cbdepscache/lib/;
+				OTHER_LDFLAGS = "-lv8";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		ACE512EB1E6D2FE80094AFEC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -550,6 +647,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AC15FD0B1ECC8F14002CAE5C /* Build configuration list for PBXNativeTarget "pass_ref" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC15FD0C1ECC8F14002CAE5C /* Debug */,
+				AC15FD0D1ECC8F14002CAE5C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		ACE512E11E6D2FE80094AFEC /* Build configuration list for PBXProject "n1ql_js_v2" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
