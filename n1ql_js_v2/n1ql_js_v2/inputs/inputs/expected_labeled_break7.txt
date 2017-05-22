@@ -1,0 +1,107 @@
+if (res1.isInstance) {
+    res1.x = res1.iter(function (r) {
+        if (res2.isInstance) {
+            res2.x = res2.iter(function (r) {
+                if (res3.isInstance) {
+                    res3.x = res3.iter(function (r) {
+                        return res3.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    });
+                    switch (res3.x.code + res3.x.args) {
+                    case 'labeled_breakx':
+                        return res2.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    }
+                } else {
+                    for (var r of res3) {
+                        return res2.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    }
+                }
+            });
+        } else {
+            x:
+                for (var r of res2) {
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (r) {
+                            return res3.stopIter({
+                                'code': 'labeled_break',
+                                'args': 'x'
+                                
+                            });
+                        });
+                        switch (res3.x.code + res3.x.args) {
+                        case 'labeled_breakx':
+                            break x;
+                        }
+                    } else {
+                        for (var r of res3) {
+                            break x;
+                        }
+                    }
+                }
+        }
+    });
+} else {
+    for (var r of res1) {
+        if (res2.isInstance) {
+            res2.x = res2.iter(function (r) {
+                if (res3.isInstance) {
+                    res3.x = res3.iter(function (r) {
+                        return res3.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    });
+                    switch (res3.x.code + res3.x.args) {
+                    case 'labeled_breakx':
+                        return res2.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    }
+                } else {
+                    for (var r of res3) {
+                        return res2.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                            
+                        });
+                    }
+                }
+            });
+        } else {
+            x:
+                for (var r of res2) {
+                    if (res3.isInstance) {
+                        res3.x = res3.iter(function (r) {
+                            return res3.stopIter({
+                                'code': 'labeled_break',
+                                'args': 'x'
+                                
+                            });
+                        });
+                        switch (res3.x.code + res3.x.args) {
+                        case 'labeled_breakx':
+                            break x;
+                        }
+                    } else {
+                        for (var r of res3) {
+                            break x;
+                        }
+                    }
+                }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+y:
+    while (true) {
+        if (res.isInstance) {
+            res.x = res.iter(function (r) {
+                return res.stopIter({
+                    'code': 'labeled_continue',
+                    'args': 'y'
+                });
+            });
+            switch (res.x.code + res.x.args) {
+            case 'labeled_continuey':
+                continue y;
+            }
+        } else {
+            for (var r of res) {
+                continue y;
+            }
+        }
+    }

@@ -1,0 +1,50 @@
+function query() {
+    if (res.isInstance) {
+        res.x = res.iter(function (row) {
+            return res.stopIter({
+                'code': 'return',
+                'args': '(query(\'x\'))',
+                'data': query('x')
+            });
+            return res.stopIter({
+                'code': 'return',
+                'args': '(1234)',
+                'data': 1234
+            });
+            return res.stopIter({
+                'code': 'return',
+                'args': '(query(\'escape\\\'\'))',
+                'data': query('escape\'')
+            });
+            return res.stopIter({
+                'code': 'return',
+                'args': '({\n    \'code\': \'return\',\n    \'arg\': \'null\'\n})',
+                'data': {
+                    'code': 'return',
+                    'arg': 'null'
+                }
+            });
+        });
+        switch (res.x.code + res.x.args) {
+        case 'return(query(\'x\'))':
+            return res.x.data;;
+        case 'return(1234)':
+            return res.x.data;;
+        case 'return(query(\'escape\\\'\'))':
+            return res.x.data;;
+        case 'return({\n    \'code\': \'return\',\n    \'arg\': \'null\'\n})':
+            return res.x.data;;
+        }
+    } else {
+        for (var row of res) {
+            return query('x');
+            return 1234;
+            return query('escape\'');
+            return {
+                'code': 'return',
+                'arg': 'null'
+            };
+        }
+    }
+    return;
+}

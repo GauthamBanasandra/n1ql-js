@@ -1,0 +1,7 @@
+function query() {
+    for (var row of res1)
+        (function () {
+            for (var row of res2)
+                return row;
+        })();
+}

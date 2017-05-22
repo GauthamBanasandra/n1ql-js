@@ -1,0 +1,13 @@
+if (row.isInstance) {
+    row.x = row.iter(function (r) {
+        x:
+            while (true)
+                break x;
+    });
+} else {
+    for (var r of row) {
+        x:
+            while (true)
+                break x;
+    }
+}

@@ -1,0 +1,24 @@
+function query() {
+    if (res.isInstance) {
+        res.x = res.iter(function (row) {
+            return res.stopIter({
+                'code': 'return',
+                'args': '(function () {\n    return x;\n})',
+                'data': function () {
+                    return x;
+                }
+            });
+        });
+        switch (res.x.code + res.x.args) {
+        case 'return(function () {\n    return x;\n})':
+            return res.x.data;;
+        }
+    } else {
+        for (var row of res) {
+            return function () {
+                return x;
+            };
+        }
+    }
+    return;
+}

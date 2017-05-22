@@ -1,0 +1,10 @@
+if (res.isInstance) {
+    res.x = res.iter(function (r) {
+        return;
+    });
+} else {
+    x:
+        for (var r of res) {
+            continue x;
+        }
+}

@@ -64,7 +64,6 @@ lcb_t make_query(std::string query, bool inner) {
   lcb_CMDN1QL cmd;
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
 
-  //  std::cout << query.c_str() << std::endl;
   char *mquery = new char[query.length() + 1];
   strcpy(mquery, query.c_str());
   err = lcb_n1p_setstmtz(n1ql_params, mquery);

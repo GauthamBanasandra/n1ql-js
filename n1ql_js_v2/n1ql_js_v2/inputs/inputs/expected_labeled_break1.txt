@@ -1,0 +1,13 @@
+if (res.isInstance) {
+    res.x = res.iter(function (r) {
+        return res.stopIter({
+            'code': 'labeled_break',
+            'args': 'x'            
+        });
+    });
+} else {
+    x:
+        for (var r of res) {
+            break x;
+        }
+}

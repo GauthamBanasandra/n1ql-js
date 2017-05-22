@@ -1,0 +1,10 @@
+for (var item1 of res1) {
+    item1 = JSON.parse(item1);
+    for (var item2 of res2) {
+        item2 = JSON.parse(item2);
+        for (var item3 of res3) {
+            item3 = JSON.parse(item3);
+            ++transpiledIterations;
+        }
+    }
+}

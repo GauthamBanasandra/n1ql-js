@@ -1,0 +1,19 @@
+y:
+    while (true) {
+        if (res.isInstance) {
+            res.x = res.iter(function (r) {
+                return res.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'y'
+                });
+            });
+            switch (res.x.code + res.x.args) {
+            case 'labeled_breaky':
+                break y;
+            }
+        } else {
+            for (var r of res) {
+                break y;
+            }
+        }
+    }

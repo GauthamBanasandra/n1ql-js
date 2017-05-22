@@ -1,0 +1,47 @@
+function query() {
+    if (res1.isInstance) {
+        res1.x = res1.iter(function (row) {
+            (function () {
+                if (res2.isInstance) {
+                    res2.x = res2.iter(function (row) {
+                        return res2.stopIter({
+                            'code': 'return',
+                            'args': '(row)',
+                            'data': row
+                        });
+                    });
+                    switch (res2.x.code + res2.x.args) {
+                    case 'return(row)':
+                        return res2.x.data;;
+                    }
+                } else {
+                    for (var row of res2) {
+                        return row;
+                    }
+                }
+            }());
+        });
+    } else {
+        for (var row of res1) {
+            (function () {
+                if (res2.isInstance) {
+                    res2.x = res2.iter(function (row) {
+                        return res2.stopIter({
+                            'code': 'return',
+                            'args': '(row)',
+                            'data': row
+                        });
+                    });
+                    switch (res2.x.code + res2.x.args) {
+                    case 'return(row)':
+                        return res2.x.data;;
+                    }
+                } else {
+                    for (var row of res2) {
+                        return row;
+                    }
+                }
+            }());
+        }
+    }
+}

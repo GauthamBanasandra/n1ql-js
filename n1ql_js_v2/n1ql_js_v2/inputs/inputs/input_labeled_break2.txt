@@ -1,0 +1,4 @@
+y:while (true) {
+    for (var r of res)
+        break y;
+}
