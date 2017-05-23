@@ -9,13 +9,13 @@
 #include "n1ql.hpp"
 #include <include/v8.h>
 #include <iostream>
+#include <stack>
 
 extern N1QL *n1ql_handle;
-std::vector<std::string> rows;
-v8::Local<v8::Function> callback;
-bool is_callback_set = false;
 
-N1QL::N1QL(std::string _conn_str) {
+std::stack<QueryHandler> qhandler_stack;
+
+N1QL::N1QL(std::string _conn_str, int inst_count) {
   conn_str = _conn_str;
 
   lcb_create_st options;
@@ -24,24 +24,29 @@ N1QL::N1QL(std::string _conn_str) {
   options.version = 3;
   options.v.v3.connstr = conn_str.c_str();
 
-  err = lcb_create(&instance, &options);
-  if (err != LCB_SUCCESS) {
-    init_success = false;
-    Error(instance, "N1QL: unable to create lcb handle", err);
-  }
+  for (int i = 0; i < inst_count; ++i) {
+    lcb_t instance;
+    err = lcb_create(&instance, &options);
+    if (err != LCB_SUCCESS) {
+      init_success = false;
+      Error(instance, "N1QL: unable to create lcb handle", err);
+    }
 
-  err = lcb_connect(instance);
-  if (err != LCB_SUCCESS) {
-    init_success = false;
-    Error(instance, "N1QL: unable to connect to server", err);
-  }
+    err = lcb_connect(instance);
+    if (err != LCB_SUCCESS) {
+      init_success = false;
+      Error(instance, "N1QL: unable to connect to server", err);
+    }
 
-  lcb_wait(instance);
+    lcb_wait(instance);
 
-  err = lcb_get_bootstrap_status(instance);
-  if (err != LCB_SUCCESS) {
-    init_success = false;
-    Error(instance, "N1QL: unable to get bootstrap status", err);
+    err = lcb_get_bootstrap_status(instance);
+    if (err != LCB_SUCCESS) {
+      init_success = false;
+      Error(instance, "N1QL: unable to get bootstrap status", err);
+    }
+
+    inst_queue.push(instance);
   }
 }
 
@@ -55,8 +60,15 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 
   v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
 
-  // Pass the function to callback and execute the query.
-  n1ql_handle->ExecQuery(*query_string, func);
+  IterQueryHandler iter_handler;
+  iter_handler.stop_signal = false;
+  iter_handler.callback = func;
+  QueryHandler q_handler;
+  q_handler.is_callback_set = true;
+  q_handler.iter_handler = &iter_handler;
+  qhandler_stack.push(q_handler);
+
+  n1ql_handle->ExecQuery(*query_string);
 }
 
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -73,8 +85,15 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Local<v8::Value> query_value = args.This()->Get(query_name);
   v8::String::Utf8Value query_string(query_value);
 
-  std::vector<std::string> rows = n1ql_handle->ExecQuery(*query_string);
+  BlockingQueryHandler block_handler;
+  QueryHandler q_handler;
+  q_handler.is_callback_set = false;
+  q_handler.block_handler = &block_handler;
+  qhandler_stack.push(q_handler);
 
+  n1ql_handle->ExecQuery(*query_string);
+
+  std::vector<std::string> &rows = block_handler.rows;
   v8::Local<v8::Array> result_array =
       v8::Array::New(isolate, static_cast<int>(rows.size()));
 
@@ -88,16 +107,57 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   args.GetReturnValue().Set(result_array);
 }
 
-void N1QL::ExecQuery(std::string query, v8::Local<v8::Function> function) {
-  is_callback_set = true;
-  callback = function;
-  ExecQuery(query);
+// Callback to execute for each row.
+template <>
+void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
+                                         const lcb_RESPN1QL *resp) {
+  if (!(resp->rflags & LCB_RESP_F_FINAL)) {
+    char *temp;
+    asprintf(&temp, "%.*s\n", (int)resp->nrow, resp->row);
+
+    QueryHandler q_handler = qhandler_stack.top();
+    v8::Local<v8::Function> callback = q_handler.iter_handler->callback;
+
+    // If stop_signal is set, then just breakout.
+    if (q_handler.iter_handler->stop_signal) {
+      lcb_breakout(instance);
+      return;
+    }
+
+    // Execute the function callback passed in JavaScript, if iter() is
+    // called.
+    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Value> args[1];
+    args[0] = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, temp));
+    callback->Call(callback, 1, args);
+    
+    free(temp);
+  } else {
+    //    std::cout << "query metadata:" << resp->row << '\n';
+  }
 }
 
-// TODO: Pull out 'rows.clear' and 'return rows;' and turn that to a separate
-// function.
-std::vector<std::string> N1QL::ExecQuery(std::string query) {
-  rows.clear();
+// Callback to execute for each row.
+template <>
+void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
+                                             const lcb_RESPN1QL *resp) {
+  if (!(resp->rflags & LCB_RESP_F_FINAL)) {
+    char *temp;
+    asprintf(&temp, "%.*s\n", (int)resp->nrow, resp->row);
+
+    QueryHandler q_handler = qhandler_stack.top();
+    // Append the result to the rows vector.
+    q_handler.block_handler->rows.push_back(std::string(temp));
+
+    free(temp);
+  } else {
+    //    std::cout << "query metadata:" << resp->row << '\n';
+  }
+}
+
+void N1QL::ExecQuery(std::string query) {
+  lcb_t instance = inst_queue.front();
+  inst_queue.pop();
 
   lcb_error_t err;
   lcb_CMDN1QL cmd = {0};
@@ -108,7 +168,9 @@ std::vector<std::string> N1QL::ExecQuery(std::string query) {
 
   lcb_n1p_mkcmd(n1ql_params, &cmd);
 
-  cmd.callback = RowCallback;
+  cmd.callback = qhandler_stack.top().is_callback_set
+                     ? RowCallback<IterQueryHandler>
+                     : RowCallback<BlockingQueryHandler>;
   err = lcb_n1ql_query(instance, NULL, &cmd);
   if (err != LCB_SUCCESS)
     Error(instance, "unable to query", err);
@@ -116,52 +178,17 @@ std::vector<std::string> N1QL::ExecQuery(std::string query) {
   lcb_n1p_free(n1ql_params);
   lcb_wait(instance);
 
-  return rows;
-}
-
-// Callback to execute for each row.
-void N1QL::RowCallback(lcb_t instance, int callback_type,
-                       const lcb_RESPN1QL *resp) {
-  // If stop_signal is set, then just breakout.
-  //  if (stop_signal) {
-  //    lcb_breakout(instance);
-  //    return;
-  //  }
-
-  if (!(resp->rflags & LCB_RESP_F_FINAL)) {
-    char *temp;
-    asprintf(&temp, "%.*s\n", (int)resp->nrow, resp->row);
-    
-    // Execute the function callback passed in JavaScript, if iter() is
-    // called.
-    if (is_callback_set) {
-      v8::Isolate *isolate = v8::Isolate::GetCurrent();
-      v8::Local<v8::Object> json =
-          isolate->GetCurrentContext()
-              ->Global()
-              ->Get(v8::String::NewFromUtf8(isolate, "JSON"))
-              ->ToObject();
-      v8::Local<v8::Function> parse =
-          json->Get(v8::String::NewFromUtf8(isolate, "parse"))
-              .As<v8::Function>();
-
-      v8::Local<v8::Value> args[1];
-      args[0] = v8::String::NewFromUtf8(isolate, temp);
-      args[0] = parse->Call(json, 1, &args[0]);
-
-      callback->Call(callback, 1, args);
-    } else {
-      // If it is not a callback - execQuery() is called, append the
-      // result to the rows vector.
-      rows.push_back(std::string(temp));
-    }
-
-    free(temp);
-  } else {
-    std::cout << "query metadata:" << resp->row << '\n';
-  }
+  qhandler_stack.pop();
+  inst_queue.push(instance);
 }
 
 void N1QL::Error(lcb_t instance, const char *msg, lcb_error_t err) {
   std::cout << "error: " << err << " " << lcb_strerror(instance, err) << '\n';
+}
+
+N1QL::~N1QL() {
+  while (!inst_queue.empty()) {
+    lcb_destroy(inst_queue.front());
+    inst_queue.pop();
+  }
 }
