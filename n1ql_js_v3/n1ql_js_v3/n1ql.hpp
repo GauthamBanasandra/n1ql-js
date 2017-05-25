@@ -26,7 +26,7 @@ struct BlockingQueryHandler {
   std::vector<std::string> rows;
 };
 
-struct QueryHandler {  
+struct QueryHandler {
   bool is_callback_set;
   IterQueryHandler *iter_handler;
   BlockingQueryHandler *block_handler;
@@ -36,10 +36,12 @@ class N1QL {
 private:
   bool init_success = true;
   std::string conn_str;
+  std::queue<lcb_t> inst_queue;
+  lcb_t GetInstance();
   template <typename>
   static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
   static void Error(lcb_t, const char *, lcb_error_t);
-
+  
 public:
   N1QL(std::string, int);
   void ExecQuery(std::string);
