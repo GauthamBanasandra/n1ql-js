@@ -9,11 +9,14 @@
 #include "n1ql.hpp"
 #include <include/v8.h>
 #include <iostream>
+#include <map>
 #include <stack>
 
 extern N1QL *n1ql_handle;
 
-std::stack<QueryHandler> qhandler_stack;
+std::queue<lcb_t> inst_queue;
+std::stack<std::pair<int, QueryHandler>> qhandler_stack;
+std::map<int, QueryHandler *> qhandler_map;
 
 N1QL::N1QL(std::string _conn_str, int inst_count) {
   conn_str = _conn_str;
@@ -51,7 +54,7 @@ N1QL::N1QL(std::string _conn_str, int inst_count) {
 }
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = v8::Isolate::GetCurrent();
+  v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handleScope(isolate);
 
   v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
@@ -59,22 +62,33 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::String::Utf8Value query_string(query_value);
 
   v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
-
+  
   IterQueryHandler iter_handler;
   iter_handler.stop_signal = false;
   iter_handler.callback = func;
   QueryHandler q_handler;
   q_handler.is_callback_set = true;
   q_handler.iter_handler = &iter_handler;
-  qhandler_stack.push(q_handler);
+  
+  int obj_hash = args.This()->GetIdentityHash();
+  qhandler_map[obj_hash] = &q_handler;
+  std::pair<int, QueryHandler> stack_element(obj_hash, q_handler);
+  qhandler_stack.push(stack_element);
 
   n1ql_handle->ExecQuery(*query_string);
+  
+  args.GetReturnValue().Set(iter_handler.return_value);
 }
 
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::EscapableHandleScope handle_scope(isolate);
+  
   v8::Local<v8::Value> arg = args[0];
-  v8::String::Utf8Value arg_string(arg);
-  std::cout << "stopIter:\t" << *arg_string << std::endl;
+  
+  int obj_hash = args.This()->GetIdentityHash();
+  qhandler_map[obj_hash]->iter_handler->stop_signal = true;
+  qhandler_map[obj_hash]->iter_handler->return_value = handle_scope.Escape(arg);
 }
 
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -89,7 +103,11 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   QueryHandler q_handler;
   q_handler.is_callback_set = false;
   q_handler.block_handler = &block_handler;
-  qhandler_stack.push(q_handler);
+  
+  int obj_hash = args.This()->GetIdentityHash();
+  qhandler_map[obj_hash] = &q_handler;
+  std::pair<int, QueryHandler> stack_element(obj_hash, q_handler);
+  qhandler_stack.push(stack_element);
 
   n1ql_handle->ExecQuery(*query_string);
 
@@ -111,26 +129,28 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 template <>
 void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
                                          const lcb_RESPN1QL *resp) {
+  QueryHandler &q_handler = qhandler_stack.top().second;
+  // If stop_signal is set, then just breakout.
+  if (q_handler.iter_handler->stop_signal) {
+    
+    lcb_breakout(instance);
+    return;
+  }
+  
   if (!(resp->rflags & LCB_RESP_F_FINAL)) {
     char *temp;
     asprintf(&temp, "%.*s\n", (int)resp->nrow, resp->row);
-
-    QueryHandler q_handler = qhandler_stack.top();
+    
     v8::Local<v8::Function> callback = q_handler.iter_handler->callback;
-
-    // If stop_signal is set, then just breakout.
-    if (q_handler.iter_handler->stop_signal) {
-      lcb_breakout(instance);
-      return;
-    }
 
     // Execute the function callback passed in JavaScript, if iter() is
     // called.
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::Local<v8::Value> args[1];
     args[0] = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, temp));
-    callback->Call(callback, 1, args);
     
+    callback->Call(callback, 1, args);
+
     free(temp);
   } else {
     //    std::cout << "query metadata:" << resp->row << '\n';
@@ -145,7 +165,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
     char *temp;
     asprintf(&temp, "%.*s\n", (int)resp->nrow, resp->row);
 
-    QueryHandler q_handler = qhandler_stack.top();
+    QueryHandler q_handler = qhandler_stack.top().second;
     // Append the result to the rows vector.
     q_handler.block_handler->rows.push_back(std::string(temp));
 
@@ -156,9 +176,9 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
 }
 
 void N1QL::ExecQuery(std::string query) {
-  lcb_t instance = inst_queue.front();
+  lcb_t &instance = inst_queue.front();
   inst_queue.pop();
-
+  
   lcb_error_t err;
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
@@ -168,7 +188,7 @@ void N1QL::ExecQuery(std::string query) {
 
   lcb_n1p_mkcmd(n1ql_params, &cmd);
 
-  cmd.callback = qhandler_stack.top().is_callback_set
+  cmd.callback = qhandler_stack.top().second.is_callback_set
                      ? RowCallback<IterQueryHandler>
                      : RowCallback<BlockingQueryHandler>;
   err = lcb_n1ql_query(instance, NULL, &cmd);
@@ -178,6 +198,8 @@ void N1QL::ExecQuery(std::string query) {
   lcb_n1p_free(n1ql_params);
   lcb_wait(instance);
 
+  auto it = qhandler_map.find(qhandler_stack.top().first);
+  qhandler_map.erase(it);
   qhandler_stack.pop();
   inst_queue.push(instance);
 }

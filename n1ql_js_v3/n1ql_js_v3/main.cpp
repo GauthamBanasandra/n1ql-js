@@ -18,6 +18,14 @@
 #define BUILTIN                                                                \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/builtin.js"
 #define SOURCE "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input.js"
+#define TRANSPILER                                                             \
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/transpiler.js"
+#define ESPRIMA                                                                \
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/esprima.js"
+#define ESCODEGEN                                                              \
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
+#define ESTRAVERSE                                                             \
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
 
 using namespace v8;
 
@@ -102,8 +110,14 @@ int main(int argc, char *argv[]) {
     // Enter the context for compiling and running the hello world script.
     Context::Scope context_scope(context);
 
-    std::string src = ReadFile(SOURCE);
+    std::string src = ReadFile(SOURCE) + '\n';
     src += ReadFile(BUILTIN);
+    std::string third_party_src = ReadFile(TRANSPILER) + '\n';
+    third_party_src+= ReadFile(ESCODEGEN)+ '\n';
+    third_party_src+= ReadFile(ESTRAVERSE)+ '\n';
+    third_party_src+= ReadFile(ESPRIMA);    
+    
+    src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
     // Create a string containing the JavaScript source code.
     Local<String> source =

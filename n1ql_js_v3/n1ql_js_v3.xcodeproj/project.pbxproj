@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		AC1A6B581ECEC8B400FFAE1F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1A6B571ECEC8B400FFAE1F /* main.cpp */; };
 		AC1A6B641ECEE71400FFAE1F /* n1ql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */; };
+		AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,11 @@
 		AC1A6B611ECECB8C00FFAE1F /* builtin.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = builtin.js; sourceTree = "<group>"; };
 		AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql.cpp; sourceTree = "<group>"; };
 		AC1A6B631ECEE71400FFAE1F /* n1ql.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = n1ql.hpp; sourceTree = "<group>"; };
+		AC67C1791ED56EE600DC2A5E /* transpiler.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
+		AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpiler.cpp; sourceTree = "<group>"; };
+		AC67C17D1ED5710600DC2A5E /* escodegen.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = escodegen.js; sourceTree = "<group>"; };
+		AC67C17E1ED5710600DC2A5E /* esprima.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = esprima.js; sourceTree = "<group>"; };
+		AC67C17F1ED5710600DC2A5E /* estraverse.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estraverse.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,10 +70,13 @@
 		AC1A6B561ECEC8B400FFAE1F /* n1ql_js_v3 */ = {
 			isa = PBXGroup;
 			children = (
+				AC67C17C1ED570F500DC2A5E /* third_party */,
 				AC1A6B571ECEC8B400FFAE1F /* main.cpp */,
 				AC1A6B611ECECB8C00FFAE1F /* builtin.js */,
 				AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */,
 				AC1A6B631ECEE71400FFAE1F /* n1ql.hpp */,
+				AC67C1791ED56EE600DC2A5E /* transpiler.js */,
+				AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */,
 			);
 			path = n1ql_js_v3;
 			sourceTree = "<group>";
@@ -79,6 +88,16 @@
 				AC1638C61ED3EBC8004975F3 /* input1.js */,
 			);
 			name = inputs;
+			sourceTree = "<group>";
+		};
+		AC67C17C1ED570F500DC2A5E /* third_party */ = {
+			isa = PBXGroup;
+			children = (
+				AC67C17D1ED5710600DC2A5E /* escodegen.js */,
+				AC67C17E1ED5710600DC2A5E /* esprima.js */,
+				AC67C17F1ED5710600DC2A5E /* estraverse.js */,
+			);
+			name = third_party;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,6 +176,7 @@
 			files = (
 				AC1A6B581ECEC8B400FFAE1F /* main.cpp in Sources */,
 				AC1A6B641ECEE71400FFAE1F /* n1ql.cpp in Sources */,
+				AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

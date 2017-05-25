@@ -1,72 +1,68 @@
-try {
+function query() {
+    var res1 = new N1qlQuery('SELECT * FROM `beer-sample` LIMIT 2;');
+    var res2 = new N1qlQuery('SELECT * FROM `beer-sample` LIMIT 3;');
     if (res1.isInstance) {
-        res1.x = res1.iter(function (row) {
+        res1.x = res1.iter(function (r1) {
             if (res2.isInstance) {
-                res2.x = res2.iter(function (row) {
-                    if (res3.isInstance) {
-                        res3.x = res3.iter(function (row) {
-                            (res3.stopIter())
-                            (res2.stopIter())
-                            (res1.stopIter())
-                            throw 'error';
-                        });
-                    } else {
-                        for (var row of res3) {
-                            (res2.stopIter())
-                            (res1.stopIter())
-                            throw 'error';
-                        }
-                    }
+                res2.x = res2.iter(function (r2) {
+                    log('r1: ' + r1['beer-sample'].name);
+                    log('r2: ' + r2['beer-sample'].name);
+                    return res2.stopIter({
+                        'code': 'return',
+                        'args': '(null)',
+                        'data': null
+                    });
                 });
-            } else {
-                for (var row of res2) {
-                    if (res3.isInstance) {
-                        res3.x = res3.iter(function (row) {
-                            (res3.stopIter())
-                            (res1.stopIter())
-                            throw 'error';
+                switch (res2.x.code + res2.x.args) {
+                    case 'return(null)':
+                        return res1.stopIter({
+                            'code': 'return',
+                            'args': 'res2.x.data',
+                            'data': res2.x.data
                         });
-                    } else {
-                        for (var row of res3) {
-                            (res1.stopIter())
-                            throw 'error';
-                        }
-                    }
+                }
+            } else {
+                for (var r2 of res2) {
+                    log('r1: ' + r1['beer-sample'].name);
+                    log('r2: ' + r2['beer-sample'].name);
+                    return res1.stopIter({
+                        'code': 'return',
+                        'args': '(null)',
+                        'data': null
+                    });
                 }
             }
         });
+        switch (res1.x.code + res1.x.args) {
+            case 'returnres2.x.data':
+                return res1.x.data;;
+            case 'return(null)':
+                return res1.x.data;;
+        }
     } else {
-        for (var row of res1) {
+        for (var r1 of res1) {
             if (res2.isInstance) {
-                res2.x = res2.iter(function (row) {
-                    if (res3.isInstance) {
-                        res3.x = res3.iter(function (row) {
-                            (res3.stopIter())
-                            (res2.stopIter())
-                            throw 'error';
-                        });
-                    } else {
-                        for (var row of res3) {
-                            (res2.stopIter())
-                            throw 'error';
-                        }
-                    }
+                res2.x = res2.iter(function (r2) {
+                    log('r1: ' + r1['beer-sample'].name);
+                    log('r2: ' + r2['beer-sample'].name);
+                    return res2.stopIter({
+                        'code': 'return',
+                        'args': '(null)',
+                        'data': null
+                    });
                 });
+                switch (res2.x.code + res2.x.args) {
+                    case 'return(null)':
+                        return res2.x.data;
+                }
             } else {
-                for (var row of res2) {
-                    if (res3.isInstance) {
-                        res3.x = res3.iter(function (row) {
-                            (res3.stopIter())
-                            throw 'error';
-                        });
-                    } else {
-                        for (var row of res3) {
-                            throw 'error';
-                        }
-                    }
+                for (var r2 of res2) {
+                    log('r1: ' + r1['beer-sample'].name);
+                    log('r2: ' + r2['beer-sample'].name);
+                    return null;
                 }
             }
         }
     }
-} catch (e) {
+    return;
 }
