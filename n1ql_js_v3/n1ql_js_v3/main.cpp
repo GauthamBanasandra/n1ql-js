@@ -73,6 +73,18 @@ void Print(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 }
 
+void Time(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  auto now = std::chrono::high_resolution_clock::now();
+  auto ms = std::chrono::time_point_cast<std::chrono::microseconds>(now)
+                .time_since_epoch()
+                .count();
+
+  auto number =
+      v8::Number::New(v8::Isolate::GetCurrent(), static_cast<double>(ms));
+
+  args.GetReturnValue().Set(number);
+}
+
 int main(int argc, char *argv[]) {
   // Initialize V8.
   V8::InitializeICU();
@@ -103,6 +115,8 @@ int main(int argc, char *argv[]) {
                 v8::FunctionTemplate::New(isolate, StopIterFunction));
     global->Set(v8::String::NewFromUtf8(isolate, "execQuery"),
                 v8::FunctionTemplate::New(isolate, ExecQueryFunction));
+    global->Set(v8::String::NewFromUtf8(isolate, "getTime"),
+                v8::FunctionTemplate::New(isolate, Time));
 
     // Create a new context.
     Local<Context> context = Context::New(isolate, NULL, global);
@@ -113,10 +127,10 @@ int main(int argc, char *argv[]) {
     std::string src = ReadFile(SOURCE) + '\n';
     src += ReadFile(BUILTIN);
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
-    third_party_src+= ReadFile(ESCODEGEN)+ '\n';
-    third_party_src+= ReadFile(ESTRAVERSE)+ '\n';
-    third_party_src+= ReadFile(ESPRIMA);    
-    
+    third_party_src += ReadFile(ESCODEGEN) + '\n';
+    third_party_src += ReadFile(ESTRAVERSE) + '\n';
+    third_party_src += ReadFile(ESPRIMA);
+
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
     // Create a string containing the JavaScript source code.

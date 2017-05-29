@@ -15,9 +15,12 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <map>
 
 struct IterQueryHandler {
+  int count = 0;
   bool stop_signal;
+  std::string metadata;
   v8::Local<v8::Function> callback;
   v8::Local<v8::Value> return_value;
 };
@@ -36,7 +39,6 @@ class N1QL {
 private:
   bool init_success = true;
   std::string conn_str;
-  std::queue<lcb_t> inst_queue;
   lcb_t GetInstance();
   template <typename>
   static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);

@@ -735,7 +735,9 @@ function get_ast(code) {
                             if (lookup.searchInterrupted) {
                                 // For each stopNode that is encountered, construct a 'stopIter' statement and insert it.
                                 for (var stopNode of lookup.stopNodes) {
+                                    arg = new Arg({code: LoopModifier.CONST.THROW});
                                     stopIterAst = new StopIterAst(stopNode.right.name);
+                                    stopIterAst.arguments.push(arg.getAst());
                                     // The stopIter statements need to be annotated so that it is picked up by the
                                     // 'else' block.
                                     stopIterAst.isAnnotated = true;
@@ -1023,7 +1025,9 @@ function get_ast(code) {
                             });
                             if (lookup.searchInterrupted) {
                                 for (stopNode of lookup.stopNodes) {
+                                    arg = new Arg({code: LoopModifier.CONST.THROW});
                                     stopIterAst = new StopIterAst(stopNode.right.name);
+                                    stopIterAst.arguments.push(arg.getAst());
                                     stopIterAst.isAnnotated = true;
                                     stopIterAst.metaData = {
                                         code: LoopModifier.CONST.THROW,
