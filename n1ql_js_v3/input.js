@@ -1,9 +1,11 @@
 var count = 0;
 
 function query() {
+    var start = getTime();
     var res1 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
     var res2 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
-    var res3 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
+    var res3 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 1000;`);
+
 
     try {
         var c1 = 0;
@@ -33,11 +35,11 @@ function query() {
             log('c1 = ' + c1);
             log('');
         }
-        var stop = getTime();
-        log('time = ' + (stop - start));
     } catch (e) {
     }
     log('');
+    var stop = getTime();
+    log('time:\t' + (stop - start));
 }
 var res = query();
 log('iterations = ' + count);

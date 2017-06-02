@@ -10,24 +10,14 @@
 #include "n1ql.hpp"
 #include <include/v8.h>
 #include <iostream>
-#include <map>
-#include <queue>
-#include <stack>
 
 using json = nlohmann::json;
 
 extern N1QL *n1ql_handle;
 
-std::stack<std::pair<int, QueryHandler>> qhandler_stack;
-std::map<int, QueryHandler *> qhandler_map;
-
-InstanceQueue::InstanceQueue(int init_size, int capacity) {
-  
-}
-
-N1QL::N1QL(std::string _conn_str, int inst_count) {
-  conn_str = _conn_str;
-
+InstancePool::InstancePool(int init_size, int capacity, std::string conn_str,
+                           bool &init_success) {
+  // Initialization of lcb instances pool.
   lcb_create_st options;
   lcb_error_t err;
   memset(&options, 0, sizeof(options));
@@ -35,8 +25,8 @@ N1QL::N1QL(std::string _conn_str, int inst_count) {
   options.v.v3.connstr = conn_str.c_str();
   options.v.v3.type = LCB_TYPE_BUCKET;
   options.v.v3.passwd = "asdasd";
-  
-  for (int i = 0; i < inst_count; ++i) {
+
+  for (int i = 0; i < init_size; ++i) {
     lcb_t instance;
     err = lcb_create(&instance, &options);
     if (err != LCB_SUCCESS) {
@@ -58,49 +48,60 @@ N1QL::N1QL(std::string _conn_str, int inst_count) {
       Error(instance, "N1QL: unable to get bootstrap status", err);
     }
 
-    inst_queue.push(instance);
+    instances.push(instance);
   }
 }
 
+lcb_t InstancePool::Acquire() {
+  lcb_t instance = instances.front();
+  current_inst = instance;
+  instances.pop();
+  return instance;
+}
+
+// Schedules an operation for iteration.
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handleScope(isolate);
 
+  // Query to run.
   v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
   v8::Local<v8::Value> query_value = args.This()->Get(query_name);
   v8::String::Utf8Value query_string(query_value);
 
+  // Callback to execute.
   v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
 
   IterQueryHandler iter_handler;
-  iter_handler.stop_signal = false;
   iter_handler.callback = func;
   QueryHandler q_handler;
-  q_handler.is_callback_set = true;
   q_handler.iter_handler = &iter_handler;
 
-  // Hash of N1QL instance in JavaScript.
-  int obj_hash = args.This()->GetIdentityHash();
-  qhandler_map[obj_hash] = &q_handler;
-  std::pair<int, QueryHandler> iter_op(obj_hash, q_handler);
-  qhandler_stack.push(iter_op);
-
-  n1ql_handle->ExecQuery(*query_string);
+  // Schedule the iteration.
+  n1ql_handle->qhandler_stack.push(q_handler);
+  n1ql_handle->ExecQuery<IterQueryHandler>(*query_string);
 
   args.GetReturnValue().Set(iter_handler.return_value);
 }
 
+// Stops the iteration that is currently executing.
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::EscapableHandleScope handle_scope(isolate);
 
+  // Set the return value of the iterator.
   v8::Local<v8::Value> arg = args[0];
+  IterQueryHandler *iter_handler =
+      n1ql_handle->qhandler_stack.top().iter_handler;
+  iter_handler->return_value = handle_scope.Escape(arg);
 
-  int obj_hash = args.This()->GetIdentityHash();
-  qhandler_map[obj_hash]->iter_handler->stop_signal = true;
-  qhandler_map[obj_hash]->iter_handler->return_value = handle_scope.Escape(arg);
+  // Cancel the query and stop the RowCallback.
+  lcb_t instance = n1ql_handle->inst_pool.GetCurrentInstance();
+  lcb_N1QLHANDLE *handle = (lcb_N1QLHANDLE *)lcb_get_cookie(instance);
+  lcb_n1ql_cancel(instance, *handle);
 }
 
+// Schedules a blocking query operation.
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handleScope(isolate);
@@ -111,15 +112,11 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 
   BlockingQueryHandler block_handler;
   QueryHandler q_handler;
-  q_handler.is_callback_set = false;
   q_handler.block_handler = &block_handler;
 
-  int obj_hash = args.This()->GetIdentityHash();
-  qhandler_map[obj_hash] = &q_handler;
-  std::pair<int, QueryHandler> stack_element(obj_hash, q_handler);
-  qhandler_stack.push(stack_element);
-
-  n1ql_handle->ExecQuery(*query_string);
+  // Schedule blocking query.
+  n1ql_handle->qhandler_stack.push(q_handler);
+  n1ql_handle->ExecQuery<BlockingQueryHandler>(*query_string);
 
   std::vector<std::string> &rows = block_handler.rows;
   v8::Local<v8::Array> result_array =
@@ -139,22 +136,14 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 template <>
 void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
                                          const lcb_RESPN1QL *resp) {
-  QueryHandler &q_handler = qhandler_stack.top().second;
-  // If stop_signal is set, then cancel the query and breakout.
-  if (q_handler.iter_handler->stop_signal) {
-    lcb_N1QLHANDLE *handle = (lcb_N1QLHANDLE *)lcb_get_cookie(instance);
-    lcb_n1ql_cancel(instance, *handle);
-    return;
-  }
-
   if (!(resp->rflags & LCB_RESP_F_FINAL)) {
     char *row_str;
     asprintf(&row_str, "%.*s\n", (int)resp->nrow, resp->row);
 
+    QueryHandler &q_handler = n1ql_handle->qhandler_stack.top();
     v8::Local<v8::Function> callback = q_handler.iter_handler->callback;
 
-    // Execute the function callback passed in JavaScript, if iter() is
-    // called.
+    // Execute the function callback passed in JavaScript.
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
     v8::Local<v8::Value> args[1];
     args[0] = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, row_str));
@@ -163,7 +152,7 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
 
     free(row_str);
   } else {
-//        std::cout << "query metadata:" << resp->row << '\n';
+//    std::cout << "query metadata:" << resp->row << '\n';
   }
 }
 
@@ -175,37 +164,35 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
     char *row_str;
     asprintf(&row_str, "%.*s\n", (int)resp->nrow, resp->row);
 
-    QueryHandler q_handler = qhandler_stack.top().second;
+    QueryHandler &q_handler = n1ql_handle->qhandler_stack.top();
     // Append the result to the rows vector.
     q_handler.block_handler->rows.push_back(std::string(row_str));
 
     free(row_str);
   } else {
-    //    std::cout << "query metadata:" << resp->row << '\n';
+//    std::cout << "query metadata:" << resp->row << '\n';
   }
 }
 
-void N1QL::ExecQuery(std::string query) {
-  lcb_t &instance = inst_queue.front();
-  inst_queue.pop();
+template <typename HandlerType> void N1QL::ExecQuery(std::string query) {
+  lcb_t instance = inst_pool.Acquire();
 
   lcb_error_t err;
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLHANDLE handle = NULL;
   cmd.handle = &handle;
+  cmd.callback = RowCallback<HandlerType>;
+
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
   err = lcb_n1p_setstmtz(n1ql_params, query.c_str());
   if (err != LCB_SUCCESS)
-    Error(instance, "unable to build query string", err);
+    InstancePool::Error(instance, "unable to build query string", err);
 
   lcb_n1p_mkcmd(n1ql_params, &cmd);
 
-  cmd.callback = qhandler_stack.top().second.is_callback_set
-                     ? RowCallback<IterQueryHandler>
-                     : RowCallback<BlockingQueryHandler>;
   err = lcb_n1ql_query(instance, NULL, &cmd);
   if (err != LCB_SUCCESS)
-    Error(instance, "unable to query", err);
+    InstancePool::Error(instance, "unable to query", err);
 
   lcb_n1p_free(n1ql_params);
 
@@ -213,20 +200,18 @@ void N1QL::ExecQuery(std::string query) {
   lcb_set_cookie(instance, &handle);
   lcb_wait(instance);
 
-  auto it = qhandler_map.find(qhandler_stack.top().first);
-  qhandler_map.erase(it);
   qhandler_stack.pop();
 
-  inst_queue.push(instance);
+  inst_pool.Restore(instance);
 }
 
-void N1QL::Error(lcb_t instance, const char *msg, lcb_error_t err) {
+void InstancePool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
   std::cout << "error: " << err << " " << lcb_strerror(instance, err) << '\n';
 }
 
-N1QL::~N1QL() {
-  while (inst_queue.empty()) {
-    lcb_destroy(inst_queue.front());
-    inst_queue.pop();
+InstancePool::~InstancePool() {
+  while (instances.empty()) {
+    lcb_destroy(instances.front());
+    instances.pop();
   }
 }

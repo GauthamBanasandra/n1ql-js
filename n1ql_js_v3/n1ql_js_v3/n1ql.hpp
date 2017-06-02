@@ -14,11 +14,12 @@
 #include <libcouchbase/n1ql.h>
 #include <map>
 #include <queue>
+#include <stack>
 #include <string>
 #include <vector>
 
+// Data type for managing iterators.
 struct IterQueryHandler {
-  bool stop_signal;
   v8::Local<v8::Function> callback;
   v8::Local<v8::Value> return_value;
 };
@@ -27,37 +28,41 @@ struct BlockingQueryHandler {
   std::vector<std::string> rows;
 };
 
-struct QueryHandler {
-  bool is_callback_set;
+union QueryHandler {
   IterQueryHandler *iter_handler;
   BlockingQueryHandler *block_handler;
 };
 
-class InstanceQueue {
+// Pool of lcb instances and routines for pool management.
+class InstancePool {
 private:
+  // Instance that was recently popped.
   lcb_t current_inst;
   std::queue<lcb_t> instances;
 
 public:
-  InstanceQueue(int, int);
-  void Push(lcb_t);
-  lcb_t Pop();
+  InstancePool(int, int, std::string, bool &);
+  void Restore(lcb_t instance) { instances.push(instance); }
+  lcb_t Acquire();
   lcb_t GetCurrentInstance() { return current_inst; }
-  ~InstanceQueue();
+  static void Error(lcb_t, const char *, lcb_error_t);
+  ~InstancePool();
 };
 
 class N1QL {
 private:
   bool init_success = true;
-  std::string conn_str;
-  std::queue<lcb_t> inst_queue;
-  template <typename> static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
-  static void Error(lcb_t, const char *, lcb_error_t);
+  template <typename>
+  static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
 
 public:
-  N1QL(std::string, int);
+  InstancePool inst_pool;
+  std::stack<QueryHandler> qhandler_stack;
+  N1QL(std::string conn_str, int init_size)
+      : inst_pool(init_size, 15, conn_str, init_success) {}
+  template <typename>
   void ExecQuery(std::string);
-  ~N1QL();
+  ~N1QL() {}
 };
 
 enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER };
