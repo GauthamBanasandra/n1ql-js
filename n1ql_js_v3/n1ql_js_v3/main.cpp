@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    n1ql_handle = new N1QL("couchbase://127.0.0.1:8091/beer-sample", 10);
-
+    n1ql_handle = new N1QL("couchbase://127.0.0.1:12000/default?username=eventing&select_bucket=true&detailed_errcodes=1", 4);
+    
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
     global->Set(v8::String::NewFromUtf8(isolate, "log"),
                 v8::FunctionTemplate::New(isolate, Print));

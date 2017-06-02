@@ -12,15 +12,13 @@
 #include <include/v8.h>
 #include <libcouchbase/couchbase.h>
 #include <libcouchbase/n1ql.h>
+#include <map>
 #include <queue>
 #include <string>
 #include <vector>
-#include <map>
 
 struct IterQueryHandler {
-  int count = 0;
   bool stop_signal;
-  std::string metadata;
   v8::Local<v8::Function> callback;
   v8::Local<v8::Value> return_value;
 };
@@ -35,15 +33,27 @@ struct QueryHandler {
   BlockingQueryHandler *block_handler;
 };
 
+class InstanceQueue {
+private:
+  lcb_t current_inst;
+  std::queue<lcb_t> instances;
+
+public:
+  InstanceQueue(int, int);
+  void Push(lcb_t);
+  lcb_t Pop();
+  lcb_t GetCurrentInstance() { return current_inst; }
+  ~InstanceQueue();
+};
+
 class N1QL {
 private:
   bool init_success = true;
   std::string conn_str;
-  lcb_t GetInstance();
-  template <typename>
-  static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
+  std::queue<lcb_t> inst_queue;
+  template <typename> static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
   static void Error(lcb_t, const char *, lcb_error_t);
-  
+
 public:
   N1QL(std::string, int);
   void ExecQuery(std::string);

@@ -16,7 +16,8 @@ using namespace std;
 using json = nlohmann::json;
 
 void end(lcb_t, const char *, lcb_error_t);
-void row_callback(lcb_t, int, const lcb_RESPN1QL *);
+void row_callback1(lcb_t, int, const lcb_RESPN1QL *);
+void row_callback2(lcb_t, int, const lcb_RESPN1QL *);
 void query(string);
 
 bool first = true;
@@ -74,7 +75,11 @@ void query(string query) {
 
   lcb_n1p_mkcmd(n1ql_params, &cmd);
 
-  cmd.callback = row_callback;
+  if (first) {
+    cmd.callback = row_callback1;
+  } else {
+    cmd.callback = row_callback2;
+  }
 
   err = lcb_n1ql_query(instance, NULL, &cmd);
   if (err != LCB_SUCCESS) {
@@ -91,7 +96,7 @@ void end(lcb_t instance, const char *msg, lcb_error_t err) {
 }
 
 int row_count = 0;
-void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp) {
+void row_callback1(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp) {
   ++row_count;
   // In the case of first query, we want to break-out after printing the first
   // row.
@@ -107,8 +112,24 @@ void row_callback(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp) {
 
     // Prints the prefix 'first' or 'second' accordingly, followed by the row
     // that is received.
+    cout << "first query:\t" << doc["beer-sample"]["name"] << endl;
+    free(row_str);
+  } else {
+    printf("%s query:\tmetadata\t %.*s\n", (first ? "first" : "second"),
+           (int)resp->nrow, resp->row);
+  }
+}
+
+void row_callback2(lcb_t instance, int callback_type, const lcb_RESPN1QL *resp) {
+  if (!(resp->rflags & LCB_RESP_F_FINAL)) {
+    char *row_str;
+    asprintf(&row_str, "%.*s", (int)resp->nrow, resp->row);
+    auto doc = json::parse(row_str);
+    
+    // Prints the prefix 'first' or 'second' accordingly, followed by the row
+    // that is received.
     cout << (first ? "first" : "second") << " query:\t"
-              << doc["beer-sample"]["name"] << endl;
+    << doc["beer-sample"]["name"] << endl;
     free(row_str);
   } else {
     printf("%s query:\tmetadata\t %.*s\n", (first ? "first" : "second"),

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ACD40FB61ED7DC5B005F432D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACDE05A81E710F500067C820 /* main.cpp */; };
+		AC1BEB991EDD1ADD00329D43 /* duplicate_rows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,6 +26,7 @@
 		AC101F121ECC00840054EE98 /* nested_iter1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter1.cpp; sourceTree = "<group>"; };
 		AC101F141ECC198F0054EE98 /* nested_iter2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter2.cpp; sourceTree = "<group>"; };
 		AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter3.cpp; sourceTree = "<group>"; };
+		AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = duplicate_rows.cpp; sourceTree = "<group>"; };
 		ACA288951E711EF000275D54 /* key_value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value.cpp; sourceTree = "<group>"; };
 		ACA288961E711EF000275D54 /* n1ql_query.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_query.cpp; sourceTree = "<group>"; };
 		ACA288971E711EF000275D54 /* stop_iter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stop_iter.cpp; sourceTree = "<group>"; };
@@ -70,6 +71,7 @@
 				AC101F121ECC00840054EE98 /* nested_iter1.cpp */,
 				AC101F141ECC198F0054EE98 /* nested_iter2.cpp */,
 				AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */,
+				AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */,
 			);
 			path = libcb;
 			sourceTree = "<group>";
@@ -131,7 +133,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ACD40FB61ED7DC5B005F432D /* main.cpp in Sources */,
+				AC1BEB991EDD1ADD00329D43 /* duplicate_rows.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +230,7 @@
 		ACDE05AD1E710F500067C820 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = /usr/local/Cellar/libcouchbase/2.7.1_1/include;
+				HEADER_SEARCH_PATHS = /usr/local/include/;
 				LIBRARY_SEARCH_PATHS = /usr/local/lib/;
 				OTHER_LDFLAGS = "-lcouchbase";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -238,7 +240,7 @@
 		ACDE05AE1E710F500067C820 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = /usr/local/Cellar/libcouchbase/2.7.1_1/include;
+				HEADER_SEARCH_PATHS = /usr/local/include/;
 				LIBRARY_SEARCH_PATHS = /usr/local/lib/;
 				OTHER_LDFLAGS = "-lcouchbase";
 				PRODUCT_NAME = "$(TARGET_NAME)";
