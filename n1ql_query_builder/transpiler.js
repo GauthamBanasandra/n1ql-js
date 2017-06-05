@@ -25,8 +25,9 @@ function get_ast(code) {
         };
 
         this.pop = function () {
-            if (stack.length === 0)
+            if (stack.length === 0) {
                 throw 'Stack underflow exception';
+            }
             return stack.pop();
         };
 
@@ -72,6 +73,7 @@ function get_ast(code) {
             var temp = new Stack();
             var found = false;
 
+            // Run through all the elements in the stack against the comparator and break out once the element is found.
             while (_this.getSize() > 0 && !found) {
                 var node = _this.pop();
                 temp.push(node);
@@ -82,6 +84,7 @@ function get_ast(code) {
                 temp.pop();
             }
 
+            // Restore everything back to the stack.
             while (temp.getSize() > 0) {
                 _this.push(temp.pop());
             }
@@ -621,6 +624,7 @@ function get_ast(code) {
                             arg = JSON.stringify(node.metaData);
                             break;
                         default:
+                            // TODO :   Make this more deterministic by adding explicit case statements.
                             // Currently expected to handle labeled break and continue statements.
                             arg = new Arg({code: node.metaData.code, args: node.metaData.args});
                             break;
@@ -646,7 +650,7 @@ function get_ast(code) {
                         stopIterAst = arg = null;
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                            // TODO:    Might want to check for null.
+                            // TODO:    Might want to get it from nodeCopy.
                             var instName = stackHelper.getTopForOfNode().right.name;
                             stopIterAst = new StopIterAst(instName);
                             arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
@@ -671,6 +675,7 @@ function get_ast(code) {
                         // Labeled continue statement.
                         if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                             if (nodeCopy.parentLabel === node.label.name) {
+                                // If the target of labeled continue is its immediate parent, then just 'return'.
                                 returnStmtAst = new ReturnAst(null);
                             } else {
                                 arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
@@ -682,9 +687,10 @@ function get_ast(code) {
                                     postIter.push(arg);
                                 }
                             }
+
                             replace_node(node, returnStmtAst);
-                            // Unlabeled continue statement.
                         } else if (continueMod.isReplaceReq()) {
+                            // Unlabeled continue statement.
                             returnStmtAst = new ReturnAst(null);
                             replace_node(node, returnStmtAst);
                         }
@@ -837,6 +843,7 @@ function get_ast(code) {
                                     return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
                                         && item.id.name === node.metaData.targetFunction;
                                 default:
+                                    // TODO :   Make this more deterministic by adding explicit case statements.
                                     // Handles both labeled break and continue statements.
                                     return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
                             }
@@ -919,7 +926,7 @@ function get_ast(code) {
 
                 switch (node.type) {
                     case 'BreakStatement':
-                        // TODO :   Only labeled break case is being handled here. What about the unlabeled break case?
+                        // TODO :   Could be handled in the same way as 'iter_consequent'.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             lookup = stackHelper.searchStack({
                                 targetComparator: function (item) {
@@ -1126,7 +1133,7 @@ function get_ast(code) {
                             return /ForOfStatement/.test(node.type);
                         }
                     });
-                    if (lookup.targetFound && !lookup.searchInterrupted) {
+                    if (lookup.targetFound) {
                         console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
@@ -1256,10 +1263,13 @@ function get_ast(code) {
         enter: function (node, parent) {
             globalAncestorStack.push(node);
 
+            // Grab the for-of statement's label and mark the label for deletion.
             if (/ForOfStatement/.test(node.type) && !node.isVisited && /LabeledStatement/.test(parent.type)) {
                 node.parentLabel = parent.label.name;
                 parent.remLabel = true;
             }
+
+            // Find the function that the 'return' statement associates with.
             if (/ReturnStatement/.test(node.type)) {
                 var stackHelper = new StackHelper(globalAncestorStack);
                 var lookup = stackHelper.searchStack({
@@ -1286,7 +1296,7 @@ function get_ast(code) {
             }
 
             // TODO : Handle the case when the source of for-of loop is of type x.y
-            // Modifies all the 'for ... of ...' constructs to support iteration.
+            // Modifies all the for-of statements to support iteration.
             // Takes care to see to it that it visits the node only once.
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
                 if (!/BlockStatement/.test(node.body.type)) {
@@ -1296,6 +1306,7 @@ function get_ast(code) {
                 var iterAst = get_iter_compatible_ast(node);
                 replace_node(node, deep_copy(iterAst));
             } else if (/LabeledStatement/.test(node.type) && node.remLabel) {
+                // Delete the label.
                 replace_node(node, node.body);
             }
 

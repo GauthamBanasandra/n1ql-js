@@ -3,7 +3,7 @@ var count = 0;
 function query() {
     var start = getTime();
     var res1 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
-    var res2 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
+    var res2 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 5;`);
     var res3 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 1000;`);
 
 
@@ -26,7 +26,7 @@ function query() {
                     log('');
                 }
             }
-            if (c2 != 10) {
+            if (c2 != 5) {
                 log('\t\t\t\tc2 = ' + c2);
                 log('');
             }
