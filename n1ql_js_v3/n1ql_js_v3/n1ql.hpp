@@ -28,40 +28,51 @@ struct BlockingQueryHandler {
   std::vector<std::string> rows;
 };
 
-union QueryHandler {
-  IterQueryHandler *iter_handler;
-  BlockingQueryHandler *block_handler;
+struct QueryHandler {
+  int obj_hash;
+  std::string query;
+  lcb_t instance = NULL;
+  IterQueryHandler *iter_handler = nullptr;
+  BlockingQueryHandler *block_handler = nullptr;
 };
 
 // Pool of lcb instances and routines for pool management.
-class InstancePool {
+class ConnectionPool {
 private:
   // Instance that was recently popped.
-  lcb_t current_inst;
   std::queue<lcb_t> instances;
-
+  
 public:
-  InstancePool(int, int, std::string, bool &);
+  ConnectionPool(int, int, std::string, bool &);
   void Restore(lcb_t instance) { instances.push(instance); }
-  lcb_t Acquire();
-  lcb_t GetCurrentInstance() { return current_inst; }
+  lcb_t GetResource();
   static void Error(lcb_t, const char *, lcb_error_t);
-  ~InstancePool();
+  ~ConnectionPool();
+};
+
+class HashedStack {
+  std::stack<QueryHandler> qstack;
+  std::map<int, QueryHandler *> qmap;
+  
+public:
+  HashedStack() {}
+  void Push(QueryHandler &);
+  void Pop();
+  QueryHandler Top() { return qstack.top(); }
+  QueryHandler *Get(int obj_hash) { return qmap[obj_hash]; }
+  ~HashedStack() {}
 };
 
 class N1QL {
 private:
   bool init_success = true;
-  template <typename>
-  static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
-
+  ConnectionPool inst_pool;
+  template <typename> static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
+  
 public:
-  InstancePool inst_pool;
-  std::stack<QueryHandler> qhandler_stack;
-  N1QL(std::string conn_str, int init_size)
-      : inst_pool(init_size, 15, conn_str, init_success) {}
-  template <typename>
-  void ExecQuery(std::string);
+  N1QL(ConnectionPool _inst_pool) : inst_pool(_inst_pool) {}
+  HashedStack qhandler_stack;
+  template <typename> void ExecQuery(QueryHandler &);
   ~N1QL() {}
 };
 
