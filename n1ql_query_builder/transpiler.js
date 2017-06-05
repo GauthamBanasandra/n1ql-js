@@ -15,6 +15,66 @@ esprima.parse(transpiledCode);
 // handled in the lex.
 // TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
 function get_ast(code) {
+    function NodeUtils() {
+        this.deepCopy = function (node) {
+            return JSON.parse(JSON.stringify(node));
+        };
+
+        this.deleteNode = function (parentBody, nodeToDel) {
+            console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+            console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
+
+            var deleteIndex = parentBody.indexOf(nodeToDel);
+            parentBody.splice(deleteIndex, 1);
+        };
+
+        // Replaces source node with the target node and returns a reference to the new node.
+        this.replaceNode = function (source, target) {
+            Object.keys(source).forEach(function (key) {
+                delete source[key];
+            });
+            Object.keys(target).forEach(function (key) {
+                source[key] = target[key];
+            });
+
+            return source;
+        };
+
+        this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
+            console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+            console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
+
+            var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
+            parentBody.splice(insertIndex, 0, nodeToInsert);
+        };
+
+        this.isN1qlNode = function (node) {
+            // A N1QL node is a statement of the form new N1qlQuery('...');
+            return /NewExpression/.test(node.type) && /N1qlQuery/.test(node.callee.name);
+        };
+
+        this.convertToBlockStmt = function (node) {
+            switch (node.type) {
+                case 'ForOfStatement':
+                    // Transform the previous single-line statement into a block.
+                    node.body.body = [nodeUtils.deepCopy(node.body)];
+                    node.body.type = 'BlockStatement';
+                    break;
+                case 'IfStatement':
+                    node.consequent.body = [nodeUtils.deepCopy(node.consequent)];
+                    node.consequent.type = 'BlockStatement';
+                    // If the 'else' part exists, convert it to a block statement.
+                    if (node.alternate) {
+                        node.alternate.body = [nodeUtils.deepCopy(node.alternate)];
+                        node.alternate.type = 'BlockStatement';
+                    }
+                    break;
+                default:
+                    throw 'unhandled case for: ' + node.type;
+            }
+        }
+    }
+
     function Stack() {
         var stack = [];
 
@@ -46,7 +106,7 @@ function get_ast(code) {
             var clone = new Stack();
 
             for (var item of stack) {
-                clone.push(deep_copy(item));
+                clone.push(nodeUtils.deepCopy(item));
             }
 
             return clone;
@@ -77,7 +137,7 @@ function get_ast(code) {
             while (_this.getSize() > 0 && !found) {
                 var node = _this.pop();
                 temp.push(node);
-                found = comparator(deep_copy(node));
+                found = comparator(nodeUtils.deepCopy(node));
             }
 
             if (pop) {
@@ -320,11 +380,11 @@ function get_ast(code) {
                 var node = _this.ancestorStack.pop();
                 temp.push(node);
 
-                if (comparator.targetComparator(deep_copy(node))) {
-                    returnArgs = {targetFound: true, stopNode: deep_copy(node), searchInterrupted: false};
+                if (comparator.targetComparator(nodeUtils.deepCopy(node))) {
+                    returnArgs = {targetFound: true, stopNode: nodeUtils.deepCopy(node), searchInterrupted: false};
                     break;
-                } else if (comparator.stopComparator(deep_copy(node))) {
-                    returnArgs = {targetFound: false, stopNode: deep_copy(node), searchInterrupted: true};
+                } else if (comparator.stopComparator(nodeUtils.deepCopy(node))) {
+                    returnArgs = {targetFound: false, stopNode: nodeUtils.deepCopy(node), searchInterrupted: true};
                     if (searchAll) {
                         stopNodes.push(returnArgs.stopNode);
                     } else {
@@ -518,62 +578,11 @@ function get_ast(code) {
         };
     }
 
-    // Replaces source node with the target node and returns a reference to the new node.
-    function replace_node(source, target) {
-        Object.keys(source).forEach(function (key) {
-            delete source[key];
-        });
-        Object.keys(target).forEach(function (key) {
-            source[key] = target[key];
-        });
-
-        return source;
-    }
-
-    function insert_node(parentBody, refNode, nodeToInsert, insertAfter) {
-        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
-
-        var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
-        parentBody.splice(insertIndex, 0, nodeToInsert);
-    }
-
-    function delete_node(parentBody, nodeToDel) {
-        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
-
-        var deleteIndex = parentBody.indexOf(nodeToDel);
-        parentBody.splice(deleteIndex, 1);
-    }
-
     function insert_array(parentBody, insAfterNode, arrayToInsert) {
         console.assert(parentBody instanceof Array, 'parentBody must be an Array');
         console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
-    }
-
-    function convert_to_block_stmt(node) {
-        switch (node.type) {
-            case 'ForOfStatement':
-                // Transform the previous single-line statement into a block.
-                node.body.body = [deep_copy(node.body)];
-                node.body.type = 'BlockStatement';
-                break;
-            case 'IfStatement':
-                node.consequent.body = [deep_copy(node.consequent)];
-                node.consequent.type = 'BlockStatement';
-                // If the 'else' part exists, convert it to a block statement.
-                if (node.alternate) {
-                    node.alternate.body = [deep_copy(node.alternate)];
-                    node.alternate.type = 'BlockStatement';
-                }
-                break;
-        }
-    }
-
-    function deep_copy(node) {
-        return JSON.parse(JSON.stringify(node));
     }
 
     // Returns an iterator construct for a given for-of loop ast.
@@ -589,7 +598,7 @@ function get_ast(code) {
         var postIter = [];
         // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
         var iterProp = 'x';
-        var nodeCopy = deep_copy(forOfNode);
+        var nodeCopy = nodeUtils.deepCopy(forOfNode);
 
         estraverse.traverse(nodeCopy, {
             enter: function (node, parent) {
@@ -623,11 +632,12 @@ function get_ast(code) {
                             node.metaData.iterVar = nodeCopy.right.name;
                             arg = JSON.stringify(node.metaData);
                             break;
-                        default:
-                            // TODO :   Make this more deterministic by adding explicit case statements.
-                            // Currently expected to handle labeled break and continue statements.
+                        case LoopModifier.CONST.LABELED_BREAK:
+                        case LoopModifier.CONST.LABELED_CONTINUE:
                             arg = new Arg({code: node.metaData.code, args: node.metaData.args});
                             break;
+                        default:
+                            throw 'Unhandled case: ' + node.metaData.code;
                     }
 
                     if (postIter.indexOf(arg.toString()) === -1) {
@@ -650,9 +660,7 @@ function get_ast(code) {
                         stopIterAst = arg = null;
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                            // TODO:    Might want to get it from nodeCopy.
-                            var instName = stackHelper.getTopForOfNode().right.name;
-                            stopIterAst = new StopIterAst(instName);
+                            stopIterAst = new StopIterAst(nodeCopy.right.name);
                             arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
 
                             if (postIter.indexOf(arg.toString()) === -1) {
@@ -660,7 +668,6 @@ function get_ast(code) {
                             } // Unlabeled break statement.
                         } else if (!node.label && breakMod.isReplaceReq()) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            // TODO :   Unlabeled break is handled slightly different from unlabeled continue. Why?
                             arg = new Arg({code: LoopModifier.CONST.BREAK});
                         }
 
@@ -668,7 +675,7 @@ function get_ast(code) {
                             returnStmtAst = new ReturnAst(stopIterAst);
                             // Add 'arg' as the argument to 'stopIter()'.
                             stopIterAst.arguments.push(arg.getAst());
-                            replace_node(node, returnStmtAst);
+                            nodeUtils.replaceNode(node, returnStmtAst);
                         }
                         break;
                     case 'ContinueStatement':
@@ -688,11 +695,10 @@ function get_ast(code) {
                                 }
                             }
 
-                            replace_node(node, returnStmtAst);
+                            nodeUtils.replaceNode(node, returnStmtAst);
                         } else if (continueMod.isReplaceReq()) {
                             // Unlabeled continue statement.
-                            returnStmtAst = new ReturnAst(null);
-                            replace_node(node, returnStmtAst);
+                            nodeUtils.replaceNode(node, new ReturnAst(null));
                         }
                         break;
                     case 'ReturnStatement':
@@ -722,7 +728,7 @@ function get_ast(code) {
                                 postIter.push(postIterArgs);
                             }
 
-                            replace_node(node, returnStmtAst);
+                            nodeUtils.replaceNode(node, returnStmtAst);
                         }
                         break;
                     case 'ThrowStatement':
@@ -751,14 +757,14 @@ function get_ast(code) {
                                         code: LoopModifier.CONST.THROW,
                                         iterVar: stopNode.right.name
                                     };
-                                    insert_node(parent.body, node, stopIterAst, false);
+                                    nodeUtils.insertNode(parent.body, node, stopIterAst, false);
                                 }
                             }
                         }
                         break;
                     case 'IfStatement':
                         if (!/BlockStatement/.test(node.type)) {
-                            convert_to_block_stmt(node);
+                            nodeUtils.convertToBlockStmt(node);
                         }
                         break;
                 }
@@ -808,7 +814,7 @@ function get_ast(code) {
 
     // Returns AST for 'else' block.
     function get_iter_alternate_ast(forOfNode, stackHelper) {
-        var nodeCopy = deep_copy(forOfNode);
+        var nodeCopy = nodeUtils.deepCopy(forOfNode);
         var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
         var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
         var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
@@ -830,7 +836,7 @@ function get_ast(code) {
                         // for-of loop's source - because, w.k.t since the instance variable is not an iterator in the
                         // else-block.
                         if (nodeCopy.right.name === node.metaData.iterVar) {
-                            delete_node(parent.body, node);
+                            nodeUtils.deleteNode(parent.body, node);
                         }
                         return;
                     }
@@ -842,10 +848,11 @@ function get_ast(code) {
                                     // statement was associated with, before transpilation.
                                     return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
                                         && item.id.name === node.metaData.targetFunction;
-                                default:
-                                    // TODO :   Make this more deterministic by adding explicit case statements.
-                                    // Handles both labeled break and continue statements.
+                                case LoopModifier.CONST.LABELED_CONTINUE:
+                                case LoopModifier.CONST.LABELED_BREAK:
                                     return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
+                                default:
+                                    throw 'Unhandled case: ' + node.metaData.code;
                             }
                         },
                         stopComparator: function (item) {
@@ -855,10 +862,10 @@ function get_ast(code) {
                     if (lookup.targetFound) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
-                                replace_node(node, new LabeledBreakAst(node.metaData.args));
+                                nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args));
                                 break;
                             case LoopModifier.CONST.LABELED_CONTINUE:
-                                replace_node(node, new LabeledContinueAst(node.metaData.args));
+                                nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args));
                                 break;
                             case LoopModifier.CONST.RETURN:
                                 arg = new Arg({
@@ -866,7 +873,7 @@ function get_ast(code) {
                                     args: node.metaData.args,
                                     appendData: true
                                 });
-                                replace_node(node, new ReturnAst(arg.getDataAst()));
+                                nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()));
                                 break;
                         }
                     }
@@ -904,7 +911,7 @@ function get_ast(code) {
                         returnStmtAst.isAnnotated = true;
                         returnStmtAst.metaData = node.metaData;
 
-                        replace_node(node, returnStmtAst);
+                        nodeUtils.replaceNode(node, returnStmtAst);
                     }
 
                     return;
@@ -926,7 +933,6 @@ function get_ast(code) {
 
                 switch (node.type) {
                     case 'BreakStatement':
-                        // TODO :   Could be handled in the same way as 'iter_consequent'.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             lookup = stackHelper.searchStack({
                                 targetComparator: function (item) {
@@ -949,7 +955,7 @@ function get_ast(code) {
                                     code: LoopModifier.CONST.LABELED_BREAK,
                                     args: node.label.name
                                 };
-                                replace_node(node, returnStmtAst);
+                                nodeUtils.replaceNode(node, returnStmtAst);
                             }
                         }
                         break;
@@ -980,7 +986,7 @@ function get_ast(code) {
                                     code: LoopModifier.CONST.LABELED_CONTINUE,
                                     args: node.label.name
                                 };
-                                replace_node(node, returnStmtAst);
+                                nodeUtils.replaceNode(node, returnStmtAst);
                             }
                         }
                         break;
@@ -1015,7 +1021,7 @@ function get_ast(code) {
                                     targetFunction: node.targetFunction
                                 };
 
-                                replace_node(node, returnStmtAst);
+                                nodeUtils.replaceNode(node, returnStmtAst);
                             }
                         }
                         break;
@@ -1040,7 +1046,7 @@ function get_ast(code) {
                                         code: LoopModifier.CONST.THROW,
                                         iterVar: stopNode.right.name
                                     };
-                                    insert_node(parent.body, node, stopIterAst, false);
+                                    nodeUtils.insertNode(parent.body, node, stopIterAst, false);
                                 }
                             }
                         }
@@ -1245,12 +1251,7 @@ function get_ast(code) {
         return esprima.parse(query).body[0].expression;
     }
 
-    function is_n1ql_node(node) {
-        // A N1QL node is a statement of the form new N1qlQuery('...');
-        return /NewExpression/.test(node.type) &&
-            /N1qlQuery/.test(node.callee.name);
-    }
-
+    var nodeUtils = new NodeUtils();
     var globalAncestorStack = new AncestorStack();
 
     // Get the Abstract Syntax Tree (ast) of the input code.
@@ -1290,9 +1291,9 @@ function get_ast(code) {
         },
         leave: function (node) {
             // Perform variable substitution in query constructor.
-            if (is_n1ql_node(node) && node.arguments.length > 0) {
+            if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
                 var queryAst = get_query_ast(node.arguments[0].quasis[0].value.raw);
-                replace_node(node, deep_copy(queryAst));
+                nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst));
             }
 
             // TODO : Handle the case when the source of for-of loop is of type x.y
@@ -1300,14 +1301,14 @@ function get_ast(code) {
             // Takes care to see to it that it visits the node only once.
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
                 if (!/BlockStatement/.test(node.body.type)) {
-                    convert_to_block_stmt(node);
+                    nodeUtils.convertToBlockStmt(node);
                 }
 
                 var iterAst = get_iter_compatible_ast(node);
-                replace_node(node, deep_copy(iterAst));
+                nodeUtils.replaceNode(node, nodeUtils.deepCopy(iterAst));
             } else if (/LabeledStatement/.test(node.type) && node.remLabel) {
                 // Delete the label.
-                replace_node(node, node.body);
+                nodeUtils.replaceNode(node, node.body);
             }
 
             globalAncestorStack.pop();
