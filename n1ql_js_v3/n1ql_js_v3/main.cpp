@@ -16,16 +16,16 @@
 
 #include "n1ql.hpp"
 #define BUILTIN                                                                \
-"/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/builtin.js"
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/builtin.js"
 #define SOURCE "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input.js"
 #define TRANSPILER                                                             \
-"/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/transpiler.js"
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/transpiler.js"
 #define ESPRIMA                                                                \
-"/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/esprima.js"
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/esprima.js"
 #define ESCODEGEN                                                              \
-"/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
 #define ESTRAVERSE                                                             \
-"/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
 
 using namespace v8;
 
@@ -57,18 +57,18 @@ void Print(const v8::FunctionCallbackInfo<v8::Value> &args) {
   } else {
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> global = context->Global();
-    
+
     v8::Local<v8::Object> JSON =
-    global->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject();
+        global->Get(v8::String::NewFromUtf8(isolate, "JSON"))->ToObject();
     v8::Local<v8::Function> JSON_stringify = v8::Local<v8::Function>::Cast(
-                                                                           JSON->Get(v8::String::NewFromUtf8(isolate, "stringify")));
-    
+        JSON->Get(v8::String::NewFromUtf8(isolate, "stringify")));
+
     v8::Local<v8::Value> result;
     v8::Local<v8::Value> json_args[1];
     json_args[0] = args[0];
     result = JSON_stringify->Call(context->Global(), 1, &json_args[0]);
     v8::String::Utf8Value str(result->ToString());
-    
+
     std::cout << *str << '\n';
   }
 }
@@ -76,12 +76,12 @@ void Print(const v8::FunctionCallbackInfo<v8::Value> &args) {
 void Time(const v8::FunctionCallbackInfo<v8::Value> &args) {
   auto now = std::chrono::high_resolution_clock::now();
   auto ms = std::chrono::time_point_cast<std::chrono::microseconds>(now)
-  .time_since_epoch()
-  .count();
-  
+                .time_since_epoch()
+                .count();
+
   auto number =
-  v8::Number::New(v8::Isolate::GetCurrent(), static_cast<double>(ms));
-  
+      v8::Number::New(v8::Isolate::GetCurrent(), static_cast<double>(ms));
+
   args.GetReturnValue().Set(number);
 }
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   Platform *platform = platform::CreateDefaultPlatform();
   V8::InitializePlatform(platform);
   V8::Initialize();
-  
+
   // Create a new Isolate and make it the current one.
   ArrayBufferAllocator allocator;
   Isolate::CreateParams create_params;
@@ -100,15 +100,17 @@ int main(int argc, char *argv[]) {
   Isolate *isolate = Isolate::New(create_params);
   {
     Isolate::Scope isolate_scope(isolate);
-    
+
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
-    
-    std::string conn_str = "couchbase://127.0.0.1:12000/default?username=eventing&select_bucket=true&detailed_errcodes=1";
+
+    std::string conn_str = "couchbase://127.0.0.1:12000/"
+                           "default?username=eventing&select_bucket=true&"
+                           "detailed_errcodes=1";
     bool init_success;
     ConnectionPool conn_pool(4, 15, conn_str, init_success);
     n1ql_handle = new N1QL(conn_pool);
-    
+
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
     global->Set(v8::String::NewFromUtf8(isolate, "log"),
                 v8::FunctionTemplate::New(isolate, Print));
@@ -120,30 +122,30 @@ int main(int argc, char *argv[]) {
                 v8::FunctionTemplate::New(isolate, ExecQueryFunction));
     global->Set(v8::String::NewFromUtf8(isolate, "getTime"),
                 v8::FunctionTemplate::New(isolate, Time));
-    
+
     // Create a new context.
     Local<Context> context = Context::New(isolate, NULL, global);
-    
+
     // Enter the context for compiling and running the hello world script.
     Context::Scope context_scope(context);
-    
+
     std::string src = ReadFile(SOURCE) + '\n';
     src += ReadFile(BUILTIN);
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
     third_party_src += ReadFile(ESCODEGEN) + '\n';
     third_party_src += ReadFile(ESTRAVERSE) + '\n';
     third_party_src += ReadFile(ESPRIMA);
-    
+
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
-    
+
     // Create a string containing the JavaScript source code.
     Local<String> source =
-    String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal)
-    .ToLocalChecked();
-    
+        String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal)
+            .ToLocalChecked();
+
     // Compile the source code.
     Local<Script> script = Script::Compile(context, source).ToLocalChecked();
-    
+
     // Run the script to get the result.
     Local<Value> result = script->Run(context).ToLocalChecked();
 
@@ -151,7 +153,7 @@ int main(int argc, char *argv[]) {
     String::Utf8Value utf8(result);
     printf("%s\n", *utf8);
   }
-  
+
   // Dispose the isolate and tear down V8.
   isolate->Dispose();
   V8::Dispose();

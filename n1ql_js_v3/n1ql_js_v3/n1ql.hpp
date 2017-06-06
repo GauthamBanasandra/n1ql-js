@@ -20,19 +20,21 @@
 
 // Data type for managing iterators.
 struct IterQueryHandler {
+  std::string metadata;
   v8::Local<v8::Function> callback;
   v8::Local<v8::Value> return_value;
 };
 
 struct BlockingQueryHandler {
+  std::string metadata;
   std::vector<std::string> rows;
 };
 
 struct QueryHandler {
   int obj_hash;
   std::string query;
-  v8::Isolate *isolate = nullptr;
   lcb_t instance = NULL;
+  v8::Isolate *isolate = nullptr;
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;
 };
@@ -40,9 +42,8 @@ struct QueryHandler {
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 private:
-  // Instance that was recently popped.
   std::queue<lcb_t> instances;
-  
+
 public:
   ConnectionPool(int, int, std::string, bool &);
   void Restore(lcb_t instance) { instances.push(instance); }
@@ -51,10 +52,12 @@ public:
   ~ConnectionPool();
 };
 
+// Data structure for maintaining the operations.
+// Each stack element is hashed, providing a two-way access.
 class HashedStack {
   std::stack<QueryHandler> qstack;
   std::map<int, QueryHandler *> qmap;
-  
+
 public:
   HashedStack() {}
   void Push(QueryHandler &);
@@ -68,11 +71,13 @@ class N1QL {
 private:
   bool init_success = true;
   ConnectionPool inst_pool;
+  // Callback for each row.
   template <typename> static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
-  
+
 public:
   N1QL(ConnectionPool _inst_pool) : inst_pool(_inst_pool) {}
   HashedStack qhandler_stack;
+  // Schedules operations for execution.
   template <typename> void ExecQuery(QueryHandler &);
   ~N1QL() {}
 };
@@ -83,5 +88,7 @@ std::string Transpile(std::string, std::string, int);
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &);
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &);
+template <typename HandlerType, typename ResultType>
+void AddQueryMetadata(HandlerType, v8::Isolate *, ResultType &);
 
 #endif
