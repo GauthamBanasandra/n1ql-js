@@ -19,7 +19,17 @@ using json = nlohmann::json;
 extern N1QL *n1ql_handle;
 
 ConnectionPool::ConnectionPool(int init_size, int capacity,
-                               std::string conn_str, bool &init_success) {
+                               std::string conn_str)
+    : capacity(capacity), inst_incr(init_size), inst_count(0),
+      conn_str(conn_str) {
+  if (init_size > capacity) {
+    throw "init_size must be less than pool capacity";
+  }
+
+  AddResource(init_size);
+}
+
+void ConnectionPool::AddResource(int size) {
   // Initialization of lcb instances pool.
   lcb_create_st options;
   lcb_error_t err;
@@ -29,17 +39,15 @@ ConnectionPool::ConnectionPool(int init_size, int capacity,
   options.v.v3.type = LCB_TYPE_BUCKET;
   options.v.v3.passwd = "asdasd";
 
-  for (int i = 0; i < init_size; ++i) {
+  for (int i = 0; i < size; ++i) {
     lcb_t instance;
     err = lcb_create(&instance, &options);
     if (err != LCB_SUCCESS) {
-      init_success = false;
       Error(instance, "N1QL: unable to create lcb handle", err);
     }
 
     err = lcb_connect(instance);
     if (err != LCB_SUCCESS) {
-      init_success = false;
       Error(instance, "N1QL: unable to connect to server", err);
     }
 
@@ -47,15 +55,27 @@ ConnectionPool::ConnectionPool(int init_size, int capacity,
 
     err = lcb_get_bootstrap_status(instance);
     if (err != LCB_SUCCESS) {
-      init_success = false;
       Error(instance, "N1QL: unable to get bootstrap status", err);
     }
 
+    ++inst_count;
     instances.push(instance);
   }
 }
 
 lcb_t ConnectionPool::GetResource() {
+  // Dynamically expand the pool size if it's within the pool capacity.
+  if (instances.empty()) {
+    if (inst_count >= capacity) {
+      throw "Maximum pool capacity reached";
+    } else {
+      int incr = inst_count + inst_incr < capacity
+                     ? inst_incr
+                     : (inst_count + inst_incr) % capacity;
+      AddResource(incr);
+    }
+  }
+  
   lcb_t instance = instances.front();
   instances.pop();
   return instance;
@@ -173,7 +193,7 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
   if (!(resp->rflags & LCB_RESP_F_FINAL)) {
     char *row_str;
     asprintf(&row_str, "%.*s\n", (int)resp->nrow, resp->row);
-    
+
     v8::Isolate *isolate = q_handler.isolate;
     v8::Local<v8::Value> args[1];
     args[0] = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, row_str));

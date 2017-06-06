@@ -42,10 +42,15 @@ struct QueryHandler {
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 private:
+  const int capacity;
+  int inst_count;
+  int inst_incr;
+  std::string conn_str;
   std::queue<lcb_t> instances;
-
+  void AddResource(int);
+  
 public:
-  ConnectionPool(int, int, std::string, bool &);
+  ConnectionPool(int, int, std::string);
   void Restore(lcb_t instance) { instances.push(instance); }
   lcb_t GetResource();
   static void Error(lcb_t, const char *, lcb_error_t);

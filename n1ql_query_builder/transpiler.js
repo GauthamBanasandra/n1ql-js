@@ -1,13 +1,13 @@
-var fs = require('fs'),
-    esprima = require('esprima'),
-    estraverse = require('estraverse'),
-    escodegen = require('escodegen');
-
-var filename = process.argv[2];
-var code = fs.readFileSync(filename, 'utf-8');
-var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
-console.log(transpiledCode);
-esprima.parse(transpiledCode);
+// var fs = require('fs'),
+//     esprima = require('esprima'),
+//     estraverse = require('estraverse'),
+//     escodegen = require('escodegen');
+//
+// var filename = process.argv[2];
+// var code = fs.readFileSync(filename, 'utf-8');
+// var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
+// console.log(transpiledCode);
+// esprima.parse(transpiledCode);
 
 // TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
 // redundant.
@@ -21,8 +21,8 @@ function get_ast(code) {
         };
 
         this.deleteNode = function (parentBody, nodeToDel) {
-            console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-            console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
+            // console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+            // console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
 
             var deleteIndex = parentBody.indexOf(nodeToDel);
             parentBody.splice(deleteIndex, 1);
@@ -41,8 +41,8 @@ function get_ast(code) {
         };
 
         this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
-            console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-            console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
+            // console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+            // console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
 
             var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
             parentBody.splice(insertIndex, 0, nodeToInsert);
@@ -241,14 +241,14 @@ function get_ast(code) {
                         node.continueStackIndex = this.stackIndex;
                         break;
                     case LoopModifier.CONST.LABELED_BREAK:
-                        console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
+                        // console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
                         node.lblBreakStackIndex = this.stackIndex;
                         break;
                     case LoopModifier.CONST.RETURN:
                         node.returnStackIndex = this.stackIndex;
                         break;
                     case LoopModifier.CONST.LABELED_CONTINUE:
-                        console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
+                        // console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
                         node.lblContinueStackIndex = this.stackIndex;
                         break;
                     default:
@@ -300,7 +300,7 @@ function get_ast(code) {
 
         // Returns a boolean suggesting whether the node needs to be replaced.
         this.isReplaceReq = function (args) {
-            console.assert(ancestorStack.getSize() >= 0, 'ancestorStack size can not be negative');
+            // console.assert(ancestorStack.getSize() >= 0, 'ancestorStack size can not be negative');
             switch (this.modType) {
                 // For break and continue, the replacement criteria is the for-of node being the parent on TOS.
                 case LoopModifier.CONST.CONTINUE:
@@ -562,8 +562,8 @@ function get_ast(code) {
     }
 
     function insert_array(parentBody, insAfterNode, arrayToInsert) {
-        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
+        // console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+        // console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
     }
@@ -746,11 +746,11 @@ function get_ast(code) {
             iterBlockAst.body.push(postIterAst);
         }
 
-        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
-        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
-        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
-        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
-        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+        // console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
+        // console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
+        // console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
+        // console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
+        // console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
 
         return iterBlockAst;
     }
@@ -810,7 +810,7 @@ function get_ast(code) {
                         }
                     }
                     if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                        // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
@@ -873,7 +873,7 @@ function get_ast(code) {
                                 }
                             });
                             if (lookup.searchInterrupted) {
-                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                                // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                 arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
@@ -900,7 +900,7 @@ function get_ast(code) {
                                 }
                             });
                             if (lookup.searchInterrupted) {
-                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                                // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                                 if (lookup.stopNode.parentLabel === node.label.name) {
                                     returnStmtAst = new ReturnAst(null);
@@ -972,11 +972,11 @@ function get_ast(code) {
             }
         });
 
-        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
-        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
-        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
-        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
-        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+        // console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
+        // console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
+        // console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
+        // console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
+        // console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
 
         // debug.
         // console.log('else code:\n', escodegen.generate(nodeCopy), '\n\n\n\n\n');
@@ -1010,7 +1010,7 @@ function get_ast(code) {
                         }
                     });
                     if (lookup.targetFound) {
-                        console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
+                        // console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
@@ -1019,7 +1019,7 @@ function get_ast(code) {
                         }
                     }
                     if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                        // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: postIter.args});
@@ -1042,7 +1042,7 @@ function get_ast(code) {
                         }
                     });
                     if (lookup.targetFound) {
-                        console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
+                        // console.assert(lookup.stopNode.label.name === postIter.args, 'labels must match');
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
@@ -1051,7 +1051,7 @@ function get_ast(code) {
                         }
                     }
                     if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                        // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                         if (lookup.stopNode.parentLabel === postIter.args) {
                             returnStmtAst = new ReturnAst(null);
@@ -1079,12 +1079,12 @@ function get_ast(code) {
                         }
                     });
                     if (lookup.targetFound) {
-                        console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
+                        // console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
 
                         returnStmtAst = new ReturnAst(new ReturnDataAst(postIter.iterVar, prop));
                     }
                     if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                        // console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({
@@ -1184,7 +1184,7 @@ function get_ast(code) {
                     }
                 });
                 if (lookup.targetFound) {
-                    console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
+                    // console.assert(/FunctionDeclaration/.test(lookup.stopNode.type) || /FunctionExpression/.test(lookup.stopNode.type), 'node must be a function');
 
                     // TODO :   Anonymous function might require some attention because comparing null doesn't make sense.
                     node.targetFunction = lookup.stopNode.id ? lookup.stopNode.id.name : null;

@@ -107,8 +107,7 @@ int main(int argc, char *argv[]) {
     std::string conn_str = "couchbase://127.0.0.1:12000/"
                            "default?username=eventing&select_bucket=true&"
                            "detailed_errcodes=1";
-    bool init_success;
-    ConnectionPool conn_pool(4, 15, conn_str, init_success);
+    ConnectionPool conn_pool(2, 15, conn_str);
     n1ql_handle = new N1QL(conn_pool);
 
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
