@@ -1,46 +1,22 @@
 var count = 0;
+var res1 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
+var res2 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
+var res3 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
 
-function query() {
-    var start = getTime();
-    var res1 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 10;`);
-    var res2 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 5;`);
-    var res3 = new N1qlQuery(`SELECT * FROM \`beer-sample\` LIMIT 1000;`);
-
-
-    try {
-        var c1 = 0;
-        for (var r1 of res1) {
-            ++c1;
-            var c2 = 0;
-            x:for (var r2 of res2) {
-                ++c2;
-                var c3 = 0;
-                for (var r3 of res3) {
-                    ++c3;
-                    ++count;
-                    log('level3:\t' + r3['beer-sample'].name);
-                    break;
-                }
-                if (c3 != 1) {
-                    log('\t\t\t\t\t\t\t\tc3 = ' + c3);
-                    log('');
-                }
+x:for (var r1 of res1) {
+    log('level 1:\t' + r1['beer-sample'].name);
+    for (var r2 of res2) {
+        log('level 2:\t' + r2['beer-sample'].name);
+        try {
+            for (var r3 of res3) {
+                ++count;
+                log('level 3:\t' + r3['beer-sample'].name);
+                log(y);
             }
-            if (c2 != 5) {
-                log('\t\t\t\tc2 = ' + c2);
-                log('');
-            }
+        } catch (e) {
+            log(e.message);
         }
-        if (c1 != 10) {
-            log('c1 = ' + c1);
-            log('');
-        }
-    } catch (e) {
     }
-    log('');
-    var stop = getTime();
-    log('time:\t' + (stop - start));
 }
-var res = query();
-log('iterations = ' + count);
-log('query returned:\t' + res);
+
+log('iterations:\t' + count);

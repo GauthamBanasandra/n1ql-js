@@ -31,6 +31,7 @@ struct BlockingQueryHandler {
 struct QueryHandler {
   int obj_hash;
   std::string query;
+  v8::Isolate *isolate = nullptr;
   lcb_t instance = NULL;
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;

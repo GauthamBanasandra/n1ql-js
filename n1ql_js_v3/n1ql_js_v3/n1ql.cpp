@@ -82,6 +82,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   QueryHandler q_handler;
   q_handler.obj_hash = obj_hash;
   q_handler.query = *query_string;
+  q_handler.isolate = args.GetIsolate();
   q_handler.iter_handler = &iter_handler;
   
   n1ql_handle->ExecQuery<IterQueryHandler>(q_handler);
@@ -123,6 +124,7 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   BlockingQueryHandler block_handler;
   QueryHandler q_handler;
   q_handler.obj_hash = obj_hash;
+  q_handler.isolate = args.GetIsolate();
   q_handler.block_handler = &block_handler;
   
   n1ql_handle->ExecQuery<BlockingQueryHandler>(q_handler);
@@ -153,11 +155,16 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
     v8::Local<v8::Function> callback = q_handler.iter_handler->callback;
     
     // Execute the function callback passed in JavaScript.
-    v8::Isolate *isolate = v8::Isolate::GetCurrent();
+    v8::Isolate *isolate = q_handler.isolate;
     v8::Local<v8::Value> args[1];
     args[0] = v8::JSON::Parse(v8::String::NewFromUtf8(isolate, row_str));
-    
+    v8::TryCatch tryCatch(isolate);
     callback->Call(callback, 1, args);
+    if (tryCatch.HasCaught()) {
+      lcb_N1QLHANDLE *handle = (lcb_N1QLHANDLE *)lcb_get_cookie(instance);
+      lcb_n1ql_cancel(instance, *handle);
+      tryCatch.ReThrow();
+    }
     
     free(row_str);
   } else {
