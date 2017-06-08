@@ -2,7 +2,7 @@ function OnUpdate(doc, meta)
 {
     var bucket='default';
 
-	var revoke;
+    
 
     var res=REVOKE * FROM :bucket;
 

@@ -74,7 +74,6 @@ public:
 
 class N1QL {
 private:
-  bool init_success = true;
   ConnectionPool inst_pool;
   // Callback for each row.
   template <typename> static void RowCallback(lcb_t, int, const lcb_RESPN1QL *);
@@ -87,7 +86,7 @@ public:
   ~N1QL() {}
 };
 
-enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER };
+enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER, EXEC_ITER_DEPTH };
 std::string Transpile(std::string, std::string, int);
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &);

@@ -38,6 +38,10 @@ std::string Transpile(std::string js_src, std::string user_code, int mode) {
       case EXEC_TRANSPILER:
         // Perform transpilation.
         function_name = v8::String::NewFromUtf8(isolate, "transpile");
+        break;
+      case EXEC_ITER_DEPTH:
+        function_name = v8::String::NewFromUtf8(isolate, "get_max_iter_depth");
+        break;
       default:
         break;
     }

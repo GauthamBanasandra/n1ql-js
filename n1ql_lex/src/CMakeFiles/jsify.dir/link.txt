@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/c++   -ll -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/jsify.dir/main.cpp.o CMakeFiles/jsify.dir/n1ql_js_lex.cpp.o  -o jsify  

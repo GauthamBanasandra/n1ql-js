@@ -12,7 +12,7 @@ function query() {
                 for (var r3 of res3) {
                     ++count;
                     log('level 3:\t' + r3['beer-sample'].name);
-                    return r3;
+                  break;
                 }
             } catch (e) {
                 log(e);
@@ -20,10 +20,8 @@ function query() {
         }
     }
 
-        log('res1 meta:\t' + JSON.stringify(res1.metadata));
-    log('res2 meta:\t' + res2.metadata);
-    log('res3 meta:\t' + res3.metadata);
+    log(res1.metadata);
 }
 var res = query();
-log(res);
+//log(res);
 log('iterations:\t' + count);

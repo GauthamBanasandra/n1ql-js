@@ -25,6 +25,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AC16D2CC1EE79FA00034BC60 /* iter_depth.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = iter_depth.js; sourceTree = "<group>"; };
 		AC1A6B541ECEC8B400FFAE1F /* n1ql_js_v3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = n1ql_js_v3; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1A6B571ECEC8B400FFAE1F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC1A6B601ECECB2B00FFAE1F /* input.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input.js; sourceTree = "<group>"; };
@@ -76,6 +77,7 @@
 				AC1A6B631ECEE71400FFAE1F /* n1ql.hpp */,
 				AC67C1791ED56EE600DC2A5E /* transpiler.js */,
 				AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */,
+				AC16D2CC1EE79FA00034BC60 /* iter_depth.js */,
 			);
 			path = n1ql_js_v3;
 			sourceTree = "<group>";

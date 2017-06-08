@@ -26,6 +26,8 @@
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
 #define ESTRAVERSE                                                             \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
+#define ITER_DEPTH                                                             \
+  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/iter_depth.js"
 
 using namespace v8;
 
@@ -104,12 +106,6 @@ int main(int argc, char *argv[]) {
     // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    std::string conn_str = "couchbase://127.0.0.1:12000/"
-                           "default?username=eventing&select_bucket=true&"
-                           "detailed_errcodes=1";
-    ConnectionPool conn_pool(2, 15, conn_str);
-    n1ql_handle = new N1QL(conn_pool);
-
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
     global->Set(v8::String::NewFromUtf8(isolate, "log"),
                 v8::FunctionTemplate::New(isolate, Print));
@@ -131,9 +127,21 @@ int main(int argc, char *argv[]) {
     std::string src = ReadFile(SOURCE) + '\n';
     src += ReadFile(BUILTIN);
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
+    third_party_src += ReadFile(ITER_DEPTH) + '\n';
     third_party_src += ReadFile(ESCODEGEN) + '\n';
     third_party_src += ReadFile(ESTRAVERSE) + '\n';
     third_party_src += ReadFile(ESPRIMA);
+
+    std::string iter_depth = Transpile(third_party_src, src, EXEC_ITER_DEPTH);
+
+    std::string conn_str = "couchbase://127.0.0.1:12000/"
+                           "default?username=eventing&select_bucket=true&"
+                           "detailed_errcodes=1";
+    
+    ConnectionPool conn_pool(std::stoi(iter_depth), 15, conn_str);
+    n1ql_handle = new N1QL(conn_pool);
+
+    std::cout << "iter_depth:\t" << iter_depth << std::endl;
 
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 

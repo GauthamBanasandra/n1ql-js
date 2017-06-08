@@ -20,13 +20,13 @@ extern N1QL *n1ql_handle;
 
 ConnectionPool::ConnectionPool(int init_size, int capacity,
                                std::string conn_str)
-    : capacity(capacity), inst_incr(init_size), inst_count(0),
-      conn_str(conn_str) {
-  if (init_size > capacity) {
+    : capacity(capacity), inst_incr(init_size > 0 ? init_size : 1),
+      inst_count(0), conn_str(conn_str) {
+  if (inst_incr > capacity) {
     throw "init_size must be less than pool capacity";
   }
 
-  AddResource(init_size);
+  AddResource(inst_incr);
 }
 
 void ConnectionPool::AddResource(int size) {
@@ -75,7 +75,7 @@ lcb_t ConnectionPool::GetResource() {
       AddResource(incr);
     }
   }
-  
+
   lcb_t instance = instances.front();
   instances.pop();
   return instance;

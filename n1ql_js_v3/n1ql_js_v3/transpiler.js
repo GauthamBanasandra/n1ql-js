@@ -1,40 +1,12 @@
-// var fs = require('fs'),
-//     esprima = require('esprima'),
-//     estraverse = require('estraverse'),
-//     escodegen = require('escodegen');
-//
-// var filename = process.argv[2];
-// var code = fs.readFileSync(filename, 'utf-8');
-// var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
-// console.log(transpiledCode);
-// esprima.parse(transpiledCode);
-
-// TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
-// redundant.
 // TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
 // TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
 function transpile(code) {
-    return escodegen.generate(get_ast(code, esprima, estraverse, this.escodegen), {
+    return escodegen.generate(get_ast(code), {
         comment: true
     });
 }
-// var fs = require('fs'),
-//     esprima = require('esprima'),
-//     estraverse = require('estraverse'),
-//     escodegen = require('escodegen');
-//
-// var filename = process.argv[2];
-// var code = fs.readFileSync(filename, 'utf-8');
-// var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
-// console.log(transpiledCode);
-// esprima.parse(transpiledCode);
 
-// TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
-// redundant.
-// TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
-// handled in the lex.
-// TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
 function get_ast(code) {
     function Stack() {
         var stack = [];

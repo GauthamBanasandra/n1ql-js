@@ -1,6 +1,5 @@
-#line 2 "/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/n1ql_js_lex.cpp"
 
-#line 4 "/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/n1ql_js_lex.cpp"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -742,7 +741,7 @@ char *yytext;
 	// Storing the state for resuming on switch.
 	int previous_state;
 
-#line 746 "/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/n1ql_js_lex.cpp"
+#line 745 "lex.yy.c"
 
 #define INITIAL 0
 #define N1QL 1
@@ -933,7 +932,7 @@ YY_DECL
 #line 26 "n1ql_js_lex.l"
 
 	previous_state=YYSTATE;
-#line 937 "/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/n1ql_js_lex.cpp"
+#line 936 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -1332,7 +1331,7 @@ YY_RULE_SETUP
 #line 102 "n1ql_js_lex.l"
 ECHO;
 	YY_BREAK
-#line 1336 "/Users/gautham/projects/github/n1ql-js/n1ql_lex/src/n1ql_js_lex.cpp"
+#line 1335 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
