@@ -9,17 +9,17 @@ var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-// TODO:    Remove the arguments - esprima, estraverse, this.escodegen to get_ast in the next commit - they are
-// redundant.
 // TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
-// TODO:    Bug - Doesn't detect the N1QL variable if it's in the global scope.
 function get_ast(code) {
+    // A utility class for handling nodes of an AST.
     function NodeUtils() {
+        // Performs deep copy of the given node.
         this.deepCopy = function (node) {
             return JSON.parse(JSON.stringify(node));
         };
 
+        // Deletes a node from the body.
         this.deleteNode = function (parentBody, nodeToDel) {
             console.assert(parentBody instanceof Array, 'parentBody must be an Array');
             console.assert(parentBody.indexOf(nodeToDel) !== -1, 'node not found in the parent body');
@@ -40,6 +40,7 @@ function get_ast(code) {
             return source;
         };
 
+        // Inserts the given node to the given parentBody at the specified index.
         this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
             console.assert(parentBody instanceof Array, 'parentBody must be an Array');
             console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
@@ -48,8 +49,9 @@ function get_ast(code) {
             parentBody.splice(insertIndex, 0, nodeToInsert);
         };
 
+
+        // A N1QL node is a statement of the form new N1qlQuery('...');
         this.isN1qlNode = function (node) {
-            // A N1QL node is a statement of the form new N1qlQuery('...');
             return /NewExpression/.test(node.type) && /N1qlQuery/.test(node.callee.name);
         };
 
@@ -72,9 +74,19 @@ function get_ast(code) {
                 default:
                     throw 'unhandled case for: ' + node.type;
             }
+        };
+
+        // Inserts an array of AST nodes into parentBody at the specified index.
+        this.insertNodeArray = function (parentBody, insAfterNode, arrayToInsert) {
+            console.assert(parentBody instanceof Array, 'parentBody must be an Array');
+            console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
+
+            var insertIndex = parentBody.indexOf(insAfterNode) + 1;
+            parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
         }
     }
 
+    // A general purpose stack.
     function Stack() {
         var stack = [];
 
@@ -125,28 +137,30 @@ function get_ast(code) {
         }
     }
 
+    // A sub-class of Stack. Its purpose it to maintain the ancestral information
+    // of nodes : node-parent relationship.
     function AncestorStack() {
         Stack.call(this);
 
         // Returns or pops a node that satisfies the comparator.
         function getOrPopAncestor(_this, comparator, pop) {
-            var temp = new Stack();
+            var tempStack = new Stack();
             var found = false;
 
             // Run through all the elements in the stack against the comparator and break out once the element is found.
             while (_this.getSize() > 0 && !found) {
                 var node = _this.pop();
-                temp.push(node);
+                tempStack.push(node);
                 found = comparator(nodeUtils.deepCopy(node));
             }
 
             if (pop) {
-                temp.pop();
+                tempStack.pop();
             }
 
             // Restore everything back to the stack.
-            while (temp.getSize() > 0) {
-                _this.push(temp.pop());
+            while (tempStack.getSize() > 0) {
+                _this.push(tempStack.pop());
             }
 
             return found ? node : null;
@@ -160,6 +174,7 @@ function get_ast(code) {
             return getOrPopAncestor(this, comparator, true);
         };
 
+        // Returns the topmost node of the given type. Need not necessarily be the top of stack.
         this.getTopNodeOfType = function (nodeType) {
             return this.getAncestor(function (node) {
                 return nodeType === node.type;
@@ -188,6 +203,7 @@ function get_ast(code) {
         }
     }
 
+    // Class to maintain the association of loop modifiers - break, continue, return etc. with JavaScript loops.
     function LoopModifier(modifier) {
         var ancestorStack = new AncestorStack();
         this.modType = modifier;
@@ -196,6 +212,8 @@ function get_ast(code) {
         // debug.
         this.stackCopy = ancestorStack.stackCopy;
 
+        // Initializing association information.
+        // Obtained from JavaScript reference - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
         var associations = new Set();
         switch (this.modType) {
             case LoopModifier.CONST.BREAK:
@@ -231,6 +249,7 @@ function get_ast(code) {
             return associations.has(nodeType);
         };
 
+        // Push the node if it associates with the loop modifier instance.
         this.pushIfAssoc = function (node) {
             if (this.checkAssoc(node.type)) {
                 switch (this.modType) {
@@ -298,7 +317,7 @@ function get_ast(code) {
             return ancestorStack.getSize();
         };
 
-        // Returns a boolean suggesting whether the node needs to be replaced.
+        // Returns a boolean suggesting whether the loop modifier needs to be replaced.
         this.isReplaceReq = function (args) {
             console.assert(ancestorStack.getSize() >= 0, 'ancestorStack size can not be negative');
             switch (this.modType) {
@@ -334,6 +353,7 @@ function get_ast(code) {
         }
     }
 
+    // LoopModifier types.
     LoopModifier.CONST = {
         BREAK: 'break',
         CONTINUE: 'continue',
@@ -354,14 +374,17 @@ function get_ast(code) {
             return this.ancestorStack.popTopNodeOfType('ForOfStatement');
         };
 
+        // Targeted search - search the stack for the target, but stop and return if the stop-condition is met.
+        // Comparator must define targetComparator and stopComparator and each of them should return a boolean.
+        // Setting searchAll to true will return all the stopNodes till the targetNode is encountered.
         function search(_this, comparator, searchAll) {
-            var temp = new Stack(),
+            var tempStack = new Stack(),
                 stopNodes = [],
                 returnArgs = {targetFound: false};
 
             while (_this.ancestorStack.getSize() > 0) {
                 var node = _this.ancestorStack.pop();
-                temp.push(node);
+                tempStack.push(node);
 
                 if (comparator.targetComparator(nodeUtils.deepCopy(node))) {
                     returnArgs = {targetFound: true, stopNode: nodeUtils.deepCopy(node), searchInterrupted: false};
@@ -376,8 +399,9 @@ function get_ast(code) {
                 }
             }
 
-            while (temp.getSize() > 0) {
-                _this.ancestorStack.push(temp.pop());
+            // Restore the elements back to the stack.
+            while (tempStack.getSize() > 0) {
+                _this.ancestorStack.push(tempStack.pop());
             }
 
             // A check to validate that targetFound and searchInterrupted are mutually exclusive.
@@ -393,9 +417,6 @@ function get_ast(code) {
             return returnArgs;
         }
 
-        // Targeted search.
-        // The comparator should implement targetComparator - find the target node.
-        // stopComparator - stop searching if a particular node is found in the ancestor stack.
         this.searchStack = function (comparator) {
             return search(this, comparator);
         };
@@ -405,6 +426,7 @@ function get_ast(code) {
         }
     }
 
+    // Data types JavaScript AST nodes - http://esprima.readthedocs.io/en/latest/syntax-tree-format.html
     function Ast(type) {
         this.type = type;
     }
@@ -482,14 +504,64 @@ function get_ast(code) {
         this.arguments = [];
     }
 
+    function MemExprAst(objName) {
+        Ast.call(this, 'MemberExpression');
+        this.computed = false;
+        this.object = {
+            "type": "Identifier",
+            "name": objName
+        };
+        this.property = {
+            "type": "Identifier",
+            "name": "isInstance"
+        };
+    }
+
+    function IfElseAst(memExprAst) {
+        Ast.call(this, 'IfStatement');
+        this.test = memExprAst;
+        this.consequent = {
+            "type": "BlockStatement",
+            "body": []
+        };
+        this.alternate = {
+            "type": "BlockStatement",
+            "body": []
+        };
+    }
+
+    // Returns AST of the form 'iterVar'.'prop'.data
+    function ReturnDataAst(iterVar, prop) {
+        Ast.call(this, 'ExpressionStatement');
+        this.expression = {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+                "type": "MemberExpression",
+                "computed": false,
+                "object": {
+                    "type": "Identifier",
+                    "name": iterVar
+                },
+                "property": {
+                    "type": "Identifier",
+                    "name": prop
+                }
+            },
+            "property": {
+                "type": "Identifier",
+                "name": "data"
+            }
+        };
+    }
+
     // Class for maintaining the object that will be passed to 'stopIter'.
     function Arg(arg) {
         this.code = arg.code;
         this.args = arg.args;
 
         this.getAst = function () {
-            // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON
-            // object otherwise.
+            // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON object otherwise.
             var argsAst = esprima.parse('(' + this.toString() + ')').body[0].expression;
 
             // Setting appendData to 'true' will generate the AST for 'args' and append it to 'argsAst'.
@@ -534,38 +606,6 @@ function get_ast(code) {
 
             return JSON.stringify(obj);
         }
-    }
-
-    // Returns AST of the form 'iterVar'.'prop'.data
-    function ReturnDataAst(iterVar, prop) {
-        Ast.call(this, 'ExpressionStatement');
-        this.expression = {
-            "type": "MemberExpression",
-            "computed": false,
-            "object": {
-                "type": "MemberExpression",
-                "computed": false,
-                "object": {
-                    "type": "Identifier",
-                    "name": iterVar
-                },
-                "property": {
-                    "type": "Identifier",
-                    "name": prop
-                }
-            },
-            "property": {
-                "type": "Identifier",
-                "name": "data"
-            }
-        };
-    }
-
-    function insert_array(parentBody, insAfterNode, arrayToInsert) {
-        console.assert(parentBody instanceof Array, 'parentBody must be an Array');
-        console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
-        var insertIndex = parentBody.indexOf(insAfterNode) + 1;
-        parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
     }
 
     // Returns an iterator construct for a given for-of loop ast.
@@ -1115,9 +1155,8 @@ function get_ast(code) {
     function get_iter_compatible_ast(forOfNode) {
         var stackHelper = new StackHelper(globalAncestorStack);
 
-        // TODO:    Add a class for if-else statements.
-        // 'if ... else ...' which perform dynamic type checking.
-        var ifElseAst = esprima.parse('if(' + forOfNode.right.name + '.isInstance){}else{}').body[0];
+        // if-else block which perform dynamic type checking.
+        var ifElseAst = new IfElseAst(new MemExprAst(forOfNode.right.name));
 
         // Iterator AST.
         var iterConsequentAst = get_iter_consequent_ast(forOfNode, stackHelper);

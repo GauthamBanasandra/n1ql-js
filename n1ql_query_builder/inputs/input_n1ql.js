@@ -1,15 +1,18 @@
-var bucket = 'cities';
+function OnUpdate(doc, meta) {
+    log("doc: ", doc, " meta: ", meta);
+    var bucket = '`beer-sample`';
 
-function get_cities()
-{
-    var pop = 1000;
+    var res1 = SELECT * FROM :bucket LIMIT 10;
+    var res2 = SELECT * FROM :bucket LIMIT 10;
 
-    var x = /*select name
-                 from bucket
-                 where population > pop*/[];
-    var x = '   select name     \
-                from bucket     \
-                where population > pop';
+    x:for(var r1 of res1) {
+        log('level1: ', r1['beer-sample'].name);
+        for(var r2 of res2) {
+            log('level2: ', r2['beer-sample'].name);
+            break x;
+        }
+    }
+}
 
-    return x;
+function OnDelete(msg) {
 }

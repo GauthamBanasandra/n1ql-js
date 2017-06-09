@@ -6,5 +6,9 @@
     "estraverse": "latest",
     "esprima": "latest",
     "sleep": "latest"
+  },
+  "dependencies": {
+    "@sweet-js/cli": "^3.0.8",
+    "@sweet-js/helpers": "^3.0.0"
   }
 }

@@ -12,4 +12,3 @@ var code = fs.readFileSync(filename, 'utf-8');
 var ast = esprima.parse(code, {attachComment: true});
 
 console.log(escodegen.generate(ast, {comment: true}));
-``
