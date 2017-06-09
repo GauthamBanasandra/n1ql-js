@@ -758,163 +758,193 @@ function get_ast(code) {
         }
     }
 
-    // Returns an iterator construct for a given for-of loop ast.
-    function get_iter_consequent_ast(forOfNode, stackHelper) {
+    function Iter(forOfNode, stackHelper) {
+        var _this = this;
         var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
         var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
         var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
         var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
         var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
 
+        this.nodeCopy = nodeUtils.deepCopy(forOfNode);
+
+        this.incrAndPush = function (node) {
+            ++breakMod.stackIndex;
+            ++continueMod.stackIndex;
+            ++lblBreakMod.stackIndex;
+            ++returnMod.stackIndex;
+            ++lblContinueMod.stackIndex;
+
+            breakMod.pushIfAssoc(node);
+            continueMod.pushIfAssoc(node);
+            lblBreakMod.pushIfAssoc(node);
+            returnMod.pushIfAssoc(node);
+            lblContinueMod.pushIfAssoc(node);
+        };
+
+        this.decrAndPop = function () {
+            breakMod.popIfAssoc();
+            continueMod.popIfAssoc();
+            lblBreakMod.popIfAssoc();
+            returnMod.popIfAssoc();
+            lblContinueMod.popIfAssoc();
+
+            --breakMod.stackIndex;
+            --continueMod.stackIndex;
+            --lblBreakMod.stackIndex;
+            --returnMod.stackIndex;
+            --lblContinueMod.stackIndex;
+        };
+
+        this.traverse = function (traversal) {
+            estraverse.traverse(_this.nodeCopy, {
+                enter: function (node) {
+                    traversal(node, _this.nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod);
+                },
+                leave: function (node) {
+                    _this.decrAndPop();
+                }
+            })
+        };
+
+        // debug.
+        this.assertEmpty = function () {
+            console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
+            console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
+            console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
+            console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
+            console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+        }
+    }
+
+    // Returns an iterator construct for a given for-of loop ast.
+    function get_iter_consequent_ast(forOfNode, stackHelper) {
+        var iterator = new Iter(forOfNode, stackHelper);
+
         // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
         var iterProp = 'x';
         // List to store post iteration exit conditions.
         var postIter = new PostIter(iterProp);
-        var nodeCopy = nodeUtils.deepCopy(forOfNode);
 
-        estraverse.traverse(nodeCopy, {
-            enter: function (node) {
-                ++breakMod.stackIndex;
-                ++continueMod.stackIndex;
-                ++lblBreakMod.stackIndex;
-                ++returnMod.stackIndex;
-                ++lblContinueMod.stackIndex;
+        iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
+            iterator.incrAndPush(node);
 
-                breakMod.pushIfAssoc(node);
-                continueMod.pushIfAssoc(node);
-                lblBreakMod.pushIfAssoc(node);
-                returnMod.pushIfAssoc(node);
-                lblContinueMod.pushIfAssoc(node);
+            var arg,
+                stopIterAst,
+                returnStmtAst;
 
-                var arg,
-                    stopIterAst,
-                    returnStmtAst;
+            // Annotated nodes are those nodes that have been marked to be changed by the previous iteration.
+            if (node.isAnnotated) {
+                switch (node.metaData.code) {
+                    case LoopModifier.CONST.RETURN:
+                        // For 'return', the 'iterVar' must be set to the current for-of loop's source.
+                        node.metaData.iterVar = nodeCopy.right.name;
+                        arg = JSON.stringify(node.metaData);
+                        break;
+                    case LoopModifier.CONST.LABELED_BREAK:
+                    case LoopModifier.CONST.LABELED_CONTINUE:
+                        arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                        break;
+                    default:
+                        throw 'Unhandled case: ' + node.metaData.code;
+                }
 
-                // Annotated nodes are those nodes that have been marked to be changed by the previous iteration.
-                if (node.isAnnotated) {
-                    switch (node.metaData.code) {
-                        case LoopModifier.CONST.RETURN:
-                            // For 'return', the 'iterVar' must be set to the current for-of loop's source.
-                            node.metaData.iterVar = nodeCopy.right.name;
-                            arg = JSON.stringify(node.metaData);
-                            break;
-                        case LoopModifier.CONST.LABELED_BREAK:
-                        case LoopModifier.CONST.LABELED_CONTINUE:
-                            arg = new Arg({code: node.metaData.code, args: node.metaData.args});
-                            break;
-                        default:
-                            throw 'Unhandled case: ' + node.metaData.code;
+                postIter.push(arg.toString());
+
+                // Remove the annotation if it's already present.
+                // This is needed to prevent the else-block from replacing the already annotated node.
+                delete node.isAnnotated;
+                delete node.metaData;
+            }
+
+            if (node.isGen) {
+                return;
+            }
+
+            // If any of the exit criteria is encountered, then that statement may be replaced.
+            switch (node.type) {
+                case 'BreakStatement':
+                    stopIterAst = arg = null;
+                    // Labeled break statement.
+                    if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                        stopIterAst = new StopIterAst(nodeCopy.right.name);
+                        arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                        postIter.push(arg.toString());
+                        // Unlabeled break statement.
+                    } else if (!node.label && breakMod.isReplaceReq()) {
+                        stopIterAst = new StopIterAst(nodeCopy.right.name);
+                        arg = new Arg({code: LoopModifier.CONST.BREAK});
                     }
 
-                    postIter.push(arg.toString());
-
-                    // Remove the annotation if it's already present.
-                    // This is needed to prevent the else-block from replacing the already annotated node.
-                    delete node.isAnnotated;
-                    delete node.metaData;
-                }
-
-                if (node.isGen) {
-                    return;
-                }
-
-                // If any of the exit criteria is encountered, then that statement may be replaced.
-                switch (node.type) {
-                    case 'BreakStatement':
-                        stopIterAst = arg = null;
-                        // Labeled break statement.
-                        if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                    if (stopIterAst && arg) {
+                        returnStmtAst = new ReturnAst(stopIterAst);
+                        // Add 'arg' as the argument to 'stopIter()'.
+                        stopIterAst.arguments.push(arg.getAst());
+                        nodeUtils.replaceNode(node, returnStmtAst);
+                    }
+                    break;
+                case 'ContinueStatement':
+                    // Labeled continue statement.
+                    if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
+                        if (nodeCopy.parentLabel === node.label.name) {
+                            // If the target of labeled continue is its immediate parent, then just 'return'.
+                            returnStmtAst = new ReturnAst(null);
+                        } else {
+                            arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst.arguments.push(arg.getAst());
+
                             postIter.push(arg.toString());
-                            // Unlabeled break statement.
-                        } else if (!node.label && breakMod.isReplaceReq()) {
-                            stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            arg = new Arg({code: LoopModifier.CONST.BREAK});
                         }
 
-                        if (stopIterAst && arg) {
-                            returnStmtAst = new ReturnAst(stopIterAst);
-                            // Add 'arg' as the argument to 'stopIter()'.
-                            stopIterAst.arguments.push(arg.getAst());
-                            nodeUtils.replaceNode(node, returnStmtAst);
-                        }
-                        break;
-                    case 'ContinueStatement':
-                        // Labeled continue statement.
-                        if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
-                            if (nodeCopy.parentLabel === node.label.name) {
-                                // If the target of labeled continue is its immediate parent, then just 'return'.
-                                returnStmtAst = new ReturnAst(null);
-                            } else {
-                                arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
-                                stopIterAst = new StopIterAst(nodeCopy.right.name);
-                                returnStmtAst = new ReturnAst(stopIterAst);
-                                stopIterAst.arguments.push(arg.getAst());
+                        nodeUtils.replaceNode(node, returnStmtAst);
+                    } else if (continueMod.isReplaceReq()) {
+                        // Unlabeled continue statement.
+                        nodeUtils.replaceNode(node, new ReturnAst(null));
+                    }
+                    break;
+                case 'ReturnStatement':
+                    if (returnMod.isReplaceReq(node)) {
+                        // Return statement may or may not have arguments.
+                        // In case there's no argument, we populate it with null.
+                        var argStr = node.argument ? escodegen.generate(node.argument) : null;
+                        // Must enclose the return statement's argument within an expression '()'.
+                        // Otherwise, it causes an error when returning anonymous function.
+                        arg = new Arg({
+                            code: LoopModifier.CONST.RETURN,
+                            args: '(' + argStr + ')',
+                            appendData: true
+                        });
+                        stopIterAst = new StopIterAst(nodeCopy.right.name);
+                        stopIterAst.arguments.push(arg.getAst());
+                        returnStmtAst = new ReturnAst(stopIterAst);
 
-                                postIter.push(arg.toString());
-                            }
+                        var postIterArgs = JSON.stringify({
+                            code: LoopModifier.CONST.RETURN,
+                            args: arg.args,
+                            iterVar: nodeCopy.right.name,
+                            targetFunction: node.targetFunction
+                        });
 
-                            nodeUtils.replaceNode(node, returnStmtAst);
-                        } else if (continueMod.isReplaceReq()) {
-                            // Unlabeled continue statement.
-                            nodeUtils.replaceNode(node, new ReturnAst(null));
-                        }
-                        break;
-                    case 'ReturnStatement':
-                        if (returnMod.isReplaceReq(node)) {
-                            // Return statement may or may not have arguments.
-                            // In case there's no argument, we populate it with null.
-                            var argStr = node.argument ? escodegen.generate(node.argument) : null;
-                            // Must enclose the return statement's argument within an expression '()'.
-                            // Otherwise, it causes an error when returning anonymous function.
-                            arg = new Arg({
-                                code: LoopModifier.CONST.RETURN,
-                                args: '(' + argStr + ')',
-                                appendData: true
-                            });
-                            stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            stopIterAst.arguments.push(arg.getAst());
-                            returnStmtAst = new ReturnAst(stopIterAst);
-
-                            var postIterArgs = JSON.stringify({
-                                code: LoopModifier.CONST.RETURN,
-                                args: arg.args,
-                                iterVar: nodeCopy.right.name,
-                                targetFunction: node.targetFunction
-                            });
-
-                            postIter.push(postIterArgs);
-                            nodeUtils.replaceNode(node, returnStmtAst);
-                        }
-                        break;
-                    case 'IfStatement':
-                        if (!/BlockStatement/.test(node.type)) {
-                            nodeUtils.convertToBlockStmt(node);
-                        }
-                        break;
-                }
-            },
-            leave: function (node) {
-                breakMod.popIfAssoc();
-                continueMod.popIfAssoc();
-                lblBreakMod.popIfAssoc();
-                returnMod.popIfAssoc();
-                lblContinueMod.popIfAssoc();
-
-                --breakMod.stackIndex;
-                --continueMod.stackIndex;
-                --lblBreakMod.stackIndex;
-                --returnMod.stackIndex;
-                --lblContinueMod.stackIndex;
+                        postIter.push(postIterArgs);
+                        nodeUtils.replaceNode(node, returnStmtAst);
+                    }
+                    break;
+                case 'IfStatement':
+                    if (!/BlockStatement/.test(node.type)) {
+                        nodeUtils.convertToBlockStmt(node);
+                    }
+                    break;
             }
         });
+
         // TODO :   Create a class for iter().
         var iter = esprima.parse(
             forOfNode.right.name + '.' + iterProp + '=' + forOfNode.right.name +
             '.iter(function (' + (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name) + '){});'
         ).body[0];
-        iter.expression.right.arguments[0].body = nodeCopy.body;
+        iter.expression.right.arguments[0].body = iterator.nodeCopy.body;
 
         var iterBlockAst = esprima.parse('{}').body[0];
         iterBlockAst.body.push(iter);
@@ -927,11 +957,7 @@ function get_ast(code) {
             iterBlockAst.body.push(postIterAst);
         }
 
-        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
-        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
-        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
-        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
-        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+        iterator.assertEmpty();
 
         return iterBlockAst;
     }
@@ -939,6 +965,7 @@ function get_ast(code) {
     // Returns AST for 'else' block.
     function get_iter_alternate_ast(forOfNode, stackHelper) {
         var nodeCopy = nodeUtils.deepCopy(forOfNode);
+
         var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
         var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
         var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
