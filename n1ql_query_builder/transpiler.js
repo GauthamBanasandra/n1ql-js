@@ -964,232 +964,195 @@ function get_ast(code) {
 
     // Returns AST for 'else' block.
     function get_iter_alternate_ast(forOfNode, stackHelper) {
-        var nodeCopy = nodeUtils.deepCopy(forOfNode);
+        var iterator = new Iter(forOfNode, stackHelper);
+        iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
+            var lookup, stopIterAst, arg, returnStmtAst, stopNode = null;
 
-        var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
-        var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
-        var lblBreakMod = new LoopModifier(LoopModifier.CONST.LABELED_BREAK);
-        var returnMod = new LoopModifier(LoopModifier.CONST.RETURN);
-        var lblContinueMod = new LoopModifier(LoopModifier.CONST.LABELED_CONTINUE);
-
-        // debug.
-        // console.log('input for else code:\n', escodegen.generate(nodeCopy), '\n');
-
-        estraverse.traverse(nodeCopy, {
-            enter: function (node, parent) {
-                var lookup, stopIterAst, arg, returnStmtAst, stopNode = null;
-
-                if (node.isAnnotated) {
-                    lookup = stackHelper.searchStack({
-                        targetComparator: function (item) {
-                            switch (node.metaData.code) {
-                                case LoopModifier.CONST.RETURN:
-                                    // For a 'return' statement, the target is to find the function that the 'return'
-                                    // statement was associated with, before transpilation.
-                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
-                                        && item.id.name === node.metaData.targetFunction;
-                                case LoopModifier.CONST.LABELED_CONTINUE:
-                                case LoopModifier.CONST.LABELED_BREAK:
-                                    return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
-                                default:
-                                    throw 'Unhandled case: ' + node.metaData.code;
-                            }
-                        },
-                        stopComparator: function (item) {
-                            return /ForOfStatement/.test(item.type);
-                        }
-                    });
-                    if (lookup.targetFound) {
+            if (node.isAnnotated) {
+                lookup = stackHelper.searchStack({
+                    targetComparator: function (item) {
                         switch (node.metaData.code) {
-                            case LoopModifier.CONST.LABELED_BREAK:
-                                nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args));
-                                break;
-                            case LoopModifier.CONST.LABELED_CONTINUE:
-                                nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args));
-                                break;
                             case LoopModifier.CONST.RETURN:
-                                arg = new Arg({
-                                    code: LoopModifier.CONST.RETURN,
-                                    args: node.metaData.args,
-                                    appendData: true
-                                });
-                                nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()));
-                                break;
-                        }
-                    }
-                    if (lookup.searchInterrupted) {
-                        console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
-                        switch (node.metaData.code) {
+                                // For a 'return' statement, the target is to find the function that the 'return'
+                                // statement was associated with, before transpilation.
+                                return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
+                                    && item.id.name === node.metaData.targetFunction;
+                            case LoopModifier.CONST.LABELED_CONTINUE:
                             case LoopModifier.CONST.LABELED_BREAK:
+                                return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
+                            default:
+                                throw 'Unhandled case: ' + node.metaData.code;
+                        }
+                    },
+                    stopComparator: function (item) {
+                        return /ForOfStatement/.test(item.type);
+                    }
+                });
+                if (lookup.targetFound) {
+                    switch (node.metaData.code) {
+                        case LoopModifier.CONST.LABELED_BREAK:
+                            nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args));
+                            break;
+                        case LoopModifier.CONST.LABELED_CONTINUE:
+                            nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args));
+                            break;
+                        case LoopModifier.CONST.RETURN:
+                            arg = new Arg({
+                                code: LoopModifier.CONST.RETURN,
+                                args: node.metaData.args,
+                                appendData: true
+                            });
+                            nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()));
+                            break;
+                    }
+                }
+                if (lookup.searchInterrupted) {
+                    console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                    switch (node.metaData.code) {
+                        case LoopModifier.CONST.LABELED_BREAK:
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst.arguments.push(arg.getAst());
+                            break;
+                        case LoopModifier.CONST.LABELED_CONTINUE:
+                            if (lookup.stopNode.parentLabel === node.metaData.args) {
+                                returnStmtAst = new ReturnAst(null);
+                            } else {
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                                 arg = new Arg({code: node.metaData.code, args: node.metaData.args});
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
-                                break;
-                            case LoopModifier.CONST.LABELED_CONTINUE:
-                                if (lookup.stopNode.parentLabel === node.metaData.args) {
-                                    returnStmtAst = new ReturnAst(null);
-                                } else {
-                                    stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg({code: node.metaData.code, args: node.metaData.args});
-                                    returnStmtAst = new ReturnAst(stopIterAst);
-                                    stopIterAst.arguments.push(arg.getAst());
-                                }
-                                break;
-                            case LoopModifier.CONST.RETURN:
-                                arg = new Arg({
-                                    code: LoopModifier.CONST.RETURN,
-                                    args: node.metaData.args,
-                                    appendData: true
-                                });
-                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                stopIterAst.arguments.push(arg.getAst());
-                                returnStmtAst = new ReturnAst(stopIterAst);
-                                break;
-                        }
-
-                        returnStmtAst.isAnnotated = true;
-                        returnStmtAst.metaData = node.metaData;
-
-                        nodeUtils.replaceNode(node, returnStmtAst);
+                            }
+                            break;
+                        case LoopModifier.CONST.RETURN:
+                            arg = new Arg({
+                                code: LoopModifier.CONST.RETURN,
+                                args: node.metaData.args,
+                                appendData: true
+                            });
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            stopIterAst.arguments.push(arg.getAst());
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            break;
                     }
 
-                    return;
+                    returnStmtAst.isAnnotated = true;
+                    returnStmtAst.metaData = node.metaData;
+
+                    nodeUtils.replaceNode(node, returnStmtAst);
                 }
 
-                ++breakMod.stackIndex;
-                ++continueMod.stackIndex;
-                ++lblBreakMod.stackIndex;
-                ++returnMod.stackIndex;
-                ++lblContinueMod.stackIndex;
+                return;
+            }
 
-                breakMod.pushIfAssoc(node);
-                continueMod.pushIfAssoc(node);
-                lblBreakMod.pushIfAssoc(node);
-                returnMod.pushIfAssoc(node);
-                lblContinueMod.pushIfAssoc(node);
+            iterator.incrAndPush(node);
 
-                switch (node.type) {
-                    case 'BreakStatement':
-                        if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
-                            lookup = stackHelper.searchStack({
-                                targetComparator: function (item) {
-                                    return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
-                                },
-                                stopComparator: function (item) {
-                                    return /ForOfStatement/.test(item.type);
-                                }
-                            });
-                            if (lookup.searchInterrupted) {
-                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+            switch (node.type) {
+                case 'BreakStatement':
+                    if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
+                        lookup = stackHelper.searchStack({
+                            targetComparator: function (item) {
+                                return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
+                            },
+                            stopComparator: function (item) {
+                                return /ForOfStatement/.test(item.type);
+                            }
+                        });
+                        if (lookup.searchInterrupted) {
+                            console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                            returnStmtAst = new ReturnAst(stopIterAst);
+                            stopIterAst.arguments.push(arg.getAst());
+
+                            returnStmtAst.isAnnotated = true;
+                            returnStmtAst.metaData = {
+                                code: LoopModifier.CONST.LABELED_BREAK,
+                                args: node.label.name
+                            };
+                            nodeUtils.replaceNode(node, returnStmtAst);
+                        }
+                    }
+                    break;
+                case 'ContinueStatement':
+                    if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
+                        lookup = stackHelper.searchStack({
+                            targetComparator: function (item) {
+                                return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
+                            },
+                            stopComparator: function (item) {
+                                return /ForOfStatement/.test(item.type);
+                            }
+                        });
+                        if (lookup.searchInterrupted) {
+                            console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+
+                            if (lookup.stopNode.parentLabel === node.label.name) {
+                                returnStmtAst = new ReturnAst(null);
+                            } else {
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                                arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
-
-                                returnStmtAst.isAnnotated = true;
-                                returnStmtAst.metaData = {
-                                    code: LoopModifier.CONST.LABELED_BREAK,
-                                    args: node.label.name
-                                };
-                                nodeUtils.replaceNode(node, returnStmtAst);
                             }
+
+                            returnStmtAst.isAnnotated = true;
+                            returnStmtAst.metaData = {
+                                code: LoopModifier.CONST.LABELED_CONTINUE,
+                                args: node.label.name
+                            };
+                            nodeUtils.replaceNode(node, returnStmtAst);
                         }
-                        break;
-                    case 'ContinueStatement':
-                        if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
-                            lookup = stackHelper.searchStack({
-                                targetComparator: function (item) {
-                                    return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
-                                },
-                                stopComparator: function (item) {
-                                    return /ForOfStatement/.test(item.type);
-                                }
+                    }
+                    break;
+                case 'ReturnStatement':
+                    if (node.targetFunction) {
+                        lookup = stackHelper.searchStack({
+                            targetComparator: function (item) {
+                                return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
+                                    && item.id.name === node.targetFunction;
+                            },
+                            stopComparator: function (item) {
+                                return /ForOfStatement/.test(item.type);
+                            }
+                        });
+                        if (lookup.searchInterrupted) {
+                            var argStr = node.argument ? escodegen.generate(node.argument) : null;
+
+                            arg = new Arg({
+                                code: LoopModifier.CONST.RETURN,
+                                args: '(' + argStr + ')',
+                                appendData: true
                             });
-                            if (lookup.searchInterrupted) {
-                                console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
+                            stopIterAst = new StopIterAst(lookup.stopNode.right.name);
+                            stopIterAst.arguments.push(arg.getAst());
+                            returnStmtAst = new ReturnAst(stopIterAst);
 
-                                if (lookup.stopNode.parentLabel === node.label.name) {
-                                    returnStmtAst = new ReturnAst(null);
-                                } else {
-                                    stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
-                                    returnStmtAst = new ReturnAst(stopIterAst);
-                                    stopIterAst.arguments.push(arg.getAst());
-                                }
+                            returnStmtAst.isAnnotated = true;
+                            returnStmtAst.metaData = {
+                                code: LoopModifier.CONST.RETURN,
+                                args: arg.args,
+                                iterVar: nodeCopy.right.name,
+                                targetFunction: node.targetFunction
+                            };
 
-                                returnStmtAst.isAnnotated = true;
-                                returnStmtAst.metaData = {
-                                    code: LoopModifier.CONST.LABELED_CONTINUE,
-                                    args: node.label.name
-                                };
-                                nodeUtils.replaceNode(node, returnStmtAst);
-                            }
+                            nodeUtils.replaceNode(node, returnStmtAst);
                         }
-                        break;
-                    case 'ReturnStatement':
-                        if (node.targetFunction) {
-                            lookup = stackHelper.searchStack({
-                                targetComparator: function (item) {
-                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
-                                        && item.id.name === node.targetFunction;
-                                },
-                                stopComparator: function (item) {
-                                    return /ForOfStatement/.test(item.type);
-                                }
-                            });
-                            if (lookup.searchInterrupted) {
-                                var argStr = node.argument ? escodegen.generate(node.argument) : null;
-
-                                arg = new Arg({
-                                    code: LoopModifier.CONST.RETURN,
-                                    args: '(' + argStr + ')',
-                                    appendData: true
-                                });
-                                stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                stopIterAst.arguments.push(arg.getAst());
-                                returnStmtAst = new ReturnAst(stopIterAst);
-
-                                returnStmtAst.isAnnotated = true;
-                                returnStmtAst.metaData = {
-                                    code: LoopModifier.CONST.RETURN,
-                                    args: arg.args,
-                                    iterVar: nodeCopy.right.name,
-                                    targetFunction: node.targetFunction
-                                };
-
-                                nodeUtils.replaceNode(node, returnStmtAst);
-                            }
-                        }
-                        break;
-                }
-            },
-            leave: function (node) {
-                breakMod.popIfAssoc();
-                continueMod.popIfAssoc();
-                lblBreakMod.popIfAssoc();
-                returnMod.popIfAssoc();
-                lblContinueMod.popIfAssoc();
-
-                --breakMod.stackIndex;
-                --continueMod.stackIndex;
-                --lblBreakMod.stackIndex;
-                --returnMod.stackIndex;
-                --lblContinueMod.stackIndex;
+                    }
+                    break;
             }
         });
+        // debug.
+        // console.log('input for else code:\n', escodegen.generate(nodeCopy), '\n');
 
-        console.assert(breakMod.getSize() === 0, 'breakMod must be empty');
-        console.assert(continueMod.getSize() === 0, 'continueMod must be empty');
-        console.assert(lblBreakMod.getSize() === 0, 'lblBreakMod must be empty');
-        console.assert(returnMod.getSize() === 0, 'returnMod must be empty');
-        console.assert(lblContinueMod.getSize() === 0, 'lblContinueMod must be empty');
+        iterator.assertEmpty();
 
         // debug.
         // console.log('else code:\n', escodegen.generate(nodeCopy), '\n\n\n\n\n');
 
-        return nodeCopy.parentLabel ? new LabeledStmtAst(nodeCopy.parentLabel, nodeCopy) : nodeCopy;
+        return iterator.nodeCopy.parentLabel ? new LabeledStmtAst(iterator.nodeCopy.parentLabel, iterator.nodeCopy) : iterator.nodeCopy;
     }
 
     // Returns iterator construct with dynamic type checking.
