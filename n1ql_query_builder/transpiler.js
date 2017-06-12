@@ -9,8 +9,10 @@ var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-// TODO:    Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
+// TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
+// TODO : Variables created in the iterator must be made available outside its scope.
+// TODO : Possible bug - calling res.iter() inside res.iter() itself might cause an issue when stopIter.
 function get_ast(code) {
     // A utility class for handling nodes of an AST.
     function NodeUtils() {
