@@ -99,6 +99,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   // Prepare data for query execution.
   IterQueryHandler iter_handler;
   iter_handler.callback = func;
+  iter_handler.return_value = v8::String::NewFromUtf8(isolate, "");
   QueryHandler q_handler;
   q_handler.obj_hash = obj_hash;
   q_handler.query = *query_string;

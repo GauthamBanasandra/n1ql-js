@@ -141,10 +141,10 @@ int main(int argc, char *argv[]) {
     ConnectionPool conn_pool(std::stoi(iter_depth), 15, conn_str);
     n1ql_handle = new N1QL(conn_pool);
 
-    std::cout << "iter_depth:\t" << iter_depth << std::endl;
-
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
+//    std::cout << src << std::endl;
+    
     // Create a string containing the JavaScript source code.
     Local<String> source =
         String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal)
