@@ -84,6 +84,27 @@ function get_ast(code) {
             var insertIndex = parentBody.indexOf(insAfterNode) + 1;
             parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
         }
+
+        // Build an ast node for N1QL function call from the query.
+        this.getQueryAst = function (query) {
+            // Identifier regex.
+            var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
+
+            // Replace the :<var> with proper substitution.
+            query = query.replace(re, '" + $1 + "');
+            query = 'new N1qlQuery("' + query + '");';
+
+            return esprima.parse(query).body[0].expression;
+        }
+
+        // Checks if the global scope contains only function declarations.
+        this.checkGlobals = function (ast) {
+            for (var node of ast.body) {
+                if (!/FunctionDeclaration/.test(node.type)) {
+                    throw 'Only function declaration are allowed in global scope';
+                }
+            }
+        }
     }
 
     // A general purpose stack.
@@ -758,7 +779,7 @@ function get_ast(code) {
         }
     }
 
-    function Iter(forOfNode, stackHelper) {
+    function Iter(forOfNode) {
         var _this = this;
         var breakMod = new LoopModifier(LoopModifier.CONST.BREAK);
         var continueMod = new LoopModifier(LoopModifier.CONST.CONTINUE);
@@ -817,12 +838,13 @@ function get_ast(code) {
         }
     }
 
+    // Returns if-else AST having iterator in consequent and for-of in alternate (dynamic type checking).
     function IterCompatible(forOfNode) {
         var stackHelper = new StackHelper(globalAncestorStack);
 
         // Returns an iterator construct for a given for-of loop ast.
         this.getIterConsequentAst = function () {
-            var iterator = new Iter(forOfNode, stackHelper);
+            var iterator = new Iter(forOfNode);
 
             // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
             var iterProp = 'x';
@@ -967,7 +989,7 @@ function get_ast(code) {
 
         // Returns AST for 'else' block.
         this.getIterAlternateAst = function () {
-            var iterator = new Iter(forOfNode, stackHelper);
+            var iterator = new Iter(forOfNode);
             iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
                 var lookup, stopIterAst, arg, returnStmtAst, stopNode = null;
 
@@ -1181,18 +1203,6 @@ function get_ast(code) {
         };
     }
 
-    // Build an ast node for N1QL function call from the query.
-    function get_query_ast(query) {
-        // Identifier regex.
-        var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
-
-        // Replace the :<var> with proper substitution.
-        query = query.replace(re, '" + $1 + "');
-        query = 'new N1qlQuery("' + query + '");';
-
-        return esprima.parse(query).body[0].expression;
-    }
-
     var nodeUtils = new NodeUtils();
     var globalAncestorStack = new AncestorStack();
 
@@ -1201,6 +1211,8 @@ function get_ast(code) {
         attachComment: true,
         sourceType: 'script'
     });
+
+    nodeUtils.checkGlobals(ast);
 
     estraverse.traverse(ast, {
         enter: function (node, parent) {
@@ -1234,7 +1246,7 @@ function get_ast(code) {
         leave: function (node) {
             // Perform variable substitution in query constructor.
             if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-                var queryAst = get_query_ast(node.arguments[0].quasis[0].value.raw);
+                var queryAst = nodeUtils.getQueryAst(node.arguments[0].quasis[0].value.raw);
                 nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst));
             }
 
