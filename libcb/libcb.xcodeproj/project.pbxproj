@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC1BEB991EDD1ADD00329D43 /* duplicate_rows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */; };
+		AC1059EE1EEE94C60091A805 /* get_set.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1059ED1EEE94C60091A805 /* get_set.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +26,8 @@
 		AC101F121ECC00840054EE98 /* nested_iter1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter1.cpp; sourceTree = "<group>"; };
 		AC101F141ECC198F0054EE98 /* nested_iter2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter2.cpp; sourceTree = "<group>"; };
 		AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter3.cpp; sourceTree = "<group>"; };
+		AC1059ED1EEE94C60091A805 /* get_set.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = get_set.cpp; sourceTree = "<group>"; };
 		AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = duplicate_rows.cpp; sourceTree = "<group>"; };
-		ACA288951E711EF000275D54 /* key_value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = key_value.cpp; sourceTree = "<group>"; };
 		ACA288961E711EF000275D54 /* n1ql_query.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_query.cpp; sourceTree = "<group>"; };
 		ACA288971E711EF000275D54 /* stop_iter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stop_iter.cpp; sourceTree = "<group>"; };
 		ACDE05A51E710F500067C820 /* libcb */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = libcb; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -45,6 +45,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AC1059EA1EEE924F0091A805 /* nested_iter */ = {
+			isa = PBXGroup;
+			children = (
+				AC101F121ECC00840054EE98 /* nested_iter1.cpp */,
+				AC101F141ECC198F0054EE98 /* nested_iter2.cpp */,
+				AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */,
+			);
+			name = nested_iter;
+			sourceTree = "<group>";
+		};
+		AC1059EB1EEE92750091A805 /* n1ql */ = {
+			isa = PBXGroup;
+			children = (
+				ACA288961E711EF000275D54 /* n1ql_query.cpp */,
+				ACA288971E711EF000275D54 /* stop_iter.cpp */,
+				AC1059EA1EEE924F0091A805 /* nested_iter */,
+				AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */,
+			);
+			name = n1ql;
+			sourceTree = "<group>";
+		};
+		AC1059EC1EEE92870091A805 /* kv */ = {
+			isa = PBXGroup;
+			children = (
+				AC1059ED1EEE94C60091A805 /* get_set.cpp */,
+			);
+			name = kv;
+			sourceTree = "<group>";
+		};
 		ACDE059C1E710F500067C820 = {
 			isa = PBXGroup;
 			children = (
@@ -64,14 +93,9 @@
 		ACDE05A71E710F500067C820 /* libcb */ = {
 			isa = PBXGroup;
 			children = (
-				ACA288951E711EF000275D54 /* key_value.cpp */,
-				ACA288961E711EF000275D54 /* n1ql_query.cpp */,
-				ACA288971E711EF000275D54 /* stop_iter.cpp */,
+				AC1059EC1EEE92870091A805 /* kv */,
+				AC1059EB1EEE92750091A805 /* n1ql */,
 				ACDE05A81E710F500067C820 /* main.cpp */,
-				AC101F121ECC00840054EE98 /* nested_iter1.cpp */,
-				AC101F141ECC198F0054EE98 /* nested_iter2.cpp */,
-				AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */,
-				AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */,
 			);
 			path = libcb;
 			sourceTree = "<group>";
@@ -133,7 +157,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC1BEB991EDD1ADD00329D43 /* duplicate_rows.cpp in Sources */,
+				AC1059EE1EEE94C60091A805 /* get_set.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

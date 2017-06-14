@@ -5,15 +5,46 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
-var transpiledCode = escodegen.generate(get_ast(code), {comment: true});
+var transpiledCode = escodegen.generate(getAst(code), {
+    comment: true
+});
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
+
+function jsFormat(code) {
+    return escodegen.generate(esprima.parse(code));
+}
+
+function getMaxIterDepth(code) {
+    var ast = esprima.parse(code, {sourceType: 'script'}),
+        maxDepth = 0,
+        currDepth = 0;
+    estraverse.traverse(ast, {
+        enter: function (node) {
+            if (/ForOfStatement/.test(node.type)) {
+                ++currDepth;
+                if (currDepth > maxDepth) {
+                    maxDepth = currDepth;
+                }
+            }
+        },
+        leave: function (node) {
+            if (/ForOfStatement/.test(node.type)) {
+                --currDepth;
+            }
+        }
+    });
+
+    console.assert(currDepth == 0, 'curr_depth must be 0 after parsing completely');
+    return maxDepth;
+}
 
 // TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Possible bug - calling res.iter() inside res.iter() itself might cause an issue when stopIter.
-function get_ast(code) {
+// TODO : Need to call execQuery() if the query isn't a select query.
+function getAst(code) {
     // A utility class for handling nodes of an AST.
     function NodeUtils() {
         // Performs deep copy of the given node.
@@ -403,17 +434,27 @@ function get_ast(code) {
         function search(_this, comparator, searchAll) {
             var tempStack = new Stack(),
                 stopNodes = [],
-                returnArgs = {targetFound: false};
+                returnArgs = {
+                    targetFound: false
+                };
 
             while (_this.ancestorStack.getSize() > 0) {
                 var node = _this.ancestorStack.pop();
                 tempStack.push(node);
 
                 if (comparator.targetComparator(nodeUtils.deepCopy(node))) {
-                    returnArgs = {targetFound: true, stopNode: nodeUtils.deepCopy(node), searchInterrupted: false};
+                    returnArgs = {
+                        targetFound: true,
+                        stopNode: nodeUtils.deepCopy(node),
+                        searchInterrupted: false
+                    };
                     break;
                 } else if (comparator.stopComparator(nodeUtils.deepCopy(node))) {
-                    returnArgs = {targetFound: false, stopNode: nodeUtils.deepCopy(node), searchInterrupted: true};
+                    returnArgs = {
+                        targetFound: false,
+                        stopNode: nodeUtils.deepCopy(node),
+                        searchInterrupted: true
+                    };
                     if (searchAll) {
                         stopNodes.push(returnArgs.stopNode);
                     } else {
@@ -434,7 +475,11 @@ function get_ast(code) {
             }
 
             if (searchAll && stopNodes.length > 0) {
-                returnArgs = {targetFound: false, stopNodes: stopNodes, searchInterrupted: true};
+                returnArgs = {
+                    targetFound: false,
+                    stopNodes: stopNodes,
+                    searchInterrupted: true
+                };
             }
 
             return returnArgs;
@@ -687,7 +732,10 @@ function get_ast(code) {
                             console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                            arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: postIter.args});
+                            arg = new Arg({
+                                code: LoopModifier.CONST.LABELED_BREAK,
+                                args: postIter.args
+                            });
                             returnStmtAst = new ReturnAst(stopIterAst);
                             stopIterAst.arguments.push(arg.getAst());
 
@@ -724,7 +772,10 @@ function get_ast(code) {
                                 returnStmtAst = new ReturnAst(null);
                             } else {
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: postIter.args});
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.LABELED_CONTINUE,
+                                    args: postIter.args
+                                });
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
                             }
@@ -740,8 +791,8 @@ function get_ast(code) {
                         // a for-of node.
                         lookup = stackHelper.searchStack({
                             targetComparator: function (item) {
-                                return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
-                                    && (item.id ? item.id.name : null) === postIter.targetFunction;
+                                return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type)) &&
+                                    (item.id ? item.id.name : null) === postIter.targetFunction;
                             },
                             stopComparator: function (item) {
                                 return /ForOfStatement/.test(item.type);
@@ -870,7 +921,10 @@ function get_ast(code) {
                             break;
                         case LoopModifier.CONST.LABELED_BREAK:
                         case LoopModifier.CONST.LABELED_CONTINUE:
-                            arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                            arg = new Arg({
+                                code: node.metaData.code,
+                                args: node.metaData.args
+                            });
                             break;
                         default:
                             throw 'Unhandled case: ' + node.metaData.code;
@@ -895,12 +949,17 @@ function get_ast(code) {
                         // Labeled break statement.
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                            arg = new Arg({
+                                code: LoopModifier.CONST.LABELED_BREAK,
+                                args: node.label.name
+                            });
                             postIter.push(arg.toString());
                             // Unlabeled break statement.
                         } else if (!node.label && breakMod.isReplaceReq()) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
-                            arg = new Arg({code: LoopModifier.CONST.BREAK});
+                            arg = new Arg({
+                                code: LoopModifier.CONST.BREAK
+                            });
                         }
 
                         if (stopIterAst && arg) {
@@ -917,7 +976,10 @@ function get_ast(code) {
                                 // If the target of labeled continue is its immediate parent, then just 'return'.
                                 returnStmtAst = new ReturnAst(null);
                             } else {
-                                arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.LABELED_CONTINUE,
+                                    args: node.label.name
+                                });
                                 stopIterAst = new StopIterAst(nodeCopy.right.name);
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
@@ -1003,8 +1065,8 @@ function get_ast(code) {
                                 case LoopModifier.CONST.RETURN:
                                     // For a 'return' statement, the target is to find the function that the 'return'
                                     // statement was associated with, before transpilation.
-                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
-                                        && item.id.name === node.metaData.targetFunction;
+                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type)) &&
+                                        item.id.name === node.metaData.targetFunction;
                                 case LoopModifier.CONST.LABELED_CONTINUE:
                                 case LoopModifier.CONST.LABELED_BREAK:
                                     return /LabeledStatement/.test(item.type) && item.label.name === node.metaData.args;
@@ -1039,7 +1101,10 @@ function get_ast(code) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.LABELED_BREAK:
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                                arg = new Arg({
+                                    code: node.metaData.code,
+                                    args: node.metaData.args
+                                });
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
                                 break;
@@ -1048,7 +1113,10 @@ function get_ast(code) {
                                     returnStmtAst = new ReturnAst(null);
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg({code: node.metaData.code, args: node.metaData.args});
+                                    arg = new Arg({
+                                        code: node.metaData.code,
+                                        args: node.metaData.args
+                                    });
                                     returnStmtAst = new ReturnAst(stopIterAst);
                                     stopIterAst.arguments.push(arg.getAst());
                                 }
@@ -1091,7 +1159,10 @@ function get_ast(code) {
                                 console.assert(/ForOfStatement/.test(lookup.stopNode.type), 'must be a for-of node');
 
                                 stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                arg = new Arg({code: LoopModifier.CONST.LABELED_BREAK, args: node.label.name});
+                                arg = new Arg({
+                                    code: LoopModifier.CONST.LABELED_BREAK,
+                                    args: node.label.name
+                                });
                                 returnStmtAst = new ReturnAst(stopIterAst);
                                 stopIterAst.arguments.push(arg.getAst());
 
@@ -1121,7 +1192,10 @@ function get_ast(code) {
                                     returnStmtAst = new ReturnAst(null);
                                 } else {
                                     stopIterAst = new StopIterAst(lookup.stopNode.right.name);
-                                    arg = new Arg({code: LoopModifier.CONST.LABELED_CONTINUE, args: node.label.name});
+                                    arg = new Arg({
+                                        code: LoopModifier.CONST.LABELED_CONTINUE,
+                                        args: node.label.name
+                                    });
                                     returnStmtAst = new ReturnAst(stopIterAst);
                                     stopIterAst.arguments.push(arg.getAst());
                                 }
@@ -1139,8 +1213,8 @@ function get_ast(code) {
                         if (node.targetFunction) {
                             lookup = stackHelper.searchStack({
                                 targetComparator: function (item) {
-                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type))
-                                        && item.id.name === node.targetFunction;
+                                    return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type)) &&
+                                        item.id.name === node.targetFunction;
                                 },
                                 stopComparator: function (item) {
                                     return /ForOfStatement/.test(item.type);

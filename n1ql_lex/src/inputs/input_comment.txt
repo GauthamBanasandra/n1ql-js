@@ -1,15 +1,7 @@
-function OnUpdate(doc, meta)
-{
-    var bucket='default';
+function OnUpdate(doc, meta) {
+  log("doc: ", doc, " meta: ", meta);
 
+}
 
-
-    var res=REVOKE * FROM `beer-sample`:bucket;
-
-    alter1:{
-        for(var row of res)
-        {
-            log(row);
-        }
-    }
+function OnDelete(meta) {
 }

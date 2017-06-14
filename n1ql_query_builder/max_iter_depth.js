@@ -7,28 +7,28 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
-console.log(get_max_iter_depth(code));
+console.log(getMaxIterDepth(code));
 
-function get_max_iter_depth(code) {
+function getMaxIterDepth(code) {
     var ast = esprima.parse(code, {sourceType: 'script'}),
-        max_depth = 0,
-        curr_depth = 0;
+        maxDepth = 0,
+        currDepth = 0;
     estraverse.traverse(ast, {
         enter: function (node) {
             if (/ForOfStatement/.test(node.type)) {
-                ++curr_depth;
-                if (curr_depth > max_depth) {
-                    max_depth = curr_depth;
+                ++currDepth;
+                if (currDepth > maxDepth) {
+                    maxDepth = currDepth;
                 }
             }
         },
         leave: function (node) {
             if (/ForOfStatement/.test(node.type)) {
-                --curr_depth;
+                --currDepth;
             }
         }
     });
 
-    console.assert(curr_depth == 0, 'curr_depth must be 0 after parsing completely');
-    return max_depth;
+    console.assert(currDepth == 0, 'curr_depth must be 0 after parsing completely');
+    return maxDepth;
 }
