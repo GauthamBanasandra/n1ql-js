@@ -23,7 +23,7 @@ ConnectionPool::ConnectionPool(int init_size, int inst_incr, int capacity,
                                std::string cb_source_bucket,
                                std::string rbac_user, std::string rbac_pass)
     : capacity(capacity), inst_incr(inst_incr), inst_count(0),
-      rbac_pass(rbac_pass) {
+      rbac_pass(rbac_pass), init_size(init_size) {
   if (inst_incr > capacity || init_size > capacity) {
     throw "size must be less than pool capacity";
   }
@@ -31,8 +31,6 @@ ConnectionPool::ConnectionPool(int init_size, int inst_incr, int capacity,
   conn_str = "couchbase://" + cb_kv_endpoint + "/" + cb_source_bucket +
              "?username=" + rbac_user +
              "&select_bucket=true&detailed_errcodes=1";
-
-  AddResource(init_size);
 }
 
 void ConnectionPool::AddResource(int size) {
@@ -74,6 +72,8 @@ lcb_t ConnectionPool::GetResource() {
   if (instances.empty()) {
     if (inst_count >= capacity) {
       throw "Maximum pool capacity reached";
+    } else if (inst_count == 0) {
+      AddResource(init_size);
     } else {
       int incr = inst_count + inst_incr < capacity
                      ? inst_incr
@@ -294,8 +294,11 @@ void HashedStack::Pop() {
 }
 
 ConnectionPool::~ConnectionPool() {
-  while (instances.empty()) {
-    lcb_destroy(instances.front());
+  while (!instances.empty()) {
+    lcb_t instance = instances.front();
+    if (instance != nullptr) {
+      lcb_destroy(instance);
+    }
     instances.pop();
   }
 }

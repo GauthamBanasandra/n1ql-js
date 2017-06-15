@@ -46,6 +46,7 @@ private:
   const int capacity;
   int inst_count;
   int inst_incr;
+  int init_size;
   std::string conn_str;
   std::string rbac_pass;
   std::queue<lcb_t> instances;
