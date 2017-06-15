@@ -40,7 +40,7 @@ std::string Transpile(std::string js_src, std::string user_code, int mode) {
         function_name = v8::String::NewFromUtf8(isolate, "transpile");
         break;
       case EXEC_ITER_DEPTH:
-        function_name = v8::String::NewFromUtf8(isolate, "get_max_iter_depth");
+        function_name = v8::String::NewFromUtf8(isolate, "getMaxIterDepth");
         break;
       default:
         break;

@@ -18,15 +18,21 @@ using json = nlohmann::json;
 
 extern N1QL *n1ql_handle;
 
-ConnectionPool::ConnectionPool(int init_size, int capacity,
-                               std::string conn_str)
-    : capacity(capacity), inst_incr(init_size > 0 ? init_size : 1),
-      inst_count(0), conn_str(conn_str) {
-  if (inst_incr > capacity) {
-    throw "init_size must be less than pool capacity";
+ConnectionPool::ConnectionPool(int init_size, int inst_incr, int capacity,
+                               std::string cb_kv_endpoint,
+                               std::string cb_source_bucket,
+                               std::string rbac_user, std::string rbac_pass)
+    : capacity(capacity), inst_incr(inst_incr), inst_count(0),
+      rbac_pass(rbac_pass) {
+  if (inst_incr > capacity || init_size > capacity) {
+    throw "size must be less than pool capacity";
   }
 
-  AddResource(inst_incr);
+  conn_str = "couchbase://" + cb_kv_endpoint + "/" + cb_source_bucket +
+             "?username=" + rbac_user +
+             "&select_bucket=true&detailed_errcodes=1";
+
+  AddResource(init_size);
 }
 
 void ConnectionPool::AddResource(int size) {
@@ -37,7 +43,7 @@ void ConnectionPool::AddResource(int size) {
   options.version = 3;
   options.v.v3.connstr = conn_str.c_str();
   options.v.v3.type = LCB_TYPE_BUCKET;
-  options.v.v3.passwd = "asdasd";
+  options.v.v3.passwd = rbac_pass.c_str();
 
   for (int i = 0; i < size; ++i) {
     lcb_t instance;

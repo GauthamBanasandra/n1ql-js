@@ -26,8 +26,6 @@
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
 #define ESTRAVERSE                                                             \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
-#define ITER_DEPTH                                                             \
-  "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/iter_depth.js"
 
 using namespace v8;
 
@@ -127,24 +125,20 @@ int main(int argc, char *argv[]) {
     std::string src = ReadFile(SOURCE) + '\n';
     src += ReadFile(BUILTIN);
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
-    third_party_src += ReadFile(ITER_DEPTH) + '\n';
     third_party_src += ReadFile(ESCODEGEN) + '\n';
     third_party_src += ReadFile(ESTRAVERSE) + '\n';
     third_party_src += ReadFile(ESPRIMA);
 
     std::string iter_depth = Transpile(third_party_src, src, EXEC_ITER_DEPTH);
 
-    std::string conn_str = "couchbase://127.0.0.1:12000/"
-                           "default?username=eventing&select_bucket=true&"
-                           "detailed_errcodes=1";
-    
-    ConnectionPool conn_pool(std::stoi(iter_depth), 15, conn_str);
+    ConnectionPool conn_pool(std::stoi(iter_depth), 3, 15, "127.0.0.1:12000",
+                             "default", "eventing", "asdasd");
     n1ql_handle = new N1QL(conn_pool);
 
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
-    std::cout << src << std::endl;
-    
+    //    std::cout << src << std::endl;
+
     // Create a string containing the JavaScript source code.
     Local<String> source =
         String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal)

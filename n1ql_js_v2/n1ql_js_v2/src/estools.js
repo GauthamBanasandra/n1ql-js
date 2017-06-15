@@ -12566,5 +12566,5 @@ var esprima = {};
 });
 
 function transpile(code) {
-    return escodegen.generate(get_ast(code, esprima, estraverse, this.escodegen), { comment: true });
+    return escodegen.generate(getAst(code, esprima, estraverse, this.escodegen), { comment: true });
 }
