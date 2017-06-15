@@ -9,11 +9,30 @@
 /* Begin PBXBuildFile section */
 		AC1A6B581ECEC8B400FFAE1F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1A6B571ECEC8B400FFAE1F /* main.cpp */; };
 		AC1A6B641ECEE71400FFAE1F /* n1ql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */; };
+		AC51C48A1EF25E1800BF75D4 /* bucket.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C4661EF25D1600BF75D4 /* bucket.cc */; };
+		AC51C48B1EF25E1800BF75D4 /* client.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C4681EF25D1600BF75D4 /* client.cc */; };
+		AC51C48C1EF25E1800BF75D4 /* commands.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C4691EF25D1600BF75D4 /* commands.cc */; };
+		AC51C48D1EF25E1800BF75D4 /* log.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C46B1EF25D1600BF75D4 /* log.cc */; };
+		AC51C48E1EF25E1800BF75D4 /* message.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C46C1EF25D1600BF75D4 /* message.cc */; };
+		AC51C48F1EF25E1800BF75D4 /* n1ql.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C46D1EF25D1600BF75D4 /* n1ql.cc */; };
+		AC51C4901EF25E1800BF75D4 /* parse_deployment.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C46E1EF25D1600BF75D4 /* parse_deployment.cc */; };
+		AC51C4911EF25E1800BF75D4 /* transpiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C46F1EF25D1600BF75D4 /* transpiler.cc */; };
+		AC51C4921EF25E1800BF75D4 /* v8worker.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C4711EF25D1600BF75D4 /* v8worker.cc */; };
+		AC51C4931EF25E3800BF75D4 /* assert.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC51C4651EF25D1600BF75D4 /* assert.cc */; };
 		AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		AC1A6B521ECEC8B400FFAE1F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		AC51C4801EF25DE600BF75D4 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -44,7 +63,6 @@
 		AC51C4671EF25D1600BF75D4 /* builtin.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = builtin.js; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/builtin.js; sourceTree = "<group>"; };
 		AC51C4681EF25D1600BF75D4 /* client.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = client.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/client.cc; sourceTree = "<group>"; };
 		AC51C4691EF25D1600BF75D4 /* commands.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commands.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/commands.cc; sourceTree = "<group>"; };
-		AC51C46A1EF25D1600BF75D4 /* jsify.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsify.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/jsify.cc; sourceTree = "<group>"; };
 		AC51C46B1EF25D1600BF75D4 /* log.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = log.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/log.cc; sourceTree = "<group>"; };
 		AC51C46C1EF25D1600BF75D4 /* message.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = message.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/message.cc; sourceTree = "<group>"; };
 		AC51C46D1EF25D1600BF75D4 /* n1ql.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = n1ql.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/n1ql.cc; sourceTree = "<group>"; };
@@ -53,6 +71,7 @@
 		AC51C4701EF25D1600BF75D4 /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = transpiler.js; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/transpiler.js; sourceTree = "<group>"; };
 		AC51C4711EF25D1600BF75D4 /* v8worker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = v8worker.cc; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/v8worker.cc; sourceTree = "<group>"; };
 		AC51C4721EF25D1600BF75D4 /* jsify.lex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = jsify.lex; path = ../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/jsify.lex; sourceTree = "<group>"; };
+		AC51C4821EF25DE600BF75D4 /* v8_consumer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v8_consumer; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC67C1791ED56EE600DC2A5E /* transpiler.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
 		AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpiler.cpp; sourceTree = "<group>"; };
 		AC67C17D1ED5710600DC2A5E /* escodegen.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = escodegen.js; sourceTree = "<group>"; };
@@ -62,6 +81,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		AC1A6B511ECEC8B400FFAE1F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC51C47F1EF25DE600BF75D4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -85,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				AC1A6B541ECEC8B400FFAE1F /* n1ql_js_v3 */,
+				AC51C4821EF25DE600BF75D4 /* v8_consumer */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,7 +146,6 @@
 				AC51C4671EF25D1600BF75D4 /* builtin.js */,
 				AC51C4681EF25D1600BF75D4 /* client.cc */,
 				AC51C4691EF25D1600BF75D4 /* commands.cc */,
-				AC51C46A1EF25D1600BF75D4 /* jsify.cc */,
 				AC51C46B1EF25D1600BF75D4 /* log.cc */,
 				AC51C46C1EF25D1600BF75D4 /* message.cc */,
 				AC51C46D1EF25D1600BF75D4 /* n1ql.cc */,
@@ -171,6 +197,23 @@
 			productReference = AC1A6B541ECEC8B400FFAE1F /* n1ql_js_v3 */;
 			productType = "com.apple.product-type.tool";
 		};
+		AC51C4811EF25DE600BF75D4 /* v8_consumer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC51C4861EF25DE600BF75D4 /* Build configuration list for PBXNativeTarget "v8_consumer" */;
+			buildPhases = (
+				AC51C47E1EF25DE600BF75D4 /* Sources */,
+				AC51C47F1EF25DE600BF75D4 /* Frameworks */,
+				AC51C4801EF25DE600BF75D4 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = v8_consumer;
+			productName = v8_consumer;
+			productReference = AC51C4821EF25DE600BF75D4 /* v8_consumer */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -182,6 +225,10 @@
 				TargetAttributes = {
 					AC1A6B531ECEC8B400FFAE1F = {
 						CreatedOnToolsVersion = 8.3.2;
+						ProvisioningStyle = Automatic;
+					};
+					AC51C4811EF25DE600BF75D4 = {
+						CreatedOnToolsVersion = 8.3.3;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -199,6 +246,7 @@
 			projectRoot = "";
 			targets = (
 				AC1A6B531ECEC8B400FFAE1F /* n1ql_js_v3 */,
+				AC51C4811EF25DE600BF75D4 /* v8_consumer */,
 			);
 		};
 /* End PBXProject section */
@@ -227,6 +275,23 @@
 				AC1A6B581ECEC8B400FFAE1F /* main.cpp in Sources */,
 				AC1A6B641ECEE71400FFAE1F /* n1ql.cpp in Sources */,
 				AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC51C47E1EF25DE600BF75D4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC51C48A1EF25E1800BF75D4 /* bucket.cc in Sources */,
+				AC51C48B1EF25E1800BF75D4 /* client.cc in Sources */,
+				AC51C48C1EF25E1800BF75D4 /* commands.cc in Sources */,
+				AC51C4931EF25E3800BF75D4 /* assert.cc in Sources */,
+				AC51C48D1EF25E1800BF75D4 /* log.cc in Sources */,
+				AC51C48E1EF25E1800BF75D4 /* message.cc in Sources */,
+				AC51C48F1EF25E1800BF75D4 /* n1ql.cc in Sources */,
+				AC51C4901EF25E1800BF75D4 /* parse_deployment.cc in Sources */,
+				AC51C4911EF25E1800BF75D4 /* transpiler.cc in Sources */,
+				AC51C4921EF25E1800BF75D4 /* v8worker.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,6 +425,36 @@
 			};
 			name = Release;
 		};
+		AC51C4871EF25DE600BF75D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include/,
+					/Users/gautham/.cbdepscache/,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib/,
+					/Users/gautham/.cbdepscache/lib/,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AC51C4881EF25DE600BF75D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include/,
+					/Users/gautham/.cbdepscache/,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib/,
+					/Users/gautham/.cbdepscache/lib/,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -380,6 +475,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		AC51C4861EF25DE600BF75D4 /* Build configuration list for PBXNativeTarget "v8_consumer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC51C4871EF25DE600BF75D4 /* Debug */,
+				AC51C4881EF25DE600BF75D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

@@ -12,7 +12,8 @@ console.log(getMaxIterDepth(code));
 function getMaxIterDepth(code) {
     var ast = esprima.parse(code, {sourceType: 'script'}),
         maxDepth = 0,
-        currDepth = 0;
+        currDepth = 0,
+        containsN1ql = false;
     estraverse.traverse(ast, {
         enter: function (node) {
             if (/ForOfStatement/.test(node.type)) {
@@ -20,6 +21,10 @@ function getMaxIterDepth(code) {
                 if (currDepth > maxDepth) {
                     maxDepth = currDepth;
                 }
+            }
+
+            if (/NewExpression/.test(node.type) && node.callee.name === 'N1qlQuery') {
+                containsN1ql = true;
             }
         },
         leave: function (node) {
@@ -30,5 +35,5 @@ function getMaxIterDepth(code) {
     });
 
     console.assert(currDepth == 0, 'curr_depth must be 0 after parsing completely');
-    return maxDepth;
+    return containsN1ql > 0 ? maxDepth : 0;
 }
