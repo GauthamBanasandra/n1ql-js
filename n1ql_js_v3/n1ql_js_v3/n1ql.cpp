@@ -77,7 +77,7 @@ lcb_t ConnectionPool::GetResource() {
     } else {
       int incr = inst_count + inst_incr < capacity
                      ? inst_incr
-                     : (inst_count + inst_incr) % capacity;
+                     : (capacity - inst_count);
       AddResource(incr);
     }
   }
@@ -87,109 +87,29 @@ lcb_t ConnectionPool::GetResource() {
   return instance;
 }
 
-void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = args.GetIsolate();
-  v8::HandleScope handleScope(isolate);
-
-  // Hash of N1QL instance in JavaScript.
-  int obj_hash = args.This()->GetIdentityHash();
-
-  // Query to run.
-  v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
-  v8::Local<v8::Value> query_value = args.This()->Get(query_name);
-  v8::String::Utf8Value query_string(query_value);
-
-  // Callback function to execute.
-  v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
-
-  // Prepare data for query execution.
-  IterQueryHandler iter_handler;
-  iter_handler.callback = func;
-  iter_handler.return_value = v8::String::NewFromUtf8(isolate, "");
-  QueryHandler q_handler;
-  q_handler.obj_hash = obj_hash;
-  q_handler.query = *query_string;
-  q_handler.isolate = args.GetIsolate();
-  q_handler.iter_handler = &iter_handler;
-
-  n1ql_handle->ExecQuery<IterQueryHandler>(q_handler);
-
-  // Add query metadata.
-  v8::Local<v8::Object> _this = args.This();
-  AddQueryMetadata(iter_handler, isolate, _this);
-  args.This() = _this;
-
-  args.GetReturnValue().Set(iter_handler.return_value);
+void ConnectionPool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
+  std::cout << "error: " << err << " " << lcb_strerror(instance, err) << '\n';
 }
 
-void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = args.GetIsolate();
-  v8::EscapableHandleScope handle_scope(isolate);
-  v8::Local<v8::Value> arg = args[0];
-
-  int obj_hash = args.This()->GetIdentityHash();
-
-  // Cancel the query corresponding to obj_hash.
-  QueryHandler *q_handler = n1ql_handle->qhandler_stack.Get(obj_hash);
-  lcb_t instance = q_handler->instance;
-  lcb_N1QLHANDLE *handle = (lcb_N1QLHANDLE *)lcb_get_cookie(instance);
-  lcb_n1ql_cancel(instance, *handle);
-
-  // Bubble up the message sent from JavaScript.
-  q_handler->iter_handler->return_value = handle_scope.Escape(arg);
-}
-
-void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = v8::Isolate::GetCurrent();
-  v8::HandleScope handleScope(isolate);
-
-  // Hash of N1QL instance in JavaScript.
-  int obj_hash = args.This()->GetIdentityHash();
-
-  // Query to run.
-  v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
-  v8::Local<v8::Value> query_value = args.This()->Get(query_name);
-  v8::String::Utf8Value query_string(query_value);
-
-  // Prepare data for query execution.
-  BlockingQueryHandler block_handler;
-  QueryHandler q_handler;
-  q_handler.obj_hash = obj_hash;
-  q_handler.query = *query_string;
-  q_handler.isolate = args.GetIsolate();
-  q_handler.block_handler = &block_handler;
-
-  n1ql_handle->ExecQuery<BlockingQueryHandler>(q_handler);
-
-  std::vector<std::string> &rows = block_handler.rows;
-  v8::Local<v8::Array> result_array =
-      v8::Array::New(isolate, static_cast<int>(rows.size()));
-
-  // Populate the result array with the rows of the result.
-  for (int i = 0; i < rows.size(); ++i) {
-    v8::Local<v8::Value> json_row =
-        v8::JSON::Parse(v8::String::NewFromUtf8(isolate, rows[i].c_str()));
-    result_array->Set(static_cast<uint32_t>(i), json_row);
+ConnectionPool::~ConnectionPool() {
+  while (!instances.empty()) {
+    lcb_t instance = instances.front();
+    if (instance != nullptr) {
+      lcb_destroy(instance);
+    }
+    instances.pop();
   }
-
-  AddQueryMetadata(block_handler, isolate, result_array);
-
-  args.GetReturnValue().Set(result_array);
 }
 
-template <typename HandlerType, typename ResultType>
-void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
-                      ResultType &result) {
-  if (handler.metadata.length() > 0) {
-    // Query metadata.
-    v8::Local<v8::String> meta_name =
-        v8::String::NewFromUtf8(isolate, "metadata");
-    v8::Local<v8::String> meta_str =
-        v8::String::NewFromUtf8(isolate, handler.metadata.c_str());
-    v8::Local<v8::Value> meta_value = v8::JSON::Parse(meta_str);
+void HashedStack::Push(QueryHandler &q_handler) {
+  qstack.push(q_handler);
+  qmap[q_handler.obj_hash] = &q_handler;
+}
 
-    result->Set(meta_name, meta_value);
-  }
+void HashedStack::Pop() {
+  auto it = qmap.find(qstack.top().obj_hash);
+  qmap.erase(it);
+  qstack.pop();
 }
 
 template <>
@@ -278,27 +198,107 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   inst_pool.Restore(instance);
 }
 
-void ConnectionPool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
-  std::cout << "error: " << err << " " << lcb_strerror(instance, err) << '\n';
+void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::HandleScope handleScope(isolate);
+  
+  // Hash of N1QL instance in JavaScript.
+  int obj_hash = args.This()->GetIdentityHash();
+  
+  // Query to run.
+  v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
+  v8::Local<v8::Value> query_value = args.This()->Get(query_name);
+  v8::String::Utf8Value query_string(query_value);
+  
+  // Callback function to execute.
+  v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
+  
+  // Prepare data for query execution.
+  IterQueryHandler iter_handler;
+  iter_handler.callback = func;
+  iter_handler.return_value = v8::String::NewFromUtf8(isolate, "");
+  QueryHandler q_handler;
+  q_handler.obj_hash = obj_hash;
+  q_handler.query = *query_string;
+  q_handler.isolate = args.GetIsolate();
+  q_handler.iter_handler = &iter_handler;
+  
+  n1ql_handle->ExecQuery<IterQueryHandler>(q_handler);
+  
+  // Add query metadata.
+  v8::Local<v8::Object> _this = args.This();
+  AddQueryMetadata(iter_handler, isolate, _this);
+  args.This() = _this;
+  
+  args.GetReturnValue().Set(iter_handler.return_value);
 }
 
-void HashedStack::Push(QueryHandler &q_handler) {
-  qstack.push(q_handler);
-  qmap[q_handler.obj_hash] = &q_handler;
+void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::EscapableHandleScope handle_scope(isolate);
+  v8::Local<v8::Value> arg = args[0];
+  
+  int obj_hash = args.This()->GetIdentityHash();
+  
+  // Cancel the query corresponding to obj_hash.
+  QueryHandler *q_handler = n1ql_handle->qhandler_stack.Get(obj_hash);
+  lcb_t instance = q_handler->instance;
+  lcb_N1QLHANDLE *handle = (lcb_N1QLHANDLE *)lcb_get_cookie(instance);
+  lcb_n1ql_cancel(instance, *handle);
+  
+  // Bubble up the message sent from JavaScript.
+  q_handler->iter_handler->return_value = handle_scope.Escape(arg);
 }
 
-void HashedStack::Pop() {
-  auto it = qmap.find(qstack.top().obj_hash);
-  qmap.erase(it);
-  qstack.pop();
+void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope handleScope(isolate);
+  
+  // Hash of N1QL instance in JavaScript.
+  int obj_hash = args.This()->GetIdentityHash();
+  
+  // Query to run.
+  v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
+  v8::Local<v8::Value> query_value = args.This()->Get(query_name);
+  v8::String::Utf8Value query_string(query_value);
+  
+  // Prepare data for query execution.
+  BlockingQueryHandler block_handler;
+  QueryHandler q_handler;
+  q_handler.obj_hash = obj_hash;
+  q_handler.query = *query_string;
+  q_handler.isolate = args.GetIsolate();
+  q_handler.block_handler = &block_handler;
+  
+  n1ql_handle->ExecQuery<BlockingQueryHandler>(q_handler);
+  
+  std::vector<std::string> &rows = block_handler.rows;
+  v8::Local<v8::Array> result_array =
+  v8::Array::New(isolate, static_cast<int>(rows.size()));
+  
+  // Populate the result array with the rows of the result.
+  for (int i = 0; i < rows.size(); ++i) {
+    v8::Local<v8::Value> json_row =
+    v8::JSON::Parse(v8::String::NewFromUtf8(isolate, rows[i].c_str()));
+    result_array->Set(static_cast<uint32_t>(i), json_row);
+  }
+  
+  AddQueryMetadata(block_handler, isolate, result_array);
+  
+  args.GetReturnValue().Set(result_array);
 }
 
-ConnectionPool::~ConnectionPool() {
-  while (!instances.empty()) {
-    lcb_t instance = instances.front();
-    if (instance != nullptr) {
-      lcb_destroy(instance);
-    }
-    instances.pop();
+template <typename HandlerType, typename ResultType>
+void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
+                      ResultType &result) {
+  if (handler.metadata.length() > 0) {
+    // Query metadata.
+    v8::Local<v8::String> meta_name =
+    v8::String::NewFromUtf8(isolate, "metadata");
+    v8::Local<v8::String> meta_str =
+    v8::String::NewFromUtf8(isolate, handler.metadata.c_str());
+    v8::Local<v8::Value> meta_value = v8::JSON::Parse(meta_str);
+    
+    result->Set(meta_name, meta_value);
   }
 }
