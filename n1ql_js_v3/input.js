@@ -2,9 +2,10 @@ function query() {
     var count = 0;
     var bucket = '`beer-sample`';
     var res = new N1qlQuery(`SELECT * FROM :bucket LIMIT 10;`);
+  	var res1 = new N1qlQuery(`SELECT name FROM :bucket LIMIT 10;`);
 
-    for (var r3 of res) {
-        log('outer level: ' + r3['beer-sample'].name);
+    for (var r3 of res1) {
+        log('outer level: ' + r3.name);
         try {
             x: for (var r1 of res) {
                 log('level1: ' + r1['beer-sample'].name);
