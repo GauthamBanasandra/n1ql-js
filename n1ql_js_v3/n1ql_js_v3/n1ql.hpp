@@ -32,6 +32,7 @@ struct BlockingQueryHandler {
 
 struct QueryHandler {
   int obj_hash;
+  std::string index_hash;
   std::string query;
   lcb_t instance = NULL;
   v8::Isolate *isolate = nullptr;
@@ -67,14 +68,17 @@ public:
 // Each stack element is hashed, providing a two-way access.
 class HashedStack {
   std::stack<QueryHandler> qstack;
-  std::map<int, QueryHandler *> qmap;
-
+  std::map<std::string, QueryHandler *> qmap;
+	std::map<int, std::stack<std::string>> scope_map;
+  
 public:
   HashedStack() {}
   void Push(QueryHandler &q_handler);
   void Pop();
   QueryHandler Top() { return qstack.top(); }
-  QueryHandler *Get(int obj_hash) { return qmap[obj_hash]; }
+  QueryHandler *Get(std::string index_hash) { return qmap[index_hash]; }
+  QueryHandler *Get(int obj_hash) {return qmap[scope_map[obj_hash].top()];}
+  int Size() { return static_cast<int>(qstack.size()); }
   ~HashedStack() {}
 };
 
@@ -89,6 +93,7 @@ private:
 public:
   N1QL(ConnectionPool inst_pool) : inst_pool(inst_pool) {}
   HashedStack qhandler_stack;
+
   // Schedules operations for execution.
   template <typename> void ExecQuery(QueryHandler &q_handler);
   ~N1QL() {}
@@ -97,6 +102,7 @@ public:
 enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER, EXEC_ITER_DEPTH };
 std::string Transpile(std::string js_src, std::string user_code, int mode);
 
+std::string AppendStackIndex(int obj_hash);
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args);

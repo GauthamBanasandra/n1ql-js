@@ -10,13 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "n1ql_js_v3/n1ql.cpp"
-            timestampString = "519288624.413933"
+            timestampString = "519293621.891793"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "312"
-            endingLineNumber = "312"
-            landmarkName = "AddQueryMetadata(HandlerType handler, v8::Isolate *isolate, ResultType &amp;result)"
-            landmarkType = "9">
+            startingLineNumber = "334"
+            endingLineNumber = "334">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

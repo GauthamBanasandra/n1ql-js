@@ -94,7 +94,7 @@ void ConnectionPool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
 ConnectionPool::~ConnectionPool() {
   while (!instances.empty()) {
     lcb_t instance = instances.front();
-    if (instance != nullptr) {
+    if (instance != NULL) {
       lcb_destroy(instance);
     }
     instances.pop();
@@ -103,11 +103,21 @@ ConnectionPool::~ConnectionPool() {
 
 void HashedStack::Push(QueryHandler &q_handler) {
   qstack.push(q_handler);
-  qmap[q_handler.obj_hash] = &q_handler;
+  qmap[q_handler.index_hash] = &q_handler;
+  scope_map[q_handler.obj_hash].push(q_handler.index_hash);
 }
 
 void HashedStack::Pop() {
-  auto it = qmap.find(qstack.top().obj_hash);
+  int obj_hash = qstack.top().obj_hash;
+  std::string index_hash = qstack.top().index_hash;
+  
+  scope_map[obj_hash].pop();
+  if (scope_map[obj_hash].empty()) {
+    auto scope_map_it = scope_map.find(obj_hash);
+    scope_map.erase(scope_map_it);
+  }
+  
+  auto it = qmap.find(index_hash);
   qmap.erase(it);
   qstack.pop();
 }
@@ -204,6 +214,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   
   // Hash of N1QL instance in JavaScript.
   int obj_hash = args.This()->GetIdentityHash();
+  std::string index_hash = AppendStackIndex(obj_hash);
   
   // Query to run.
   v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
@@ -219,6 +230,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   iter_handler.return_value = v8::String::NewFromUtf8(isolate, "");
   QueryHandler q_handler;
   q_handler.obj_hash = obj_hash;
+  q_handler.index_hash = index_hash;
   q_handler.query = *query_string;
   q_handler.isolate = args.GetIsolate();
   q_handler.iter_handler = &iter_handler;
@@ -256,6 +268,7 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   
   // Hash of N1QL instance in JavaScript.
   int obj_hash = args.This()->GetIdentityHash();
+  std::string index_hash = AppendStackIndex(obj_hash);
   
   // Query to run.
   v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
@@ -266,6 +279,7 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   BlockingQueryHandler block_handler;
   QueryHandler q_handler;
   q_handler.obj_hash = obj_hash;
+  q_handler.index_hash = index_hash;
   q_handler.query = *query_string;
   q_handler.isolate = args.GetIsolate();
   q_handler.block_handler = &block_handler;
@@ -301,4 +315,11 @@ void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
     
     result->Set(meta_name, meta_value);
   }
+}
+
+std::string AppendStackIndex(int obj_hash) {
+  std::string index_hash = std::to_string(obj_hash);
+  index_hash += std::to_string(n1ql_handle->qhandler_stack.Size());
+  
+  return index_hash;
 }
