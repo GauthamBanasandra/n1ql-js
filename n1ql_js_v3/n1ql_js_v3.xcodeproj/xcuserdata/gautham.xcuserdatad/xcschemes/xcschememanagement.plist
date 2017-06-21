@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>enterprise.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>n1ql_js_v3.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -14,9 +19,24 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>v8_consumer_issue.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>AC1346321EFA246700AC817B</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AC1346481EFA636800AC817B</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>AC1A6B531ECEC8B400FFAE1F</key>
 		<dict>
 			<key>primary</key>

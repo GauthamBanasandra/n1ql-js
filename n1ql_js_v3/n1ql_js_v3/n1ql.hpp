@@ -67,7 +67,7 @@ public:
 class HashedStack {
   std::stack<QueryHandler> qstack;
   std::map<std::string, QueryHandler *> qmap;
-  
+
 public:
   HashedStack() {}
   void Push(QueryHandler &q_handler);
@@ -109,11 +109,12 @@ void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
 // Makes obj_hash unique by appending stack index.
 std::string AppendStackIndex(int obj_hash);
 // Functions to get and set the hidden value of a Js object.
-bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args,
-                           std::string key);
+bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args, std::string key);
 std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
-std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args, bool &);
-void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args, std::string key_hash_str, std::string value_hash_str);
+std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args,
+                          bool &exists);
+void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
+                    std::string key_hash_str, std::string value_hash_str);
 std::string GetScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args);
 bool PopScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args);
 
