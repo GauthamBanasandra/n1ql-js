@@ -18,22 +18,17 @@ using json = nlohmann::json;
 
 extern N1QL *n1ql_handle;
 
-ConnectionPool::ConnectionPool(int init_size, int inst_incr, int capacity,
-                               std::string cb_kv_endpoint,
+ConnectionPool::ConnectionPool(int capacity, std::string cb_kv_endpoint,
                                std::string cb_source_bucket,
                                std::string rbac_user, std::string rbac_pass)
-    : capacity(capacity), inst_incr(inst_incr), inst_count(0),
-      rbac_pass(rbac_pass), init_size(init_size) {
-  if (inst_incr > capacity || init_size > capacity) {
-    throw "size must be less than pool capacity";
-  }
+    : capacity(capacity), rbac_pass(rbac_pass) {
 
   conn_str = "couchbase://" + cb_kv_endpoint + "/" + cb_source_bucket +
              "?username=" + rbac_user +
              "&select_bucket=true&detailed_errcodes=1";
 }
 
-void ConnectionPool::AddResource(int size) {
+void ConnectionPool::AddResource() {
   // Initialization of lcb instances pool.
   lcb_create_st options;
   lcb_error_t err;
@@ -43,28 +38,26 @@ void ConnectionPool::AddResource(int size) {
   options.v.v3.type = LCB_TYPE_BUCKET;
   options.v.v3.passwd = rbac_pass.c_str();
 
-  for (int i = 0; i < size; ++i) {
-    lcb_t instance;
-    err = lcb_create(&instance, &options);
-    if (err != LCB_SUCCESS) {
-      Error(instance, "N1QL: unable to create lcb handle", err);
-    }
-
-    err = lcb_connect(instance);
-    if (err != LCB_SUCCESS) {
-      Error(instance, "N1QL: unable to connect to server", err);
-    }
-
-    lcb_wait(instance);
-
-    err = lcb_get_bootstrap_status(instance);
-    if (err != LCB_SUCCESS) {
-      Error(instance, "N1QL: unable to get bootstrap status", err);
-    }
-
-    ++inst_count;
-    instances.push(instance);
+  lcb_t instance;
+  err = lcb_create(&instance, &options);
+  if (err != LCB_SUCCESS) {
+    Error(instance, "N1QL: unable to create lcb handle", err);
   }
+
+  err = lcb_connect(instance);
+  if (err != LCB_SUCCESS) {
+    Error(instance, "N1QL: unable to connect to server", err);
+  }
+
+  lcb_wait(instance);
+
+  err = lcb_get_bootstrap_status(instance);
+  if (err != LCB_SUCCESS) {
+    Error(instance, "N1QL: unable to get bootstrap status", err);
+  }
+
+  ++inst_count;
+  instances.push(instance);
 }
 
 lcb_t ConnectionPool::GetResource() {
@@ -72,12 +65,8 @@ lcb_t ConnectionPool::GetResource() {
   if (instances.empty()) {
     if (inst_count >= capacity) {
       throw "Maximum pool capacity reached";
-    } else if (inst_count == 0) {
-      AddResource(init_size);
     } else {
-      int incr = inst_count + inst_incr < capacity ? inst_incr
-                                                   : (capacity - inst_count);
-      AddResource(incr);
+      AddResource();
     }
   }
 
@@ -93,7 +82,7 @@ void ConnectionPool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
 ConnectionPool::~ConnectionPool() {
   while (!instances.empty()) {
     lcb_t instance = instances.front();
-    if (instance != NULL) {
+    if (instance) {
       lcb_destroy(instance);
     }
     instances.pop();
@@ -161,7 +150,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
 }
 
 template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
-  q_handler.instance = inst_pool.GetResource();
+  q_handler.instance = inst_pool->GetResource();
 
   // Schedule the data to support query.
   n1ql_handle->qhandler_stack.Push(q_handler);
@@ -194,7 +183,7 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   // Resource clean-up.
   lcb_set_cookie(instance, NULL);
   n1ql_handle->qhandler_stack.Pop();
-  inst_pool.Restore(instance);
+  inst_pool->Restore(instance);
 }
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {

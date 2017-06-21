@@ -131,15 +131,13 @@ int main(int argc, char *argv[]) {
     third_party_src += ReadFile(ESTRAVERSE) + '\n';
     third_party_src += ReadFile(ESPRIMA);
 
-    std::string iter_depth = Transpile(third_party_src, src, EXEC_ITER_DEPTH);
-
-    ConnectionPool conn_pool(std::stoi(iter_depth), 3, 15, "127.0.0.1:12000",
-                             "default", "eventing", "asdasd");
+    ConnectionPool *conn_pool = new ConnectionPool(
+        15, "127.0.0.1:12000", "default", "eventing", "asdasd");
     n1ql_handle = new N1QL(conn_pool);
 
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
-//    std::cout << src << std::endl;
+    //    std::cout << src << std::endl;
 
     // Create a string containing the JavaScript source code.
     Local<String> source =
@@ -155,6 +153,8 @@ int main(int argc, char *argv[]) {
     // Convert the result to an UTF8 string and print it.
     String::Utf8Value utf8(result);
     printf("%s\n", *utf8);
+
+    delete conn_pool;
   }
 
   // Dispose the isolate and tear down V8.

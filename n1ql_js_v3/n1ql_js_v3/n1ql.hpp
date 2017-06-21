@@ -41,21 +41,17 @@ struct QueryHandler {
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 private:
-  bool init_success = true;
   const int capacity;
   int inst_count;
-  int inst_incr;
-  int init_size;
   std::string conn_str;
   std::string rbac_pass;
   std::queue<lcb_t> instances;
-  void AddResource(int size);
+  void AddResource();
 
 public:
-  ConnectionPool(int init_size, int inst_incr, int capacity,
-                 std::string cb_kv_endpoint, std::string cb_source_bucket,
-                 std::string rbac_user, std::string rbac_pass);
-  bool GetInitStatus() { return init_success; }
+  ConnectionPool(int capacity, std::string cb_kv_endpoint,
+                 std::string cb_source_bucket, std::string rbac_user,
+                 std::string rbac_pass);
   void Restore(lcb_t instance) { instances.push(instance); }
   lcb_t GetResource();
   static void Error(lcb_t instance, const char *msg, lcb_error_t err);
@@ -80,14 +76,14 @@ public:
 
 class N1QL {
 private:
-  ConnectionPool inst_pool;
+  ConnectionPool *inst_pool;
   // Callback for each row.
   template <typename>
   static void RowCallback(lcb_t instance, int callback_type,
                           const lcb_RESPN1QL *resp);
 
 public:
-  N1QL(ConnectionPool inst_pool) : inst_pool(inst_pool) {}
+  N1QL(ConnectionPool *inst_pool) : inst_pool(inst_pool) {}
   HashedStack qhandler_stack;
 
   // Schedules operations for execution.
