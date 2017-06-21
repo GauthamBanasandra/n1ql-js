@@ -1,25 +1,26 @@
 function query() {
     var count = 0;
     var bucket = '`beer-sample`';
-    var res = new N1qlQuery(`SELECT * FROM :bucket LIMIT 10;`);
-  	var res1 = new N1qlQuery(`SELECT name FROM :bucket LIMIT 10;`);
+    var res1 = new N1qlQuery(`SELECT * FROM :bucket LIMIT 10;`);
+    var res2 = new N1qlQuery(`SELECT * FROM :bucket LIMIT 10;`);
+    var res3 = new N1qlQuery(`SELECT * FROM :bucket LIMIT 10;`);
 
-    for (var r3 of res1) {
-        log('outer level: ' + r3.name);
+    x: for (var r1 of res1) {
+        log('level1: ' + r1['beer-sample'].name);
         try {
-            x: for (var r1 of res) {
-                log('level1: ' + r1['beer-sample'].name);
-                for (var r2 of res) {
+            for (var r2 of res1) {
+                log('level2: ' + r2['beer-sample'].name);
+                for (var r3 of res1) {
                     ++count;
-                    log('level2: ' + r2['beer-sample'].name);
-                    throw 'an exception';
+                    log('level3: ' + r3['beer-sample'].name);
+                    break x;
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             log(e);
         }
     }
+
     log('iterations = ' + count);
 }
 

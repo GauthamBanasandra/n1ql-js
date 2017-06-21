@@ -31,7 +31,6 @@ struct BlockingQueryHandler {
 };
 
 struct QueryHandler {
-  int obj_hash;
   std::string index_hash;
   std::string query;
   lcb_t instance = NULL;
@@ -39,7 +38,6 @@ struct QueryHandler {
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;
 };
-
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 private:
@@ -69,7 +67,6 @@ public:
 class HashedStack {
   std::stack<QueryHandler> qstack;
   std::map<std::string, QueryHandler *> qmap;
-	std::map<int, std::stack<std::string>> scope_map;
   
 public:
   HashedStack() {}
@@ -77,7 +74,6 @@ public:
   void Pop();
   QueryHandler Top() { return qstack.top(); }
   QueryHandler *Get(std::string index_hash) { return qmap[index_hash]; }
-  QueryHandler *Get(int obj_hash) {return qmap[scope_map[obj_hash].top()];}
   int Size() { return static_cast<int>(qstack.size()); }
   ~HashedStack() {}
 };
@@ -102,12 +98,23 @@ public:
 enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER, EXEC_ITER_DEPTH };
 std::string Transpile(std::string js_src, std::string user_code, int mode);
 
-std::string AppendStackIndex(int obj_hash);
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
+void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
+
 template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
                       ResultType &result);
+// Makes obj_hash unique by appending stack index.
+std::string AppendStackIndex(int obj_hash);
+// Functions to get and set the hidden value of a Js object.
+bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args,
+                           std::string key);
+std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
+std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args, bool &);
+void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args, std::string key_hash_str, std::string value_hash_str);
+std::string GetScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args);
+bool PopScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args);
 
 #endif

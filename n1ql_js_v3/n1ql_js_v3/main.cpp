@@ -115,6 +115,8 @@ int main(int argc, char *argv[]) {
                 v8::FunctionTemplate::New(isolate, ExecQueryFunction));
     global->Set(v8::String::NewFromUtf8(isolate, "getTime"),
                 v8::FunctionTemplate::New(isolate, Time));
+    global->Set(v8::String::NewFromUtf8(isolate, "getReturnValue"),
+                v8::FunctionTemplate::New(isolate, GetReturnValueFunction));
 
     // Create a new context.
     Local<Context> context = Context::New(isolate, NULL, global);
@@ -137,7 +139,7 @@ int main(int argc, char *argv[]) {
 
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
-    //    std::cout << src << std::endl;
+//    std::cout << src << std::endl;
 
     // Create a string containing the JavaScript source code.
     Local<String> source =

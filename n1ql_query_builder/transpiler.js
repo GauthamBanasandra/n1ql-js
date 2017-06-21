@@ -1294,7 +1294,7 @@ function getAst(code) {
         sourceType: 'script'
     });
 
-    nodeUtils.checkGlobals(ast);
+    // nodeUtils.checkGlobals(ast);
 
     estraverse.traverse(ast, {
         enter: function (node, parent) {
