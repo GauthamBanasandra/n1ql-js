@@ -21,30 +21,6 @@ function jsFormat(code) {
     return escodegen.generate(esprima.parse(code));
 }
 
-function getMaxIterDepth(code) {
-    var ast = esprima.parse(code, {sourceType: 'script'}),
-        maxDepth = 0,
-        currDepth = 0;
-    estraverse.traverse(ast, {
-        enter: function (node) {
-            if (/ForOfStatement/.test(node.type)) {
-                ++currDepth;
-                if (currDepth > maxDepth) {
-                    maxDepth = currDepth;
-                }
-            }
-        },
-        leave: function (node) {
-            if (/ForOfStatement/.test(node.type)) {
-                --currDepth;
-            }
-        }
-    });
-
-    console.assert(currDepth == 0, 'curr_depth must be 0 after parsing completely');
-    return maxDepth;
-}
-
 // TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
