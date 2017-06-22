@@ -1,20 +1,19 @@
-if(res.isInstance) {
-   res.x =  res.iter(function(i) {
-        switch(i) {
+if (res.isInstance) {
+    res.iter(function (i) {
+        switch (i) {
         case '1':
             break;
         default:
             break;
         }
     });
-}
-else {
-    for(var i of res) {
-    switch(i) {
-    case '1':
-        break;
-    default:
-        break;
+} else {
+    for (var i of res) {
+        switch (i) {
+        case '1':
+            break;
+        default:
+            break;
+        }
     }
-}
 }

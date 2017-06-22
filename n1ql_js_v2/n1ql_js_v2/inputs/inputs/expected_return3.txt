@@ -1,6 +1,6 @@
 function query() {
     if (res.isInstance) {
-        res.x = res.iter(function (row) {
+        res.iter(function (row) {
             return res.stopIter({
                 'code': 'return',
                 'args': '(function () {\n    return x;\n})',
@@ -9,9 +9,9 @@ function query() {
                 }
             });
         });
-        switch (res.x.code + res.x.args) {
+        switch (res.getReturnValue(true)) {
         case 'return(function () {\n    return x;\n})':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         }
     } else {
         for (var row of res) {

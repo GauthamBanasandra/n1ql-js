@@ -111,6 +111,7 @@
 		AC1346651EFA639100AC817B /* transpiler.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpiler.cc; sourceTree = "<group>"; };
 		AC1346661EFA639100AC817B /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
 		AC1346671EFA639100AC817B /* v8worker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = v8worker.cc; sourceTree = "<group>"; };
+		AC1346731EFAC55600AC817B /* input_internal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input_internal.js; sourceTree = "<group>"; };
 		AC1A6B541ECEC8B400FFAE1F /* n1ql_js_v3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = n1ql_js_v3; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1A6B571ECEC8B400FFAE1F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC1A6B601ECECB2B00FFAE1F /* input.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input.js; sourceTree = "<group>"; };
@@ -264,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				AC1A6B601ECECB2B00FFAE1F /* input.js */,
+				AC1346731EFAC55600AC817B /* input_internal.js */,
 			);
 			name = inputs;
 			sourceTree = "<group>";

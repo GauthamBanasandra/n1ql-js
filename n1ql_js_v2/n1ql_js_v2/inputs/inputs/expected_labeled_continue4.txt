@@ -1,5 +1,5 @@
 if (row.isInstance) {
-    row.x = row.iter(function (r) {
+    row.iter(function (r) {
         x:
             while (true)
                 continue x;

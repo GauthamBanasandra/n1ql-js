@@ -1,12 +1,11 @@
-if(res.isInstance) {
-    res.x = res.iter(function(i){
-        for(var j in array)
-        break;
+if (res.isInstance) {
+    res.iter(function (i) {
+        for (var j in array)
+            break;
     });
-}
-else {
-    for(var i of res){
-        for(var j in array)
+} else {
+    for (var i of res) {
+        for (var j in array)
             break;
     }
 }

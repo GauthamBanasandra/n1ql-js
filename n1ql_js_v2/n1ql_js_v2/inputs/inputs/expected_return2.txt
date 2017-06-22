@@ -1,6 +1,6 @@
 function query() {
     if (res.isInstance) {
-        res.x = res.iter(function (row) {
+        res.iter(function (row) {
             return res.stopIter({
                 'code': 'return',
                 'args': '(query(\'x\'))',
@@ -25,15 +25,15 @@ function query() {
                 }
             });
         });
-        switch (res.x.code + res.x.args) {
+        switch (res.getReturnValue(true)) {
         case 'return(query(\'x\'))':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         case 'return(1234)':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         case 'return(query(\'escape\\\'\'))':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         case 'return({\n    \'code\': \'return\',\n    \'arg\': \'null\'\n})':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         }
     } else {
         for (var row of res) {

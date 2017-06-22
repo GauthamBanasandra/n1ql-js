@@ -237,6 +237,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 
   // Bubble up the message sent from JavaScript.
   q_handler->iter_handler->return_value = handle_scope.Escape(arg);
+  SetReturnValue(args, q_handler->iter_handler->return_value);
 }
 
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -277,8 +278,46 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   args.GetReturnValue().Set(result_array);
 }
 
+void SetReturnValue(const v8::FunctionCallbackInfo<v8::Value> &args,
+                    v8::Local<v8::Value> return_value) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::HandleScope handle_scope(isolate);
+  auto context = isolate->GetCurrentContext();
+
+  auto key = v8::Private::ForApi(
+      isolate, v8::String::NewFromUtf8(isolate, "return_value"));
+  args.This()->SetPrivate(context, key, return_value);
+}
+
 void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  std::cout << "getting return value" << std::endl;
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::HandleScope handle_scope(isolate);
+  auto context = isolate->GetCurrentContext();
+
+  auto key = v8::Private::ForApi(
+      isolate, v8::String::NewFromUtf8(isolate, "return_value"));
+  v8::Local<v8::Value> return_value =
+      args.This()->GetPrivate(context, key).ToLocalChecked();
+  auto metadata = v8::Local<v8::Object>::Cast(return_value);
+
+  auto do_concat = v8::Local<v8::Boolean>::Cast(args[0]);
+  if (do_concat->Value()) {
+    return_value = v8::String::Empty(isolate);
+    auto meta_code_key = v8::String::NewFromUtf8(isolate, "code");
+    if (metadata->Has(meta_code_key)) {
+      auto meta_code = metadata->Get(meta_code_key);
+      return_value = v8::Local<v8::String>::Cast(meta_code);
+    }
+
+    auto meta_args_key = v8::String::NewFromUtf8(isolate, "args");
+    if (metadata->Has(meta_args_key)) {
+      auto meta_args = metadata->Get(v8::String::NewFromUtf8(isolate, "args"));
+      return_value =
+          v8::String::Concat(v8::Local<v8::String>::Cast(return_value),
+                             v8::Local<v8::String>::Cast(meta_args));
+    }
+  }
+  args.GetReturnValue().Set(return_value);
 }
 
 template <typename HandlerType, typename ResultType>

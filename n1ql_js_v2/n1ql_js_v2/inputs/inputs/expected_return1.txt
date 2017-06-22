@@ -1,15 +1,15 @@
 function query() {
     if (res.isInstance) {
-        res.x = res.iter(function (row) {
+        res.iter(function (row) {
             return res.stopIter({
                 'code': 'return',
                 'args': '(null)',
                 'data': null
             });
         });
-        switch (res.x.code + res.x.args) {
+        switch (res.getReturnValue(true)) {
         case 'return(null)':
-            return res.x.data;;
+            return res.getReturnValue().data;;
         }
     } else {
         for (var row of res) {

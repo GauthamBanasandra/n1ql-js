@@ -11,7 +11,6 @@ function jsFormat(code) {
 // TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
-// TODO : Possible bug - calling res.iter() inside res.iter() itself might cause an issue when stopIter.
 // TODO : Need to call execQuery() if the query isn't a select query.
 function getAst(code) {
     // A utility class for handling nodes of an AST.
@@ -83,7 +82,7 @@ function getAst(code) {
             var insertIndex = parentBody.indexOf(insAfterNode) + 1;
             parentBody.splice.apply(parentBody, [insertIndex, 0].concat(
                 arrayToInsert));
-        }
+        };
 
         // Build an ast node for N1QL function call from the query.
         this.getQueryAst = function(query) {
@@ -95,7 +94,7 @@ function getAst(code) {
             query = 'new N1qlQuery("' + query + '");';
 
             return esprima.parse(query).body[0].expression;
-        }
+        };
 
         // Checks if the global scope contains only function declarations.
         this.checkGlobals = function(ast) {
@@ -565,13 +564,40 @@ function getAst(code) {
         };
     }
 
-    // Returns AST of the form 'iterVar'.'prop'.data
+    // Returns AST of the form 'iterVar'.'prop()'.data
     function ReturnDataAst(iterVar, prop) {
         Ast.call(this, 'ExpressionStatement');
         this.expression = {
             "type": "MemberExpression",
             "computed": false,
             "object": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": iterVar
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": prop
+                    }
+                },
+                "arguments": []
+            },
+            "property": {
+                "type": "Identifier",
+                "name": "data"
+            }
+        };
+    }
+
+    function IteratorSkeletonAst(iterVar, arg) {
+        Ast.call(this, 'ExpressionStatement');
+        this.expression = {
+            "type": "CallExpression",
+            "callee": {
                 "type": "MemberExpression",
                 "computed": false,
                 "object": {
@@ -580,14 +606,30 @@ function getAst(code) {
                 },
                 "property": {
                     "type": "Identifier",
-                    "name": prop
+                    "name": "iter"
                 }
             },
-            "property": {
-                "type": "Identifier",
-                "name": "data"
-            }
-        };
+            "arguments": [{
+                "type": "FunctionExpression",
+                "id": null,
+                "params": [{
+                    "type": "Identifier",
+                    "name": arg
+                }],
+                "body": {
+                    "type": "BlockStatement",
+                    "body": []
+                },
+                "generator": false,
+                "expression": false,
+                "async": false
+            }]
+        }
+    }
+
+    function BlockStatementAst(body) {
+        Ast.call(this, 'BlockStatement');
+        this.body = [body];
     }
 
     // Class for maintaining the object that will be passed to 'stopIter'.
@@ -645,10 +687,12 @@ function getAst(code) {
     }
 
     // Class to generate post iteration steps - switch-case block.
-    function PostIter(iterProp) {
+    function PostIter(iterProp, returnBubbleFunc) {
         var stmts = [];
 
         this.iterProp = iterProp;
+        this.returnBubbleFunc = returnBubbleFunc;
+
         this.push = function(arg) {
             // Avoid duplicates while insertion.
             // TODO :   replace the list with a set in the final version - for faster lookup.
@@ -659,9 +703,8 @@ function getAst(code) {
 
         // Returns a switch-case block to perform post-iteration steps.
         this.getAst = function(iterVar, stackHelper) {
-            var discriminantAst = esprima.parse(iterVar + '.' + this.iterProp +
-                    '.code' + '+' + iterVar + '.' + this.iterProp + '.args'
-                ).body[0].expression,
+            var discriminantAst = esprima.parse(iterVar + '.' + this.iterProp)
+                .body[0].expression,
                 switchAst = new SwitchAst(discriminantAst),
                 postIter, caseAst, lookup, stopIterAst, arg, returnStmtAst,
                 pushCase;
@@ -783,7 +826,8 @@ function getAst(code) {
                         if (lookup.targetFound) {
 
                             returnStmtAst = new ReturnAst(new ReturnDataAst(
-                                postIter.iterVar, this.iterProp));
+                                postIter.iterVar, this.returnBubbleFunc
+                            ));
                         }
                         if (lookup.searchInterrupted) {
 
@@ -792,7 +836,7 @@ function getAst(code) {
                             arg = new Arg({
                                 code: LoopModifier.CONST.RETURN,
                                 args: postIter.iterVar + '.' + this
-                                    .iterProp + '.data',
+                                    .returnBubbleFunc + '().data',
                                 appendData: true
                             });
                             stopIterAst.arguments.push(arg.getAst());
@@ -879,9 +923,11 @@ function getAst(code) {
             var iterator = new Iter(forOfNode);
 
             // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
-            var iterProp = 'x';
+            var iterProp = 'getReturnValue(true)';
+            var returnBubbleFunc = 'getReturnValue';
+
             // List to store post iteration exit conditions.
-            var postIter = new PostIter(iterProp);
+            var postIter = new PostIter(iterProp, returnBubbleFunc);
 
             iterator.traverse(function(node, nodeCopy, breakMod,
                 continueMod, lblBreakMod, lblContinueMod, returnMod
@@ -1019,25 +1065,19 @@ function getAst(code) {
                         }
                         break;
                     case 'IfStatement':
-                        if (!/BlockStatement/.test(node.type)) {
+                        if (!/BlockStatement/.test(node.consequent.type)) {
                             nodeUtils.convertToBlockStmt(node);
                         }
                         break;
                 }
             });
 
-            // TODO :   Create a class for iter().
-            var iter = esprima.parse(
-                forOfNode.right.name + '.' + iterProp + '=' + forOfNode
-                .right.name +
-                '.iter(function (' + (forOfNode.left.name ? forOfNode.left
-                    .name : forOfNode.left.declarations[0].id.name) +
-                '){});'
-            ).body[0];
-            iter.expression.right.arguments[0].body = iterator.nodeCopy.body;
+            var iter = new IteratorSkeletonAst(forOfNode.right.name, (
+                forOfNode.left.name ? forOfNode.left.name :
+                forOfNode.left.declarations[0].id.name));
+            iter.expression.arguments[0].body = iterator.nodeCopy.body;
 
-            var iterBlockAst = esprima.parse('{}').body[0];
-            iterBlockAst.body.push(iter);
+            var iterBlockAst = new BlockStatementAst(iter);
 
             // Pop the top for-of node.
             stackHelper.popTopForOfNode();
@@ -1363,7 +1403,7 @@ function getAst(code) {
         sourceType: 'script'
     });
 
-    //  nodeUtils.checkGlobals(ast);
+    // nodeUtils.checkGlobals(ast);
 
     estraverse.traverse(ast, {
         enter: function(node, parent) {

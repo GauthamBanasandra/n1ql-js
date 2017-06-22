@@ -1,15 +1,15 @@
 if (res1.isInstance) {
-    res1.x = res1.iter(function (r) {
+    res1.iter(function (r) {
         if (res2.isInstance) {
-            res2.x = res2.iter(function (r) {
+            res2.iter(function (r) {
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (r) {
+                    res3.iter(function (r) {
                         return res3.stopIter({
                             'code': 'labeled_continue',
                             'args': 'x'
                         });
                     });
-                    switch (res3.x.code + res3.x.args) {
+                    switch (res3.getReturnValue(true)) {
                     case 'labeled_continuex':
                         return;
                     }
@@ -23,13 +23,13 @@ if (res1.isInstance) {
             x:
                 for (var r of res2) {
                     if (res3.isInstance) {
-                        res3.x = res3.iter(function (r) {
+                        res3.iter(function (r) {
                             return res3.stopIter({
                                 'code': 'labeled_continue',
                                 'args': 'x'
                             });
                         });
-                        switch (res3.x.code + res3.x.args) {
+                        switch (res3.getReturnValue(true)) {
                         case 'labeled_continuex':
                             continue x;
                         }
@@ -44,15 +44,15 @@ if (res1.isInstance) {
 } else {
     for (var r of res1) {
         if (res2.isInstance) {
-            res2.x = res2.iter(function (r) {
+            res2.iter(function (r) {
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (r) {
+                    res3.iter(function (r) {
                         return res3.stopIter({
                             'code': 'labeled_continue',
                             'args': 'x'
                         });
                     });
-                    switch (res3.x.code + res3.x.args) {
+                    switch (res3.getReturnValue(true)) {
                     case 'labeled_continuex':
                         return;
                     }
@@ -66,13 +66,13 @@ if (res1.isInstance) {
             x:
                 for (var r of res2) {
                     if (res3.isInstance) {
-                        res3.x = res3.iter(function (r) {
+                        res3.iter(function (r) {
                             return res3.stopIter({
                                 'code': 'labeled_continue',
                                 'args': 'x'
                             });
                         });
-                        switch (res3.x.code + res3.x.args) {
+                        switch (res3.getReturnValue(true)) {
                         case 'labeled_continuex':
                             continue x;
                         }

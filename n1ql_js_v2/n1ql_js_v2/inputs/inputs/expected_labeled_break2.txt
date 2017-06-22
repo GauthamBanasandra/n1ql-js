@@ -1,13 +1,13 @@
 y:
     while (true) {
         if (res.isInstance) {
-            res.x = res.iter(function (r) {
+            res.iter(function (r) {
                 return res.stopIter({
                     'code': 'labeled_break',
                     'args': 'y'
                 });
             });
-            switch (res.x.code + res.x.args) {
+            switch (res.getReturnValue(true)) {
             case 'labeled_breaky':
                 break y;
             }

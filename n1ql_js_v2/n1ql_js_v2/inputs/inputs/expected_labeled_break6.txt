@@ -1,21 +1,19 @@
 if (res1.isInstance) {
-    res1.x = res1.iter(function (r) {
+    res1.iter(function (r) {
         if (res2.isInstance) {
-            res2.x = res2.iter(function (r) {
+            res2.iter(function (r) {
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (r) {
+                    res3.iter(function (r) {
                         return res3.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     });
-                    switch (res3.x.code + res3.x.args) {
+                    switch (res3.getReturnValue(true)) {
                     case 'labeled_breakx':
                         return res2.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     }
                 } else {
@@ -23,35 +21,31 @@ if (res1.isInstance) {
                         return res2.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     }
                 }
             });
-            switch (res2.x.code + res2.x.args) {
+            switch (res2.getReturnValue(true)) {
             case 'labeled_breakx':
                 return res1.stopIter({
                     'code': 'labeled_break',
                     'args': 'x'
-                    
                 });
             }
         } else {
             for (var r of res2) {
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (r) {
+                    res3.iter(function (r) {
                         return res3.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     });
-                    switch (res3.x.code + res3.x.args) {
+                    switch (res3.getReturnValue(true)) {
                     case 'labeled_breakx':
                         return res1.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     }
                 } else {
@@ -59,7 +53,6 @@ if (res1.isInstance) {
                         return res1.stopIter({
                             'code': 'labeled_break',
                             'args': 'x'
-                            
                         });
                     }
                 }
@@ -70,21 +63,19 @@ if (res1.isInstance) {
     x:
         for (var r of res1) {
             if (res2.isInstance) {
-                res2.x = res2.iter(function (r) {
+                res2.iter(function (r) {
                     if (res3.isInstance) {
-                        res3.x = res3.iter(function (r) {
+                        res3.iter(function (r) {
                             return res3.stopIter({
                                 'code': 'labeled_break',
                                 'args': 'x'
-                                
                             });
                         });
-                        switch (res3.x.code + res3.x.args) {
+                        switch (res3.getReturnValue(true)) {
                         case 'labeled_breakx':
                             return res2.stopIter({
                                 'code': 'labeled_break',
                                 'args': 'x'
-                                
                             });
                         }
                     } else {
@@ -92,26 +83,24 @@ if (res1.isInstance) {
                             return res2.stopIter({
                                 'code': 'labeled_break',
                                 'args': 'x'
-                                
                             });
                         }
                     }
                 });
-                switch (res2.x.code + res2.x.args) {
+                switch (res2.getReturnValue(true)) {
                 case 'labeled_breakx':
                     break x;
                 }
             } else {
                 for (var r of res2) {
                     if (res3.isInstance) {
-                        res3.x = res3.iter(function (r) {
+                        res3.iter(function (r) {
                             return res3.stopIter({
                                 'code': 'labeled_break',
                                 'args': 'x'
-                                
                             });
                         });
-                        switch (res3.x.code + res3.x.args) {
+                        switch (res3.getReturnValue(true)) {
                         case 'labeled_breakx':
                             break x;
                         }

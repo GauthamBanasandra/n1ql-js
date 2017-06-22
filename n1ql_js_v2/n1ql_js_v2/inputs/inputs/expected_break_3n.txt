@@ -1,11 +1,11 @@
 if (res1.isInstance) {
-    res1.x = res1.iter(function (item1) {
+    res1.iter(function (item1) {
         item1 = JSON.parse(item1);
         if (res2.isInstance) {
-            res2.x = res2.iter(function (item2) {
+            res2.iter(function (item2) {
                 item2 = JSON.parse(item2);
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (item3) {
+                    res3.iter(function (item3) {
                         item3 = JSON.parse(item3);
                         ++transpiledIterations;
                     });
@@ -20,7 +20,7 @@ if (res1.isInstance) {
             for (var item2 of res2) {
                 item2 = JSON.parse(item2);
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (item3) {
+                    res3.iter(function (item3) {
                         item3 = JSON.parse(item3);
                         ++transpiledIterations;
                     });
@@ -37,10 +37,10 @@ if (res1.isInstance) {
     for (var item1 of res1) {
         item1 = JSON.parse(item1);
         if (res2.isInstance) {
-            res2.x = res2.iter(function (item2) {
+            res2.iter(function (item2) {
                 item2 = JSON.parse(item2);
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (item3) {
+                    res3.iter(function (item3) {
                         item3 = JSON.parse(item3);
                         ++transpiledIterations;
                     });
@@ -55,7 +55,7 @@ if (res1.isInstance) {
             for (var item2 of res2) {
                 item2 = JSON.parse(item2);
                 if (res3.isInstance) {
-                    res3.x = res3.iter(function (item3) {
+                    res3.iter(function (item3) {
                         item3 = JSON.parse(item3);
                         ++transpiledIterations;
                     });

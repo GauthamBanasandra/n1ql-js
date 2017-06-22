@@ -1,8 +1,8 @@
 function query() {
     if (res1.isInstance) {
-        res1.x = res1.iter(function (row) {
+        res1.iter(function (row) {
             if (res2.isInstance) {
-                res2.x = res2.iter(function (row) {
+                res2.iter(function (row) {
                     return res2.stopIter({
                         'code': 'return',
                         'args': '(function () {\n    return inner;\n})',
@@ -11,12 +11,12 @@ function query() {
                         }
                     });
                 });
-                switch (res2.x.code + res2.x.args) {
+                switch (res2.getReturnValue(true)) {
                 case 'return(function () {\n    return inner;\n})':
                     return res1.stopIter({
                         'code': 'return',
-                        'args': 'res2.x.data',
-                        'data': res2.x.data
+                        'args': 'res2.getReturnValue().data',
+                        'data': res2.getReturnValue().data
                     });
                 }
             } else {
@@ -31,16 +31,16 @@ function query() {
                 }
             }
         });
-        switch (res1.x.code + res1.x.args) {
-        case 'returnres2.x.data':
-            return res1.x.data;;
+        switch (res1.getReturnValue(true)) {
+        case 'returnres2.getReturnValue().data':
+            return res1.getReturnValue().data;;
         case 'return(function () {\n    return inner;\n})':
-            return res1.x.data;;
+            return res1.getReturnValue().data;;
         }
     } else {
         for (var row of res1) {
             if (res2.isInstance) {
-                res2.x = res2.iter(function (row) {
+                res2.iter(function (row) {
                     return res2.stopIter({
                         'code': 'return',
                         'args': '(function () {\n    return inner;\n})',
@@ -49,9 +49,9 @@ function query() {
                         }
                     });
                 });
-                switch (res2.x.code + res2.x.args) {
+                switch (res2.getReturnValue(true)) {
                 case 'return(function () {\n    return inner;\n})':
-                    return res2.x.data;
+                    return res2.getReturnValue().data;
                 }
             } else {
                 for (var row of res2) {

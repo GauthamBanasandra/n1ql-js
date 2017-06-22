@@ -98,6 +98,8 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
+void SetReturnValue(const v8::FunctionCallbackInfo<v8::Value> &args,
+                    v8::Local<v8::Value> return_value);
 
 template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,

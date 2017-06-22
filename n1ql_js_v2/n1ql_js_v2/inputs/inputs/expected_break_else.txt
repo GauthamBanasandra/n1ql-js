@@ -1,18 +1,16 @@
-if(res.isInstance){
-    res.x = res.iter(function(row) {
-        if(true){
+if (res.isInstance) {
+    res.iter(function (row) {
+        if (true) {
             log(row);
-        }
-        else {
-            return res.stopIter({'code':'break'});
+        } else {
+            return res.stopIter({ 'code': 'break' });
         }
     });
-}
-else {
-    for(var row of res){
-    if(true)
-        log(row);
-    else
-        break;
+} else {
+    for (var row of res) {
+        if (true)
+            log(row);
+        else
+            break;
     }
 }

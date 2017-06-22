@@ -1,7 +1,7 @@
 if (res1.isInstance) {
-    res1.x = res1.iter(function (r) {
+    res1.iter(function (r) {
         if (res2.isInstance) {
-            res2.x = res2.iter(function (r) {
+            res2.iter(function (r) {
                 return;
             });
         } else {
@@ -14,7 +14,7 @@ if (res1.isInstance) {
 } else {
     for (var r of res1) {
         if (res2.isInstance) {
-            res2.x = res2.iter(function (r) {
+            res2.iter(function (r) {
                 return;
             });
         } else {

@@ -1,10 +1,9 @@
-if(res.isInstance){
-   res.x =  res.iter(function (r){        
+if (res.isInstance) {
+    res.iter(function (r) {
         return;
     });
-}
-else {
-    for(var r of res) {
+} else {
+    for (var r of res) {
         continue;
     }
 }

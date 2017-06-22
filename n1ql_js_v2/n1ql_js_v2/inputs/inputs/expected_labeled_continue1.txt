@@ -1,5 +1,5 @@
 if (res.isInstance) {
-    res.x = res.iter(function (r) {
+    res.iter(function (r) {
         return;
     });
 } else {
