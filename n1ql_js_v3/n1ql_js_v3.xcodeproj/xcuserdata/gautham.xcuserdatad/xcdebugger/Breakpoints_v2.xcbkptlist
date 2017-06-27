@@ -10,12 +10,26 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "n1ql_js_v3/n1ql.cpp"
-            timestampString = "519816709.347371"
+            timestampString = "520236810.749775"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "496"
-            endingLineNumber = "496"
-            landmarkName = "HasKey(const v8::FunctionCallbackInfo&lt;v8::Value&gt; &amp;args, std::string key_str)"
+            startingLineNumber = "508"
+            endingLineNumber = "508">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/n1ql.cc"
+            timestampString = "519895444.742809"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "194"
+            endingLineNumber = "194"
+            landmarkName = "IterFunction(const v8::FunctionCallbackInfo&lt;v8::Value&gt; &amp;args)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

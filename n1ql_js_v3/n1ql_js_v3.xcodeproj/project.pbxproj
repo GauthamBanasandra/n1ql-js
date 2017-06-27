@@ -7,17 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC13463A1EFA248300AC817B /* assert.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1346161EFA243200AC817B /* assert.cc */; };
-		AC13463B1EFA248300AC817B /* bucket.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1346171EFA243200AC817B /* bucket.cc */; };
-		AC13463C1EFA248900AC817B /* client.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1346191EFA243200AC817B /* client.cc */; };
-		AC13463D1EFA248900AC817B /* commands.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461A1EFA243200AC817B /* commands.cc */; };
-		AC13463E1EFA248900AC817B /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461B1EFA243200AC817B /* jsify.cc */; };
-		AC13463F1EFA248900AC817B /* log.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461C1EFA243200AC817B /* log.cc */; };
-		AC1346401EFA248900AC817B /* message.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461D1EFA243200AC817B /* message.cc */; };
-		AC1346411EFA248900AC817B /* n1ql.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461E1EFA243200AC817B /* n1ql.cc */; };
-		AC1346421EFA248900AC817B /* parse_deployment.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13461F1EFA243200AC817B /* parse_deployment.cc */; };
-		AC1346431EFA248900AC817B /* transpiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1346201EFA243200AC817B /* transpiler.cc */; };
-		AC1346441EFA249000AC817B /* v8worker.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1346221EFA243200AC817B /* v8worker.cc */; };
 		AC1346681EFA639100AC817B /* assert.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13465A1EFA639100AC817B /* assert.cc */; };
 		AC1346691EFA639100AC817B /* bucket.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13465B1EFA639100AC817B /* bucket.cc */; };
 		AC13466A1EFA639100AC817B /* client.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC13465D1EFA639100AC817B /* client.cc */; };
@@ -65,28 +54,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AC13460E1EFA23F400AC817B /* bucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bucket.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/bucket.h; sourceTree = "<group>"; };
-		AC13460F1EFA23F400AC817B /* client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = client.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/client.h; sourceTree = "<group>"; };
-		AC1346101EFA23F400AC817B /* commands.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = commands.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/commands.h; sourceTree = "<group>"; };
-		AC1346111EFA23F400AC817B /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = log.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/log.h; sourceTree = "<group>"; };
-		AC1346121EFA23F400AC817B /* message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = message.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/message.h; sourceTree = "<group>"; };
-		AC1346131EFA23F400AC817B /* n1ql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = n1ql.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/n1ql.h; sourceTree = "<group>"; };
-		AC1346141EFA23F400AC817B /* parse_deployment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parse_deployment.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/parse_deployment.h; sourceTree = "<group>"; };
-		AC1346151EFA23F400AC817B /* v8worker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8worker.h; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/include/v8worker.h; sourceTree = "<group>"; };
-		AC1346161EFA243200AC817B /* assert.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = assert.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/assert.cc; sourceTree = "<group>"; };
-		AC1346171EFA243200AC817B /* bucket.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = bucket.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/bucket.cc; sourceTree = "<group>"; };
-		AC1346181EFA243200AC817B /* builtin.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = builtin.js; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/builtin.js; sourceTree = "<group>"; };
-		AC1346191EFA243200AC817B /* client.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = client.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/client.cc; sourceTree = "<group>"; };
-		AC13461A1EFA243200AC817B /* commands.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commands.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/commands.cc; sourceTree = "<group>"; };
-		AC13461B1EFA243200AC817B /* jsify.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsify.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/jsify.cc; sourceTree = "<group>"; };
-		AC13461C1EFA243200AC817B /* log.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = log.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/log.cc; sourceTree = "<group>"; };
-		AC13461D1EFA243200AC817B /* message.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = message.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/message.cc; sourceTree = "<group>"; };
-		AC13461E1EFA243200AC817B /* n1ql.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = n1ql.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/n1ql.cc; sourceTree = "<group>"; };
-		AC13461F1EFA243200AC817B /* parse_deployment.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parse_deployment.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/parse_deployment.cc; sourceTree = "<group>"; };
-		AC1346201EFA243200AC817B /* transpiler.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = transpiler.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/transpiler.cc; sourceTree = "<group>"; };
-		AC1346211EFA243200AC817B /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = transpiler.js; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/transpiler.js; sourceTree = "<group>"; };
-		AC1346221EFA243200AC817B /* v8worker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = v8worker.cc; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/v8worker.cc; sourceTree = "<group>"; };
-		AC1346231EFA243200AC817B /* jsify.lex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = jsify.lex; path = ../../couchbase/community/goproj/src/github.com/couchbase/eventing/v8_consumer/src/jsify.lex; sourceTree = "<group>"; };
 		AC1346331EFA246700AC817B /* v8_consumer_issue */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = v8_consumer_issue; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1346491EFA636800AC817B /* enterprise */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = enterprise; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1346511EFA639100AC817B /* bucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bucket.h; sourceTree = "<group>"; };
@@ -150,35 +117,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AC13460D1EFA23CA00AC817B /* v8_consumer_issue */ = {
-			isa = PBXGroup;
-			children = (
-				AC1346161EFA243200AC817B /* assert.cc */,
-				AC1346171EFA243200AC817B /* bucket.cc */,
-				AC1346181EFA243200AC817B /* builtin.js */,
-				AC1346191EFA243200AC817B /* client.cc */,
-				AC13461A1EFA243200AC817B /* commands.cc */,
-				AC13461B1EFA243200AC817B /* jsify.cc */,
-				AC13461C1EFA243200AC817B /* log.cc */,
-				AC13461D1EFA243200AC817B /* message.cc */,
-				AC13461E1EFA243200AC817B /* n1ql.cc */,
-				AC13461F1EFA243200AC817B /* parse_deployment.cc */,
-				AC1346201EFA243200AC817B /* transpiler.cc */,
-				AC1346211EFA243200AC817B /* transpiler.js */,
-				AC1346221EFA243200AC817B /* v8worker.cc */,
-				AC1346231EFA243200AC817B /* jsify.lex */,
-				AC13460E1EFA23F400AC817B /* bucket.h */,
-				AC13460F1EFA23F400AC817B /* client.h */,
-				AC1346101EFA23F400AC817B /* commands.h */,
-				AC1346111EFA23F400AC817B /* log.h */,
-				AC1346121EFA23F400AC817B /* message.h */,
-				AC1346131EFA23F400AC817B /* n1ql.h */,
-				AC1346141EFA23F400AC817B /* parse_deployment.h */,
-				AC1346151EFA23F400AC817B /* v8worker.h */,
-			);
-			name = v8_consumer_issue;
-			sourceTree = "<group>";
-		};
 		AC13464A1EFA636800AC817B /* enterprise */ = {
 			isa = PBXGroup;
 			children = (
@@ -229,7 +167,6 @@
 		AC1A6B4B1ECEC8B400FFAE1F = {
 			isa = PBXGroup;
 			children = (
-				AC13460D1EFA23CA00AC817B /* v8_consumer_issue */,
 				AC1A6B5F1ECECB1B00FFAE1F /* inputs */,
 				AC1A6B561ECEC8B400FFAE1F /* n1ql_js_v3 */,
 				AC13464A1EFA636800AC817B /* enterprise */,
@@ -398,17 +335,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC1346441EFA249000AC817B /* v8worker.cc in Sources */,
-				AC13463A1EFA248300AC817B /* assert.cc in Sources */,
-				AC13463B1EFA248300AC817B /* bucket.cc in Sources */,
-				AC13463C1EFA248900AC817B /* client.cc in Sources */,
-				AC13463D1EFA248900AC817B /* commands.cc in Sources */,
-				AC13463E1EFA248900AC817B /* jsify.cc in Sources */,
-				AC13463F1EFA248900AC817B /* log.cc in Sources */,
-				AC1346401EFA248900AC817B /* message.cc in Sources */,
-				AC1346411EFA248900AC817B /* n1ql.cc in Sources */,
-				AC1346421EFA248900AC817B /* parse_deployment.cc in Sources */,
-				AC1346431EFA248900AC817B /* transpiler.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -640,6 +566,7 @@
 				AC1346391EFA246700AC817B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		AC13464D1EFA636800AC817B /* Build configuration list for PBXNativeTarget "enterprise" */ = {
 			isa = XCConfigurationList;
@@ -648,6 +575,7 @@
 				AC13464F1EFA636800AC817B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		AC1A6B4F1ECEC8B400FFAE1F /* Build configuration list for PBXProject "n1ql_js_v3" */ = {
 			isa = XCConfigurationList;

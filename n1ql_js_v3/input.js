@@ -9,13 +9,16 @@ function query() {
         log('level1: ' + r1['beer-sample'].name);
 
         r1 = 'hello';
+
         function innerQuery() {
-            for (var r2 of res1) {
+            for (var r2 of res2) {
                 log('level2: ' + r2['beer-sample'].name);
                 for (var r3 of res1) {
                     ++count;
                     log('level3: ' + r3['beer-sample'].name);
-                    return r1;
+                    if (count > 10) {
+                        return r1;
+                    }
                 }
             }
         }

@@ -227,7 +227,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::EscapableHandleScope handle_scope(isolate);
   v8::Local<v8::Value> arg = args[0];
 
-  std::string hash = GetScopeIndex(args);
+  std::string hash = GetUniqueHash(args);
 
   // Cancel the query corresponding to obj_hash.
   QueryHandler *q_handler = n1ql_handle->qhandler_stack.Get(hash);
@@ -368,13 +368,13 @@ void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
   }
 }
 
-std::string GetScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args) {
+std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);
   auto context = isolate->GetCurrentContext();
 
   bool exists;
-  std::string hash_str = GetUniqueHash(args, exists);
+  std::string hash_str = GetBaseHash(args, exists);
 
   if (exists) {
     auto hash_key = v8::Private::ForApi(
@@ -405,7 +405,7 @@ bool PopScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args) {
   auto context = isolate->GetCurrentContext();
 
   bool exists;
-  std::string hash_str = GetUniqueHash(args, exists);
+  std::string hash_str = GetBaseHash(args, exists);
 
   if (exists) {
     auto hash_key = v8::Private::ForApi(
@@ -431,7 +431,7 @@ std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
   auto context = isolate->GetCurrentContext();
 
   bool exists;
-  std::string hash_str = GetUniqueHash(args, exists);
+  std::string hash_str = GetBaseHash(args, exists);
   auto key =
       v8::Private::ForApi(isolate, v8::String::NewFromUtf8(isolate, "hash"));
 
@@ -450,7 +450,7 @@ std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 }
 
-std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args,
+std::string GetBaseHash(const v8::FunctionCallbackInfo<v8::Value> &args,
                           bool &exists) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);

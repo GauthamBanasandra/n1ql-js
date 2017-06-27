@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 
     src = Transpile(third_party_src, src, EXEC_TRANSPILER);
 
-    //    std::cout << src << std::endl;
+//        std::cout << src << std::endl;
 
     // Create a string containing the JavaScript source code.
     Local<String> source =
