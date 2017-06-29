@@ -11,7 +11,7 @@ function query() {
         r1 = 'hello';
 
         function innerQuery() {
-            for (var r2 of res2) {
+            x: for (var r2 of res2) {
                 log('level2: ' + r2['beer-sample'].name);
                 for (var r3 of res1) {
                     ++count;

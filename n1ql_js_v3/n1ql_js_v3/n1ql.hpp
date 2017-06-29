@@ -99,7 +99,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void SetReturnValue(const v8::FunctionCallbackInfo<v8::Value> &args,
-                    v8::Local<v8::Value> return_value);
+                    v8::Local<v8::Object> return_value);
 
 template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
@@ -110,7 +110,7 @@ std::string AppendStackIndex(int obj_hash);
 bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args, std::string key);
 std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
 std::string GetBaseHash(const v8::FunctionCallbackInfo<v8::Value> &args,
-                          bool &exists);
+                        bool &exists);
 void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
                     std::string key_hash_str, std::string value_hash_str);
 std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
