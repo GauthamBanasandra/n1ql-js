@@ -90,8 +90,18 @@ public:
   ~N1QL() {}
 };
 
-enum builder_mode { EXEC_JS_FORMAT, EXEC_TRANSPILER, EXEC_ITER_DEPTH };
-std::string Transpile(std::string js_src, std::string user_code, int mode);
+class Transpiler {
+  v8::Isolate *isolate;
+  v8::Local<v8::Context> context;
+
+public:
+  Transpiler(std::string transpiler_src);
+  v8::Local<v8::Value> ExecTranspiler(std::string code, std::string function);
+  std::string Transpile(std::string user_code);
+  std::string JsFormat(std::string user_code);
+  bool IsTimerCalled(std::string user_code);
+  ~Transpiler() {}
+};
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);

@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>checkout.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
 		<key>enterprise.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -27,6 +32,11 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>AC0CBB181F04C1490000D398</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>AC1346321EFA246700AC817B</key>
 		<dict>
 			<key>primary</key>

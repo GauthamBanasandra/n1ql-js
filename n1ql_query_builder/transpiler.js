@@ -11,6 +11,8 @@ var transpiledCode = escodegen.generate(getAst(code), {
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
+console.log('docTimer exists', isFuncCalled('docTimer', code));
+
 function transpile(code) {
     return escodegen.generate(getAst(code), {
         comment: true
@@ -19,6 +21,10 @@ function transpile(code) {
 
 function jsFormat(code) {
     return escodegen.generate(esprima.parse(code));
+}
+
+function isTimerCalled(code) {
+    return isFuncCalled('docTimer', code) && isFuncCalled('nonDocTimer', code);
 }
 
 // Checks if a function is called.

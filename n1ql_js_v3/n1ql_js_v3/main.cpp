@@ -135,7 +135,8 @@ int main(int argc, char *argv[]) {
         15, "127.0.0.1:12000", "default", "eventing", "asdasd");
     n1ql_handle = new N1QL(conn_pool);
 
-    src = Transpile(third_party_src, src, EXEC_TRANSPILER);
+    Transpiler transpiler(third_party_src);
+    src = transpiler.Transpile(src);
 
     //        std::cout << src << std::endl;
 
