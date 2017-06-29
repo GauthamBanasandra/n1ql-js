@@ -3,6 +3,7 @@ function query() {
         for (var row of res2) {
             if (row.length > 5)
                 break x;
+            nonDocTimer('hello');
             return row;
         }
 }

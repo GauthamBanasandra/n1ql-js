@@ -21,6 +21,26 @@ function jsFormat(code) {
     return escodegen.generate(esprima.parse(code));
 }
 
+// Checks if a function is called.
+function isFuncCalled(methodName, code) {
+    // Get the Abstract Syntax Tree (ast) of the input code.
+    var ast = esprima.parse(code, {
+        attachComment: true,
+        sourceType: 'script'
+    });
+
+    var methodExists = false;
+    estraverse.traverse(ast, {
+        enter: function (node) {
+            if (!methodExists && /CallExpression/.test(node.type)) {
+                methodExists = node.callee.name === methodName;
+            }
+        }
+    });
+
+    return methodExists;
+}
+
 // TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
@@ -908,7 +928,7 @@ function getAst(code) {
                 leave: function (node) {
                     _this.decrAndPop();
                 }
-            })
+            });
         };
 
         // debug.
