@@ -22,7 +22,6 @@
 struct IterQueryHandler {
   std::string metadata;
   v8::Local<v8::Function> callback;
-  v8::Local<v8::Value> return_value;
 };
 
 struct BlockingQueryHandler {

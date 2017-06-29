@@ -16,11 +16,13 @@ function query() {
                 for (var r3 of res1) {
                     ++count;
                     log('level3: ' + r3['beer-sample'].name);
-                    if (count > 10) {
+                    if (count > 10000) {
                         return r1;
                     }
                 }
             }
+
+                log('res2 metadata:' + JSON.stringify(res2.metadata));
         }
 
         return innerQuery;

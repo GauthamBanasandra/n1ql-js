@@ -204,7 +204,6 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   // Prepare data for query execution.
   IterQueryHandler iter_handler;
   iter_handler.callback = func;
-  iter_handler.return_value = v8::String::NewFromUtf8(isolate, "");
   QueryHandler q_handler;
   q_handler.index_hash = hash;
   q_handler.query = *query_string;
@@ -218,7 +217,6 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   AddQueryMetadata(iter_handler, isolate, _this);
   args.This() = _this;
 
-  args.GetReturnValue().Set(iter_handler.return_value);
   PopScopeIndex(args);
 }
 
@@ -332,13 +330,11 @@ void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
                       ResultType &result) {
   if (handler.metadata.length() > 0) {
     // Query metadata.
-    v8::Local<v8::String> meta_name =
-        v8::String::NewFromUtf8(isolate, "metadata");
-    v8::Local<v8::String> meta_str =
-        v8::String::NewFromUtf8(isolate, handler.metadata.c_str());
-    v8::Local<v8::Value> meta_value = v8::JSON::Parse(meta_str);
+    auto metadata_key = v8::String::NewFromUtf8(isolate, "metadata");
+    auto metadata = v8::String::NewFromUtf8(isolate, handler.metadata.c_str());
+    auto metadata_json = v8::JSON::Parse(metadata);
 
-    result->Set(meta_name, meta_value);
+    result->Set(metadata_key, metadata_json);
   }
 }
 
