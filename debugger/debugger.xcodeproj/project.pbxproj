@@ -19,6 +19,11 @@
 		AC46B4871F0DE62D000530A3 /* icudtl.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = AC46B4811F0DE551000530A3 /* icudtl.dat */; };
 		AC46B4881F0DE62D000530A3 /* natives_blob.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = AC46B4821F0DE551000530A3 /* natives_blob.bin */; };
 		AC46B4891F0DE62D000530A3 /* snapshot_blob.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = AC46B4831F0DE551000530A3 /* snapshot_blob.bin */; };
+		AC5864D81F0E135000677D58 /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = AC5864D31F0E135000677D58 /* http_parser.c */; };
+		AC5864D91F0E135000677D58 /* inspector_agent.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC5864D41F0E135000677D58 /* inspector_agent.cc */; };
+		AC5864DA1F0E135000677D58 /* inspector_io.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC5864D51F0E135000677D58 /* inspector_io.cc */; };
+		AC5864DB1F0E135000677D58 /* inspector_socket_server.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC5864D61F0E135000677D58 /* inspector_socket_server.cc */; };
+		AC5864DC1F0E135000677D58 /* inspector_socket.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC5864D71F0E135000677D58 /* inspector_socket.cc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,6 +55,19 @@
 		AC46B4811F0DE551000530A3 /* icudtl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; name = icudtl.dat; path = ../../v8/v8/out.gn/x64.release/icudtl.dat; sourceTree = "<group>"; };
 		AC46B4821F0DE551000530A3 /* natives_blob.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = natives_blob.bin; path = ../../v8/v8/out.gn/x64.release/natives_blob.bin; sourceTree = "<group>"; };
 		AC46B4831F0DE551000530A3 /* snapshot_blob.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = snapshot_blob.bin; path = ../../v8/v8/out.gn/x64.release/snapshot_blob.bin; sourceTree = "<group>"; };
+		AC46B5461F0DF75B000530A3 /* libcares.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcares.a; path = ../../node/deps/cares/libcares.a; sourceTree = "<group>"; };
+		AC5864CC1F0E134900677D58 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
+		AC5864CD1F0E134900677D58 /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http_parser.h; sourceTree = "<group>"; };
+		AC5864CE1F0E134900677D58 /* inspector_agent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_agent.h; sourceTree = "<group>"; };
+		AC5864CF1F0E134900677D58 /* inspector_io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_io.h; sourceTree = "<group>"; };
+		AC5864D01F0E134900677D58 /* inspector_socket_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_socket_server.h; sourceTree = "<group>"; };
+		AC5864D11F0E134900677D58 /* inspector_socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_socket.h; sourceTree = "<group>"; };
+		AC5864D21F0E134900677D58 /* v8_inspector_protocol_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = v8_inspector_protocol_json.h; sourceTree = "<group>"; };
+		AC5864D31F0E135000677D58 /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http_parser.c; sourceTree = "<group>"; };
+		AC5864D41F0E135000677D58 /* inspector_agent.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_agent.cc; sourceTree = "<group>"; };
+		AC5864D51F0E135000677D58 /* inspector_io.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_io.cc; sourceTree = "<group>"; };
+		AC5864D61F0E135000677D58 /* inspector_socket_server.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_socket_server.cc; sourceTree = "<group>"; };
+		AC5864D71F0E135000677D58 /* inspector_socket.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_socket.cc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,7 +112,8 @@
 		AC46B4671F0DE445000530A3 /* debugger */ = {
 			isa = PBXGroup;
 			children = (
-				AC46B4681F0DE445000530A3 /* main.cpp */,
+				AC5864CB1F0E12CB00677D58 /* include */,
+				AC46B48C1F0DE8B6000530A3 /* src */,
 			);
 			path = debugger;
 			sourceTree = "<group>";
@@ -102,6 +121,7 @@
 		AC46B4701F0DE507000530A3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AC46B5461F0DF75B000530A3 /* libcares.a */,
 				AC46B4771F0DE515000530A3 /* libv8_base.a */,
 				AC46B4781F0DE515000530A3 /* libv8_external_snapshot.a */,
 				AC46B4791F0DE515000530A3 /* libv8_libbase.a */,
@@ -112,6 +132,33 @@
 				AC46B4721F0DE507000530A3 /* libicuuc.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		AC46B48C1F0DE8B6000530A3 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				AC5864D31F0E135000677D58 /* http_parser.c */,
+				AC5864D41F0E135000677D58 /* inspector_agent.cc */,
+				AC5864D51F0E135000677D58 /* inspector_io.cc */,
+				AC5864D61F0E135000677D58 /* inspector_socket_server.cc */,
+				AC5864D71F0E135000677D58 /* inspector_socket.cc */,
+				AC46B4681F0DE445000530A3 /* main.cpp */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		AC5864CB1F0E12CB00677D58 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				AC5864CC1F0E134900677D58 /* base64.h */,
+				AC5864CD1F0E134900677D58 /* http_parser.h */,
+				AC5864CE1F0E134900677D58 /* inspector_agent.h */,
+				AC5864CF1F0E134900677D58 /* inspector_io.h */,
+				AC5864D01F0E134900677D58 /* inspector_socket_server.h */,
+				AC5864D11F0E134900677D58 /* inspector_socket.h */,
+				AC5864D21F0E134900677D58 /* v8_inspector_protocol_json.h */,
+			);
+			name = include;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -171,7 +218,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC5864D81F0E135000677D58 /* http_parser.c in Sources */,
+				AC5864DB1F0E135000677D58 /* inspector_socket_server.cc in Sources */,
+				AC5864DC1F0E135000677D58 /* inspector_socket.cc in Sources */,
+				AC5864DA1F0E135000677D58 /* inspector_io.cc in Sources */,
 				AC46B4691F0DE445000530A3 /* main.cpp in Sources */,
+				AC5864D91F0E135000677D58 /* inspector_agent.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,8 +325,8 @@
 				HEADER_SEARCH_PATHS = (
 					"~/projects/github/v8/v8",
 					"~/projects/github/v8/v8/include",
+					"~/projects/github/v8/v8/third_party/icu/source/common",
 					/usr/local/include,
-					/Users/gautham/projects/github/v8/v8/third_party/icu/source/common,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"~/projects/github/v8/v8/out.gn/x64.release/obj/",
@@ -297,8 +349,8 @@
 				HEADER_SEARCH_PATHS = (
 					"~/projects/github/v8/v8",
 					"~/projects/github/v8/v8/include",
+					"~/projects/github/v8/v8/third_party/icu/source/common",
 					/usr/local/include,
-					/Users/gautham/projects/github/v8/v8/third_party/icu/source/common,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"~/projects/github/v8/v8/out.gn/x64.release/obj/",
@@ -334,6 +386,7 @@
 				AC46B46E1F0DE445000530A3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
