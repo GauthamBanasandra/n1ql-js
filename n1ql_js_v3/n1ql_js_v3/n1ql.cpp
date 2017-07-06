@@ -188,7 +188,7 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
-  v8::EscapableHandleScope handle_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
 
   // Hash of N1QL instance in JavaScript.
   std::string hash = SetUniqueHash(args);
@@ -238,7 +238,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 }
 
 void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = v8::Isolate::GetCurrent();
+  v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handleScope(isolate);
 
   // Hash of N1QL instance in JavaScript.

@@ -11,8 +11,6 @@ var transpiledCode = escodegen.generate(getAst(code), {
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-console.log('docTimer exists', isFuncCalled('docTimer', code));
-
 function transpile(code) {
     return escodegen.generate(getAst(code), {
         comment: true

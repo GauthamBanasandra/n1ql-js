@@ -14,9 +14,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "528"
-            endingLineNumber = "528"
-            landmarkName = "HasKey(const v8::FunctionCallbackInfo&lt;v8::Value&gt; &amp;args, std::string key_str)"
-            landmarkType = "9">
+            endingLineNumber = "528">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -27,6 +25,22 @@
             continueAfterRunningActions = "No"
             filePath = "../../couchbase/enterprise/goproj/src/github.com/couchbase/eventing/v8_consumer/src/n1ql.cc"
             timestampString = "519895444.742809"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "194"
+            endingLineNumber = "194"
+            landmarkName = "IterFunction(const v8::FunctionCallbackInfo&lt;v8::Value&gt; &amp;args)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../checkout/eventing/v8_consumer/src/n1ql.cc"
+            timestampString = "520440350.129144"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "194"

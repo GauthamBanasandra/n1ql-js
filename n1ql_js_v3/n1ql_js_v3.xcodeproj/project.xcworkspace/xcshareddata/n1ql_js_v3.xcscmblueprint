@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "5A7FEAECFBBAD2D961D008B39736269EF91B8114",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "5A7FEAECFBBAD2D961D008B39736269EF91B8114" : 9223372036854775807,
+    "02AA66712B630351CD19F9941307921CAA73D50A" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "062682BA-491C-4F40-9E66-C3F39D5CC317",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "5A7FEAECFBBAD2D961D008B39736269EF91B8114" : "n1ql-js\/",
+    "02AA66712B630351CD19F9941307921CAA73D50A" : "checkout\/eventing\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "n1ql_js_v3",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "n1ql_js_v3\/n1ql_js_v3.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "http:\/\/github.com\/couchbase\/eventing",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "02AA66712B630351CD19F9941307921CAA73D50A"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/GauthamBanasandra\/n1ql-js.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "5A7FEAECFBBAD2D961D008B39736269EF91B8114"
+    }
+  ]
+}
