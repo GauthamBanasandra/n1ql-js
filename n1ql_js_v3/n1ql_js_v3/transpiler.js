@@ -1,11 +1,39 @@
 function transpile(code) {
-    return escodegen.generate(getAst(code), {
-        comment: true
-    });
+    return escodegen.generate(getAst(code));
 }
 
 function jsFormat(code) {
     return escodegen.generate(esprima.parse(code));
+}
+
+function isTimerCalled(code) {
+    return isFuncCalled('docTimer', code) && isFuncCalled('nonDocTimer', code);
+}
+
+function getSourceMap(code) {		
+  return escodegen.generate(getAst(code), {
+                            sourceMap:true
+                            });
+}
+
+// Checks if a function is called.
+function isFuncCalled(methodName, code) {
+    // Get the Abstract Syntax Tree (ast) of the input code.
+    var ast = esprima.parse(code, {
+        attachComment: true,
+        sourceType: 'script'
+    });
+
+    var methodExists = false;
+    estraverse.traverse(ast, {
+        enter: function(node) {
+            if (!methodExists && /CallExpression/.test(node.type)) {
+                methodExists = node.callee.name === methodName;
+            }
+        }
+    });
+
+    return methodExists;
 }
 
 // TODO : Handle the case when comment appears inside a string - /* this is 'a comm*/'ent */ - must be
@@ -907,7 +935,7 @@ function getAst(code) {
                 leave: function(node) {
                     _this.decrAndPop();
                 }
-            })
+            });
         };
 
         // debug.
@@ -1400,7 +1428,9 @@ function getAst(code) {
     // Get the Abstract Syntax Tree (ast) of the input code.
     var ast = esprima.parse(code, {
         attachComment: true,
-        sourceType: 'script'
+        sourceType: 'script',
+        loc: true,
+        source: 'input_debug.js'
     });
 
     // nodeUtils.checkGlobals(ast);

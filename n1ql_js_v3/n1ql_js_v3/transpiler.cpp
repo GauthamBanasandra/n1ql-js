@@ -38,23 +38,30 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(std::string code,
   return handle_scope.Escape(result);
 }
 
-std::string Transpiler::Transpile(std::string code) {
-  auto result = ExecTranspiler(code, "transpile");
+std::string Transpiler::Transpile(std::string handler_code) {
+  auto result = ExecTranspiler(handler_code, "transpile");
   v8::String::Utf8Value utf8result(result);
 
   return *utf8result;
 }
 
-std::string Transpiler::JsFormat(std::string code) {
-  auto result = ExecTranspiler(code, "jsFormat");
+std::string Transpiler::JsFormat(std::string handler_code) {
+  auto result = ExecTranspiler(handler_code, "jsFormat");
   v8::String::Utf8Value utf8result(result);
 
   return *utf8result;
 }
 
-bool Transpiler::IsTimerCalled(std::string code) {
-  auto result = ExecTranspiler(code, "isTimerCalled");
+std::string Transpiler::GetSourceMap(std::string handler_code) {
+  auto result = ExecTranspiler(handler_code, "getSourceMap");
+  v8::String::Utf8Value utf8result(result);
+  
+  return *utf8result;
+}
+
+bool Transpiler::IsTimerCalled(std::string handler_code) {
+  auto result = ExecTranspiler(handler_code, "isTimerCalled");
   auto bool_result = v8::Local<v8::Boolean>::Cast(result);
 
-  return bool_result->Value();
+  return ToCBool(bool_result);
 }

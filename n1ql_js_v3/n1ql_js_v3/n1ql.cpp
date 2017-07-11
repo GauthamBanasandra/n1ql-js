@@ -217,7 +217,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   AddQueryMetadata(iter_handler, isolate, _this);
   args.This() = _this;
 
-  PopScopeIndex(args);
+  PopScopeStack(args);
 }
 
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -371,6 +371,32 @@ void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
   }
 }
 
+bool PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::HandleScope handle_scope(isolate);
+  auto context = isolate->GetCurrentContext();
+  
+  bool exists;
+  std::string base_hash = GetBaseHash(args, exists);
+  
+  if (exists) {
+    auto hash_key = v8::Private::ForApi(
+                                        isolate, v8::String::NewFromUtf8(isolate, base_hash.c_str()));
+    exists = HasKey(args, base_hash);
+    if (exists) {
+      auto stack = args.This()->GetPrivate(context, hash_key).ToLocalChecked();
+      auto scope_stack = v8::Local<v8::Map>::Cast(stack);
+      auto result = scope_stack->Delete(
+                                        context, v8::Number::New(isolate, scope_stack->Size() - 1));
+      return result.IsJust() && result.FromJust();
+    } else {
+      throw "scope stack not set";
+    }
+  } else {
+    throw "unique hash not set";
+  }
+}
+
 std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);
@@ -400,32 +426,6 @@ std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 
   return "";
-}
-
-bool PopScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args) {
-  v8::Isolate *isolate = args.GetIsolate();
-  v8::HandleScope handle_scope(isolate);
-  auto context = isolate->GetCurrentContext();
-
-  bool exists;
-  std::string base_hash = GetBaseHash(args, exists);
-
-  if (exists) {
-    auto hash_key = v8::Private::ForApi(
-        isolate, v8::String::NewFromUtf8(isolate, base_hash.c_str()));
-    exists = HasKey(args, base_hash);
-    if (exists) {
-      auto stack = args.This()->GetPrivate(context, hash_key).ToLocalChecked();
-      auto scope_stack = v8::Local<v8::Map>::Cast(stack);
-      auto result = scope_stack->Delete(
-          context, v8::Number::New(isolate, scope_stack->Size() - 1));
-      return result.IsJust() && result.FromJust();
-    } else {
-      throw "scope stack not set";
-    }
-  } else {
-    throw "unique hash not set";
-  }
 }
 
 std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args) {
@@ -463,10 +463,10 @@ std::string GetBaseHash(const v8::FunctionCallbackInfo<v8::Value> &args,
   if (exists) {
     auto key =
         v8::Private::ForApi(isolate, v8::String::NewFromUtf8(isolate, "hash"));
-    auto value = args.This()->GetPrivate(context, key);
-    v8::String::Utf8Value value_str(value.ToLocalChecked());
+    auto value = args.This()->GetPrivate(context, key).ToLocalChecked();
+    v8::String::Utf8Value value_str(value);
 
-    return *value_str;
+    return ToCString(value_str);
   }
 
   return "";
@@ -482,5 +482,5 @@ bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args,
       isolate, v8::String::NewFromUtf8(isolate, key_str.c_str()));
   v8::Maybe<bool> has_key = args.This()->HasPrivate(context, key);
 
-  return has_key.IsJust() && has_key.FromJust();
+  return !has_key.IsNothing() && has_key.IsJust() && has_key.FromJust();
 }

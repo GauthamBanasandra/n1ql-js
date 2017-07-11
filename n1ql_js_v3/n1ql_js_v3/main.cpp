@@ -48,6 +48,19 @@ std::string ReadFile(std::string file_path) {
   return source;
 }
 
+// Extracts a C string from a V8 Utf8Value.
+const char *ToCString(const v8::String::Utf8Value &value) {
+  return *value ? *value : "<std::string conversion failed>";
+}
+
+bool ToCBool(const v8::Local<v8::Boolean> &value) {
+  if (value.IsEmpty()) {
+    std::cout << "Failed to convert to bool" << '\n';
+  }
+  
+  return value->Value();
+}
+
 void Print(const v8::FunctionCallbackInfo<v8::Value> &args) {
   v8::Isolate *isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);

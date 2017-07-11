@@ -9,6 +9,11 @@
 			<key>orderHint</key>
 			<integer>4</integer>
 		</dict>
+		<key>debugger.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
 		<key>enterprise.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -53,6 +58,11 @@
 			<true/>
 		</dict>
 		<key>AC51C4811EF25DE600BF75D4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AC7BE7E11F136E20003A36BA</key>
 		<dict>
 			<key>primary</key>
 			<true/>

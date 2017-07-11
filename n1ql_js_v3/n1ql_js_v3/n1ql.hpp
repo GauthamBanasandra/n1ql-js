@@ -99,6 +99,7 @@ public:
   v8::Local<v8::Value> ExecTranspiler(std::string code, std::string function);
   std::string Transpile(std::string user_code);
   std::string JsFormat(std::string user_code);
+  std::string GetSourceMap(std::string user_code);
   bool IsTimerCalled(std::string user_code);
   ~Transpiler() {}
 };
@@ -122,7 +123,9 @@ std::string GetBaseHash(const v8::FunctionCallbackInfo<v8::Value> &args,
                         bool &exists);
 void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
                     std::string key_hash_str, std::string value_hash_str);
+bool PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
 std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
-bool PopScopeIndex(const v8::FunctionCallbackInfo<v8::Value> &args);
+const char *ToCString(const v8::String::Utf8Value &value);
+bool ToCBool(const v8::Local<v8::Boolean> &value);
 
 #endif
