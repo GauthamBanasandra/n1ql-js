@@ -63,13 +63,3 @@ if (res1.isInstance) {
         }
     }
 }
-function N1qlQuery(query) {
-    this.query = query;
-    this.metadata = null;
-    this.isInstance = true;
-    this.iter = iter;
-    this.execQuery = execQuery;
-    this.stopIter = stopIter;
-    this.getReturnValue = getReturnValue;
-}
-//# sourceMappingURL=file:///Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input_debug.json

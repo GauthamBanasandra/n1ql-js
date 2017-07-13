@@ -14,7 +14,11 @@ console.log(transpiledCode.code);
 esprima.parse(transpiledCode.code);
 
 function saveTranspiledCode() {
-		
+	var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
+	fs.writeFileSync(tCodePath, transpiledCode.code);
+
+	var smPath = filename.slice(0, filename.lastIndexOf('.js')) + '.map.json';
+	fs.writeFileSync(smPath, transpiledCode.map);
 }
 saveTranspiledCode();
 

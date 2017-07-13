@@ -1,13 +1,13 @@
-var res1 = new N1qlQuery(`select * from \`beer-sample\`;`);
-var res2 = new N1qlQuery(`select * from \`beer-sample\`;`);
-
-x:for (var r1 of res1) {
-    for (var r2 of res2) {		
+var res1 = new N1qlQuery('select * from `beer-sample`;');
+if (res1.isInstance) {
+    res1.iter(function (r1) {
         console.log('query 1', r1);
-        console.log('query 2', r2);		
+    });
+} else {
+    for (var r1 of res1) {
+        console.log('query 1', r1);
     }
 }
-
 function N1qlQuery(query) {
     var stopSignal = false;
     this.isInstance = true;
@@ -34,7 +34,6 @@ function N1qlQuery(query) {
         } else {
             returnValue = stopMeta;
         }
-
         return returnValue;
-    }
+    };
 }
