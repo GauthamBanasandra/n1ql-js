@@ -82,7 +82,9 @@ function getAst(code) {
 		};
 
 		// Replaces source node with the target node and returns a reference to the new node.
-		this.replaceNode = function (source, target) {
+		this.replaceNode = function (source, target, context) {
+			var sourceCopy = this.deepCopy(source);
+
 			Object.keys(source).forEach(function (key) {
 				delete source[key];
 			});
@@ -90,6 +92,16 @@ function getAst(code) {
 				source[key] = target[key];
 			});
 
+			switch (context) {
+				case Context.N1qlQuery:
+					source.loc = this.deepCopy(sourceCopy.loc);
+					source.callee.loc = this.deepCopy(sourceCopy.callee.loc);
+					source.arguments[0].loc = this.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
+					break;
+
+				default:
+					break;
+			}
 			return source;
 		};
 
@@ -101,7 +113,6 @@ function getAst(code) {
 			var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
 			parentBody.splice(insertIndex, 0, nodeToInsert);
 		};
-
 
 		// A N1QL node is a statement of the form new N1qlQuery('...');
 		this.isN1qlNode = function (node) {
@@ -434,6 +445,10 @@ function getAst(code) {
 		LABELED_BREAK: 'labeled_break',
 		RETURN: 'return',
 		LABELED_CONTINUE: 'labeled_continue'
+	};
+
+	Context = {
+		N1qlQuery: 'n1ql_query'
 	};
 
 	// Utilities for AncestorStack
@@ -1387,7 +1402,7 @@ function getAst(code) {
 			// Perform variable substitution in query constructor.
 			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
 				var queryAst = nodeUtils.getQueryAst(node.arguments[0].quasis[0].value.raw);
-				nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst));
+				nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst), Context.N1qlQuery);
 			}
 
 			// TODO : Handle the case when the source of for-of loop is of type x.y

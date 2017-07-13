@@ -150,6 +150,18 @@ void Print(const FunctionCallbackInfo<Value> &args) {
   fflush(stdout);
 }
 
+std::string GetDebugCodePath(std::string path) {
+  std::size_t i = path.rfind(".js");
+  if (i!=std::string::npos) {
+    std::string tjs = ".d.js";
+    path.replace(i, tjs.length(), tjs);
+    
+    return path;
+  }
+  
+  return "";
+}
+
 std::string GetTranspiledCodePath(std::string path) {
   std::size_t i = path.rfind(".js");
   if (i!=std::string::npos) {
@@ -165,7 +177,7 @@ std::string GetTranspiledCodePath(std::string path) {
 std::string GetSourceMapPath(std::string path) {
   std::size_t i = path.rfind(".js");
   if (i!=std::string::npos) {
-    std::string json = ".json";
+    std::string json = ".map.json";
     path.replace(i, json.length(), json);
     
     return path;
@@ -219,7 +231,10 @@ int main(int argc, char *argv[]) {
     Context::Scope context_scope(context);
     
     std::string src = ReadFile(argv[1]) + '\n';
-    src += ReadFile(BUILTIN);
+    src += ReadFile(BUILTIN) + '\n';
+    std::string d_code_path = GetDebugCodePath(argv[1]);
+    WriteFile(src, d_code_path);
+    
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
     third_party_src += ReadFile(SOURCE_MAP) +'\n';
     third_party_src += ReadFile(ESCODEGEN) + '\n';
@@ -231,11 +246,11 @@ int main(int argc, char *argv[]) {
     
     Transpiler transpiler(third_party_src);
     std::string transpiled_src = transpiler.Transpile(src);
-    std::string t_code_path = GetTranspiledCodePath(argv[1]);
+    std::string t_code_path = GetTranspiledCodePath(d_code_path);
     WriteFile(transpiled_src, t_code_path);
     
     std::string source_map = transpiler.GetSourceMap(src);
-    std::string sm_path = GetSourceMapPath(argv[1]);
+    std::string sm_path = GetSourceMapPath(d_code_path);
     WriteFile(source_map, sm_path);
     
     AppendSourceMapPath(t_code_path, sm_path);

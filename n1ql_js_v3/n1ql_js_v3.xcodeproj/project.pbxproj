@@ -146,14 +146,11 @@
 		AC10F48A1F1482AE00792B1C /* protocol_compatibility.stamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = protocol_compatibility.stamp; sourceTree = "<group>"; };
 		AC10F48B1F1482AE00792B1C /* protocol_generated_sources.inputdeps.stamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = protocol_generated_sources.inputdeps.stamp; sourceTree = "<group>"; };
 		AC10F48C1F1482AE00792B1C /* protocol_generated_sources.stamp */ = {isa = PBXFileReference; lastKnownFileType = text; path = protocol_generated_sources.stamp; sourceTree = "<group>"; };
-		AC10F4961F1491EC00792B1C /* input_debug.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input_debug.js; sourceTree = "<group>"; };
-		AC10F49C1F14A5B400792B1C /* input_debug.t.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = input_debug.t.js; sourceTree = "<group>"; };
 		AC10F4B21F14C3D400792B1C /* source-map.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "source-map.js"; sourceTree = "<group>"; };
-		AC10F4B31F14C49500792B1C /* input_debug.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = input_debug.json; sourceTree = "<group>"; };
-		AC1346731EFAC55600AC817B /* input_internal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input_internal.js; sourceTree = "<group>"; };
+		AC1346731EFAC55600AC817B /* input2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input2.js; sourceTree = "<group>"; };
 		AC1A6B541ECEC8B400FFAE1F /* n1ql_js_v3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = n1ql_js_v3; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1A6B571ECEC8B400FFAE1F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		AC1A6B601ECECB2B00FFAE1F /* input.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input.js; sourceTree = "<group>"; };
+		AC1A6B601ECECB2B00FFAE1F /* input1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input1.js; sourceTree = "<group>"; };
 		AC1A6B611ECECB8C00FFAE1F /* builtin.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = builtin.js; sourceTree = "<group>"; };
 		AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql.cpp; sourceTree = "<group>"; };
 		AC1A6B631ECEE71400FFAE1F /* n1ql.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = n1ql.hpp; sourceTree = "<group>"; };
@@ -205,6 +202,10 @@
 		AC7BE8101F137929003A36BA /* icudtl.dat */ = {isa = PBXFileReference; lastKnownFileType = file; name = icudtl.dat; path = ../../v8/v8/out.gn/x64.release/icudtl.dat; sourceTree = "<group>"; };
 		AC7BE8111F137929003A36BA /* natives_blob.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = natives_blob.bin; path = ../../v8/v8/out.gn/x64.release/natives_blob.bin; sourceTree = "<group>"; };
 		AC7BE8121F137929003A36BA /* snapshot_blob.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = snapshot_blob.bin; path = ../../v8/v8/out.gn/x64.release/snapshot_blob.bin; sourceTree = "<group>"; };
+		ACAB6E921F1781DA00CDF261 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
+		ACAB6E931F17838100CDF261 /* input3.d.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = input3.d.js; sourceTree = "<group>"; };
+		ACAB6E941F17838100CDF261 /* input3.d.t.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = input3.d.t.js; sourceTree = "<group>"; };
+		ACAB6E951F17838100CDF261 /* input3.d.map.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = input3.d.map.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -377,11 +378,12 @@
 		AC1A6B5F1ECECB1B00FFAE1F /* inputs */ = {
 			isa = PBXGroup;
 			children = (
-				AC10F4B31F14C49500792B1C /* input_debug.json */,
-				AC10F49C1F14A5B400792B1C /* input_debug.t.js */,
-				AC1A6B601ECECB2B00FFAE1F /* input.js */,
-				AC1346731EFAC55600AC817B /* input_internal.js */,
-				AC10F4961F1491EC00792B1C /* input_debug.js */,
+				ACAB6E931F17838100CDF261 /* input3.d.js */,
+				ACAB6E941F17838100CDF261 /* input3.d.t.js */,
+				ACAB6E951F17838100CDF261 /* input3.d.map.json */,
+				AC1A6B601ECECB2B00FFAE1F /* input1.js */,
+				AC1346731EFAC55600AC817B /* input2.js */,
+				ACAB6E921F1781DA00CDF261 /* input3.js */,
 			);
 			name = inputs;
 			sourceTree = "<group>";

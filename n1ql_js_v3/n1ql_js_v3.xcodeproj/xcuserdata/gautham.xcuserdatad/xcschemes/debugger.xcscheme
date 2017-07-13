@@ -72,7 +72,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input_debug.js"
+            argument = "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input3.js"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
