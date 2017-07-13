@@ -11,8 +11,12 @@ var transpiledCode = escodegen.generate(getAst(code), {
 });
 
 console.log(transpiledCode.code);
-console.log(transpiledCode.map.toString());
 esprima.parse(transpiledCode.code);
+
+function saveTranspiledCode() {
+		
+}
+saveTranspiledCode();
 
 function transpile(code) {
 	return escodegen.generate(getAst(code));

@@ -127,5 +127,8 @@ bool PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
 std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
 const char *ToCString(const v8::String::Utf8Value &value);
 bool ToCBool(const v8::Local<v8::Boolean> &value);
+template <typename T>
+v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
+
 
 #endif
