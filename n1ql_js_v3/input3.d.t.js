@@ -6,10 +6,12 @@ if (res1.isInstance) {
         if (res2.isInstance) {
             res2.iter(function (r2) {
                 console.log('query2:', r2);
+                return res2.stopIter({ 'code': 'break' });
             });
         } else {
             for (var r2 of res2) {
                 console.log('query2:', r2);
+                break;
             }
         }
     });
@@ -19,10 +21,12 @@ if (res1.isInstance) {
         if (res2.isInstance) {
             res2.iter(function (r2) {
                 console.log('query2:', r2);
+                return res2.stopIter({ 'code': 'break' });
             });
         } else {
             for (var r2 of res2) {
                 console.log('query2:', r2);
+                break;
             }
         }
     }

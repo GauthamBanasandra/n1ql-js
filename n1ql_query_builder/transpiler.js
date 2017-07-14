@@ -105,10 +105,30 @@ function getAst(code) {
 					source.test.loc = this.deepCopy(sourceCopy.right.loc);
 					source.test.object.loc = this.deepCopy(sourceCopy.right.loc);
 					source.test.property.loc = this.deepCopy(sourceCopy.right.loc);
-					break;				
+					break;
+
+				case Context.BreakStatement:
+					source.loc = this.deepCopy(sourceCopy.loc);
+					source.argument = this.setLocForAllNodes(sourceCopy.loc, source.argument);
+					break;
 			}
 
 			return source;
+		};
+
+		this.setLocForAllNodes = function (loc, ast) {
+			var codeSnippet = escodegen.generate(ast);
+			var astWithLoc = esprima.parse(codeSnippet, {
+				loc: true
+			});
+
+			estraverse.traverse(astWithLoc, {
+				enter: function (node) {
+					node.loc = node.loc ? nodeUtils.deepCopy(loc) : null;
+				}
+			});
+
+			return astWithLoc.body[0].expression;
 		};
 
 		// Inserts the given node to the given parentBody at the specified index.
@@ -455,7 +475,8 @@ function getAst(code) {
 
 	Context = {
 		N1qlQuery: 'n1ql_query',
-		IterTypeCheck:'iter_type_check'
+		IterTypeCheck: 'iter_type_check',
+		BreakStatement: 'break_statement'
 	};
 
 	// Utilities for AncestorStack
@@ -1055,7 +1076,7 @@ function getAst(code) {
 							returnStmtAst = new ReturnAst(stopIterAst);
 							// Add 'arg' as the argument to 'stopIter()'.
 							stopIterAst.arguments.push(arg.getAst());
-							nodeUtils.replaceNode(node, returnStmtAst);
+							nodeUtils.replaceNode(node, returnStmtAst, Context.BreakStatement);
 						}
 						break;
 					case 'ContinueStatement':
@@ -1137,13 +1158,13 @@ function getAst(code) {
 		};
 
 		this.mapSourceNode = function (source, target) {
-			target.loc = nodeUtils.deepCopy(source.loc);			
-			target.expression.loc = nodeUtils.deepCopy(source.loc);			
-			target.expression.callee.loc = nodeUtils.deepCopy(source.loc);			
+			target.loc = nodeUtils.deepCopy(source.loc);
+			target.expression.loc = nodeUtils.deepCopy(source.loc);
+			target.expression.callee.loc = nodeUtils.deepCopy(source.loc);
 			target.expression.callee.object.loc = nodeUtils.deepCopy(source.right.loc);
 			target.expression.callee.property.loc = nodeUtils.deepCopy(source.right.loc);
 			target.expression.arguments[0].loc = nodeUtils.deepCopy(source.right.loc);
-			target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);			
+			target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);
 		};
 
 		// Returns AST for 'else' block.

@@ -83,9 +83,31 @@ function getAst(code) {
                     source.test.property.loc = this.deepCopy(sourceCopy.right
                         .loc);
                     break;
+
+                case Context.BreakStatement:
+                    source.loc = this.deepCopy(sourceCopy.loc);
+                    source.argument = this.setLocForAllNodes(sourceCopy.loc,
+                        source.argument);
+                    break;
             }
 
             return source;
+        };
+
+        this.setLocForAllNodes = function(loc, ast) {
+            var codeSnippet = escodegen.generate(ast);
+            var astWithLoc = esprima.parse(codeSnippet, {
+                loc: true
+            });
+
+            estraverse.traverse(astWithLoc, {
+                enter: function(node) {
+                    node.loc = node.loc ? nodeUtils.deepCopy(
+                        loc) : null;
+                }
+            });
+
+            return astWithLoc.body[0].expression;
         };
 
         // Inserts the given node to the given parentBody at the specified index.
@@ -432,7 +454,8 @@ function getAst(code) {
 
     Context = {
         N1qlQuery: 'n1ql_query',
-        IterTypeCheck: 'iter_type_check'
+        IterTypeCheck: 'iter_type_check',
+        BreakStatement: 'break_statement'
     };
 
     // Utilities for AncestorStack
@@ -1052,7 +1075,8 @@ function getAst(code) {
                             // Add 'arg' as the argument to 'stopIter()'.
                             stopIterAst.arguments.push(arg.getAst());
                             nodeUtils.replaceNode(node,
-                                returnStmtAst);
+                                returnStmtAst, Context.BreakStatement
+                            );
                         }
                         break;
                     case 'ContinueStatement':
