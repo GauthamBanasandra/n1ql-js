@@ -6,28 +6,10 @@ if (res1.isInstance) {
         if (res2.isInstance) {
             res2.iter(function (r2) {
                 console.log('query2:', r2);
-                if (res3.isInstance) {
-                    res3.iter(function (r3) {
-                        console.log('query3:', r3);
-                    });
-                } else {
-                    for (var r3 of res3) {
-                        console.log('query3:', r3);
-                    }
-                }
             });
         } else {
             for (var r2 of res2) {
                 console.log('query2:', r2);
-                if (res3.isInstance) {
-                    res3.iter(function (r3) {
-                        console.log('query3:', r3);
-                    });
-                } else {
-                    for (var r3 of res3) {
-                        console.log('query3:', r3);
-                    }
-                }
             }
         }
     });
@@ -37,28 +19,10 @@ if (res1.isInstance) {
         if (res2.isInstance) {
             res2.iter(function (r2) {
                 console.log('query2:', r2);
-                if (res3.isInstance) {
-                    res3.iter(function (r3) {
-                        console.log('query3:', r3);
-                    });
-                } else {
-                    for (var r3 of res3) {
-                        console.log('query3:', r3);
-                    }
-                }
             });
         } else {
             for (var r2 of res2) {
                 console.log('query2:', r2);
-                if (res3.isInstance) {
-                    res3.iter(function (r3) {
-                        console.log('query3:', r3);
-                    });
-                } else {
-                    for (var r3 of res3) {
-                        console.log('query3:', r3);
-                    }
-                }
             }
         }
     }

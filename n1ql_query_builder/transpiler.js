@@ -99,9 +99,15 @@ function getAst(code) {
 					source.arguments[0].loc = this.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
 					break;
 
-				default:
-					break;
+				case Context.IterTypeCheck:
+					source.loc = this.deepCopy(sourceCopy.loc);
+					source.consequent.loc = this.deepCopy(sourceCopy.body.loc);
+					source.test.loc = this.deepCopy(sourceCopy.right.loc);
+					source.test.object.loc = this.deepCopy(sourceCopy.right.loc);
+					source.test.property.loc = this.deepCopy(sourceCopy.right.loc);
+					break;				
 			}
+
 			return source;
 		};
 
@@ -448,7 +454,8 @@ function getAst(code) {
 	};
 
 	Context = {
-		N1qlQuery: 'n1ql_query'
+		N1qlQuery: 'n1ql_query',
+		IterTypeCheck:'iter_type_check'
 	};
 
 	// Utilities for AncestorStack
@@ -1112,6 +1119,7 @@ function getAst(code) {
 
 			var iter = new IteratorSkeletonAst(forOfNode.right.name, (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name));
 			iter.expression.arguments[0].body = iterator.nodeCopy.body;
+			this.mapSourceNode(forOfNode, iter);
 
 			var iterBlockAst = new BlockStatementAst(iter);
 
@@ -1126,6 +1134,16 @@ function getAst(code) {
 			iterator.assertEmpty();
 
 			return iterBlockAst;
+		};
+
+		this.mapSourceNode = function (source, target) {
+			target.loc = nodeUtils.deepCopy(source.loc);			
+			target.expression.loc = nodeUtils.deepCopy(source.loc);			
+			target.expression.callee.loc = nodeUtils.deepCopy(source.loc);			
+			target.expression.callee.object.loc = nodeUtils.deepCopy(source.right.loc);
+			target.expression.callee.property.loc = nodeUtils.deepCopy(source.right.loc);
+			target.expression.arguments[0].loc = nodeUtils.deepCopy(source.right.loc);
+			target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);			
 		};
 
 		// Returns AST for 'else' block.
@@ -1415,7 +1433,7 @@ function getAst(code) {
 
 				var iterator = new IterCompatible(node);
 				var iterAst = iterator.getAst();
-				nodeUtils.replaceNode(node, nodeUtils.deepCopy(iterAst));
+				nodeUtils.replaceNode(node, nodeUtils.deepCopy(iterAst), Context.IterTypeCheck);
 			} else if (/LabeledStatement/.test(node.type) && node.remLabel) {
 				// Delete the label.
 				nodeUtils.replaceNode(node, node.body);
