@@ -115,11 +115,20 @@ function getAst(code) {
 						self.forceSetLocForAllNodes(sourceCopy.loc, source.consequent.body[1]);
 					}
 					break;
-				
+
 				case Context.ContinueStatement:
 				case Context.BreakStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
+					break;
+
+				case Context.ReturnStatement:
+					source.loc = sourceCopy.loc;
+					if (sourceCopy.argument) {
+						source.argument = self.setLocForAllNodes(sourceCopy.argument.loc, source.argument);
+					} else {
+						self.forceSetLocForAllNodes(sourceCopy.loc, source);
+					}
 					break;
 			}
 
@@ -497,7 +506,8 @@ function getAst(code) {
 		N1qlQuery: 'n1ql_query',
 		IterTypeCheck: 'iter_type_check',
 		BreakStatement: 'break_statement',
-		ContinueStatement: 'continue_statement'
+		ContinueStatement: 'continue_statement',
+		ReturnStatement: 'return_statement'
 	};
 
 	// Utilities for AncestorStack
@@ -1148,7 +1158,7 @@ function getAst(code) {
 							});
 
 							postIter.push(postIterArgs);
-							nodeUtils.replaceNode(node, returnStmtAst);
+							nodeUtils.replaceNode(node, returnStmtAst, Context.ReturnStatement);
 						}
 						break;
 					case 'IfStatement':

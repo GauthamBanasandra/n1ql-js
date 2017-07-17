@@ -1,48 +1,25 @@
-var res1 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
-var res2 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
-if (res2.isInstance) {
-    res2.iter(function (r2) {
-        if (res1.isInstance) {
-            res1.iter(function (r1) {
-                console.log('query1:', r1);
-                return res1.stopIter({
-                    'code': 'labeled_continue',
-                    'args': 'x'
-                });
+function query() {
+    var res1 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
+    var res2 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
+    if (res1.isInstance) {
+        res1.iter(function (r1) {
+            console.log('query1:', r1);
+            return res1.stopIter({
+                'code': 'return',
+                'args': '(null)',
+                'data': null
             });
-            switch (res1.getReturnValue(true)) {
-            case 'labeled_continuex':
-                return;
-            }
-        } else {
-            for (var r1 of res1) {
-                console.log('query1:', r1);
-                return;
-            }
+        });
+        switch (res1.getReturnValue(true)) {
+        case 'return(null)':
+            return res1.getReturnValue().data;;
         }
-    });
-} else {
-    x:
-        for (var r2 of res2) {
-            if (res1.isInstance) {
-                res1.iter(function (r1) {
-                    console.log('query1:', r1);
-                    return res1.stopIter({
-                        'code': 'labeled_continue',
-                        'args': 'x'
-                    });
-                });
-                switch (res1.getReturnValue(true)) {
-                case 'labeled_continuex':
-                    continue x;
-                }
-            } else {
-                for (var r1 of res1) {
-                    console.log('query1:', r1);
-                    continue x;
-                }
-            }
+    } else {
+        for (var r1 of res1) {
+            console.log('query1:', r1);
+            return;
         }
+    }
 }
 function N1qlQuery(query) {
     var stopSignal = false;
