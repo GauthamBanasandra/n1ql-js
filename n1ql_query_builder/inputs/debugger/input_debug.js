@@ -1,10 +1,10 @@
 var res1 = new N1qlQuery(`select * from \`beer-sample\` LIMIT 10;`);
 var res2 = new N1qlQuery(`select * from \`beer-sample\` LIMIT 10;`);
 
-x: while (true) {
+x: for(var r2 of res2) {
 	for (var r1 of res1) {
 		console.log('query1:', r1);
-		break x;
+		continue x;
 	}
 }
 

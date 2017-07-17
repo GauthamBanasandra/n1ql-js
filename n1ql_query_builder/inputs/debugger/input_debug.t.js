@@ -1,26 +1,49 @@
 var res1 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
 var res2 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
-x:
-    while (true) {
+if (res2.isInstance) {
+    res2.iter(function (r2) {
         if (res1.isInstance) {
             res1.iter(function (r1) {
                 console.log('query1:', r1);
                 return res1.stopIter({
-                    'code': 'labeled_break',
+                    'code': 'labeled_continue',
                     'args': 'x'
                 });
             });
             switch (res1.getReturnValue(true)) {
-            case 'labeled_breakx':
-                break x;
+            case 'labeled_continuex':
+                return;
             }
         } else {
             for (var r1 of res1) {
                 console.log('query1:', r1);
-                break x;
+                return;
             }
         }
-    }
+    });
+} else {
+    x:
+        for (var r2 of res2) {
+            if (res1.isInstance) {
+                res1.iter(function (r1) {
+                    console.log('query1:', r1);
+                    return res1.stopIter({
+                        'code': 'labeled_continue',
+                        'args': 'x'
+                    });
+                });
+                switch (res1.getReturnValue(true)) {
+                case 'labeled_continuex':
+                    continue x;
+                }
+            } else {
+                for (var r1 of res1) {
+                    console.log('query1:', r1);
+                    continue x;
+                }
+            }
+        }
+}
 function N1qlQuery(query) {
     var stopSignal = false;
     this.isInstance = true;

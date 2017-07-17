@@ -115,7 +115,8 @@ function getAst(code) {
 						self.forceSetLocForAllNodes(sourceCopy.loc, source.consequent.body[1]);
 					}
 					break;
-
+				
+				case Context.ContinueStatement:
 				case Context.BreakStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
@@ -495,7 +496,8 @@ function getAst(code) {
 	Context = {
 		N1qlQuery: 'n1ql_query',
 		IterTypeCheck: 'iter_type_check',
-		BreakStatement: 'break_statement'
+		BreakStatement: 'break_statement',
+		ContinueStatement: 'continue_statement'
 	};
 
 	// Utilities for AncestorStack
@@ -1116,10 +1118,10 @@ function getAst(code) {
 								postIter.push(arg.toString());
 							}
 
-							nodeUtils.replaceNode(node, returnStmtAst);
+							nodeUtils.replaceNode(node, returnStmtAst, Context.ContinueStatement);
 						} else if (continueMod.isReplaceReq()) {
 							// Unlabeled continue statement.
-							nodeUtils.replaceNode(node, new ReturnAst(null));
+							nodeUtils.replaceNode(node, new ReturnAst(null), Context.ContinueStatement);
 						}
 						break;
 					case 'ReturnStatement':
