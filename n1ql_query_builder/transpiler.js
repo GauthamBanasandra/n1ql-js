@@ -67,6 +67,7 @@ function isFuncCalled(methodName, code) {
 function getAst(code) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
+		var self = this;
 		// Performs deep copy of the given node.
 		this.deepCopy = function (node) {
 			return JSON.parse(JSON.stringify(node));
@@ -83,7 +84,7 @@ function getAst(code) {
 
 		// Replaces source node with the target node and returns a reference to the new node.
 		this.replaceNode = function (source, target, context) {
-			var sourceCopy = this.deepCopy(source);
+			var sourceCopy = self.deepCopy(source);
 
 			Object.keys(source).forEach(function (key) {
 				delete source[key];
@@ -94,26 +95,44 @@ function getAst(code) {
 
 			switch (context) {
 				case Context.N1qlQuery:
-					source.loc = this.deepCopy(sourceCopy.loc);
-					source.callee.loc = this.deepCopy(sourceCopy.callee.loc);
-					source.arguments[0].loc = this.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
+					source.loc = self.deepCopy(sourceCopy.loc);
+					source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
+					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
 					break;
 
 				case Context.IterTypeCheck:
-					source.loc = this.deepCopy(sourceCopy.loc);
-					source.consequent.loc = this.deepCopy(sourceCopy.body.loc);
-					source.test.loc = this.deepCopy(sourceCopy.right.loc);
-					source.test.object.loc = this.deepCopy(sourceCopy.right.loc);
-					source.test.property.loc = this.deepCopy(sourceCopy.right.loc);
+					source.loc = self.deepCopy(sourceCopy.loc);
+					source.consequent.loc = self.deepCopy(sourceCopy.body.loc);
+					source.test.loc = self.deepCopy(sourceCopy.right.loc);
+					source.test.object.loc = self.deepCopy(sourceCopy.right.loc);
+					source.test.property.loc = self.deepCopy(sourceCopy.right.loc);
+
+					// TODO: Currently, after breaking out from labeled break statement, it goes to the beginning of the for-of loop.
+					//		Ideally, it should go to the end of the labeled block. This looks quite ideal to show the iteration behaviour -
+					//		It stops at the enclosing for-of loops (iterators) before coming out and thus, demonstrating the stopping
+					//		of iteration. Need to ask whether this is ok or if the default behaviour is needed.
+					if (source.consequent.body.length > 1 && /SwitchStatement/.test(source.consequent.body[1].type)) {
+						self.forceSetLocForAllNodes(sourceCopy.loc, source.consequent.body[1]);
+					}
 					break;
 
 				case Context.BreakStatement:
-					source.loc = this.deepCopy(sourceCopy.loc);
-					source.argument = this.setLocForAllNodes(sourceCopy.loc, source.argument);
+					source.loc = self.deepCopy(sourceCopy.loc);
+					source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
 					break;
 			}
 
 			return source;
+		};
+
+		this.forceSetLocForAllNodes = function (loc, ast) {
+			estraverse.traverse(ast, {
+				enter: function (node) {
+					if (!node.loc) {
+						node.loc = self.deepCopy(loc);
+					}
+				}
+			});
 		};
 
 		this.setLocForAllNodes = function (loc, ast) {

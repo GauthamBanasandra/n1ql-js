@@ -6,30 +6,51 @@ if (res1.isInstance) {
         if (res2.isInstance) {
             res2.iter(function (r2) {
                 console.log('query2:', r2);
-                return res2.stopIter({ 'code': 'break' });
+                return res2.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'x'
+                });
             });
+            switch (res2.getReturnValue(true)) {
+            case 'labeled_breakx':
+                return res1.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'x'
+                });
+            }
         } else {
             for (var r2 of res2) {
                 console.log('query2:', r2);
-                break;
+                return res1.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'x'
+                });
             }
         }
     });
 } else {
-    for (var r1 of res1) {
-        console.log('query1:', r1);
-        if (res2.isInstance) {
-            res2.iter(function (r2) {
-                console.log('query2:', r2);
-                return res2.stopIter({ 'code': 'break' });
-            });
-        } else {
-            for (var r2 of res2) {
-                console.log('query2:', r2);
-                break;
+    x:
+        for (var r1 of res1) {
+            console.log('query1:', r1);
+            if (res2.isInstance) {
+                res2.iter(function (r2) {
+                    console.log('query2:', r2);
+                    return res2.stopIter({
+                        'code': 'labeled_break',
+                        'args': 'x'
+                    });
+                });
+                switch (res2.getReturnValue(true)) {
+                case 'labeled_breakx':
+                    break x;
+                }
+            } else {
+                for (var r2 of res2) {
+                    console.log('query2:', r2);
+                    break x;
+                }
             }
         }
-    }
 }
 function N1qlQuery(query) {
     this.query = query;
