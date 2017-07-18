@@ -1298,7 +1298,7 @@ function getAst(code) {
 									args: node.metaData.args,
 									appendData: true
 								});
-								nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()));
+								nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()), Context.ReturnStatement);
 								break;
 						}
 					}
@@ -1446,7 +1446,7 @@ function getAst(code) {
 									targetFunction: node.targetFunction
 								};
 
-								nodeUtils.replaceNode(node, returnStmtAst);
+								nodeUtils.replaceNode(node, returnStmtAst, Context.ReturnStatement);
 							}
 						}
 						break;
