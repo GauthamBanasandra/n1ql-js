@@ -64,6 +64,7 @@ function isFuncCalled(methodName, code) {
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Need to call execQuery() if the query isn't a select query.
+// TODO : Source map does not work for /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
 function getAst(code) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
@@ -93,6 +94,11 @@ function getAst(code) {
 				source[key] = target[key];
 			});
 
+			// Using this check temporarily.
+			if (!self.hasLocNode(sourceCopy)) {
+				return source;
+			}
+
 			switch (context) {
 				case Context.N1qlQuery:
 					source.loc = self.deepCopy(sourceCopy.loc);
@@ -119,7 +125,21 @@ function getAst(code) {
 				case Context.ContinueStatement:
 				case Context.BreakStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
-					source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
+
+					switch (source.type) {
+						case 'BreakStatement':
+							console.assert(/ReturnStatement/.test(sourceCopy.type), 'sourceCopy type must be ReturnStatement');
+							source.label.loc = self.deepCopy(sourceCopy.argument.loc);
+							break;
+
+						case 'ReturnStatement':
+							console.assert(/BreakStatement/.test(sourceCopy.type), 'sourceCopy type must be BreakStatement');
+							source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
+							break;
+
+						default:
+							thow('Not yet handled for ' + source.type);
+					}
 					break;
 
 				case Context.ReturnStatement:
@@ -133,6 +153,21 @@ function getAst(code) {
 			}
 
 			return source;
+		};
+
+		this.hasLocNode = function (ast) {
+			var hasLoc = false;
+			estraverse.traverse(ast, {
+				enter: function (node) {
+					if (hasLoc) {
+						return;
+					}
+
+					hasLoc = node.loc;
+				}
+			});
+
+			return hasLoc;
 		};
 
 		this.forceSetLocForAllNodes = function (loc, ast) {
@@ -1228,7 +1263,10 @@ function getAst(code) {
 					if (lookup.targetFound) {
 						switch (node.metaData.code) {
 							case LoopModifier.CONST.LABELED_BREAK:
-								nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args));
+								// debug.
+								console.log(escodegen.generate(nodeCopy), '\n\n');
+
+								nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args), Context.BreakStatement);
 								break;
 							case LoopModifier.CONST.LABELED_CONTINUE:
 								nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args));
@@ -1318,7 +1356,7 @@ function getAst(code) {
 									code: LoopModifier.CONST.LABELED_BREAK,
 									args: node.label.name
 								};
-								nodeUtils.replaceNode(node, returnStmtAst);
+								nodeUtils.replaceNode(node, returnStmtAst, Context.BreakStatement);
 							}
 						}
 						break;
