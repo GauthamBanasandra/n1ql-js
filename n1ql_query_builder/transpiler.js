@@ -64,7 +64,7 @@ function isFuncCalled(methodName, code) {
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Need to call execQuery() if the query isn't a select query.
-// TODO : Source map does not work for /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
+// TODO : Source map does not work properly for break and continue in nested iterators /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
 function getAst(code) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
@@ -123,6 +123,27 @@ function getAst(code) {
 					break;
 
 				case Context.ContinueStatement:
+					source.loc = self.deepCopy(sourceCopy.loc);
+					switch (source.type) {
+						case 'ContinueStatement':
+							console.assert(/ReturnStatement/.test(sourceCopy.type), 'sourceCopy type must be ReturnStatement');
+							if (source.label) {
+								source.label.loc = self.deepCopy(sourceCopy.loc);
+							}
+							break;
+
+						case 'ReturnStatement':
+							console.assert(/ContinueStatement/.test(sourceCopy.type), 'sourceCopy type must be ContinueStatement');
+							if (source.argument && sourceCopy.label.loc) {
+								source.argument = self.setLocForAllNodes(sourceCopy.label.loc, source.argument);
+							}
+							break;
+
+						default:
+							throw 'Not yet handled for ' + source.type;
+					}
+					break;
+
 				case Context.BreakStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
 
@@ -138,7 +159,7 @@ function getAst(code) {
 							break;
 
 						default:
-							thow('Not yet handled for ' + source.type);
+							throw 'Not yet handled for ' + source.type;
 					}
 					break;
 
@@ -1269,7 +1290,7 @@ function getAst(code) {
 								nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args), Context.BreakStatement);
 								break;
 							case LoopModifier.CONST.LABELED_CONTINUE:
-								nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args));
+								nodeUtils.replaceNode(node, new LabeledContinueAst(node.metaData.args), Context.ContinueStatement);
 								break;
 							case LoopModifier.CONST.RETURN:
 								arg = new Arg({
@@ -1390,7 +1411,7 @@ function getAst(code) {
 									code: LoopModifier.CONST.LABELED_CONTINUE,
 									args: node.label.name
 								};
-								nodeUtils.replaceNode(node, returnStmtAst);
+								nodeUtils.replaceNode(node, returnStmtAst, Context.ContinueStatement);
 							}
 						}
 						break;

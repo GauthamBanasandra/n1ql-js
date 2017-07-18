@@ -5,257 +5,28 @@ function query() {
         res1.iter(function (r) {
             if (res2.isInstance) {
                 res2.iter(function (r) {
-                    if (res3.isInstance) {
-                        res3.iter(function (r) {
-                            if (res4.isInstance) {
-                                res4.iter(function (r) {
-                                    return res4.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res4.getReturnValue(true)) {
-                                case 'labeled_breakx':
-                                    return res3.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res4) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
-                        });
-                        switch (res3.getReturnValue(true)) {
-                        case 'labeled_breakx':
-                            return res2.stopIter({
-                                'code': 'labeled_break',
-                                'args': 'x'
-                            });
-                        }
-                    } else {
-                        for (var r of res3) {
-                            if (res4.isInstance) {
-                                res4.iter(function (r) {
-                                    return res4.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res4.getReturnValue(true)) {
-                                case 'labeled_breakx':
-                                    return res2.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res4) {
-                                    return res2.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
-                        }
-                    }
+                    return;
                 });
-                switch (res2.getReturnValue(true)) {
-                case 'labeled_breakx':
-                    return res1.stopIter({
-                        'code': 'labeled_break',
-                        'args': 'x'
-                    });
-                }
             } else {
-                for (var r of res2) {
-                    if (res3.isInstance) {
-                        res3.iter(function (r) {
-                            if (res4.isInstance) {
-                                res4.iter(function (r) {
-                                    return res4.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res4.getReturnValue(true)) {
-                                case 'labeled_breakx':
-                                    return res3.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res4) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
-                        });
-                        switch (res3.getReturnValue(true)) {
-                        case 'labeled_breakx':
-                            return res1.stopIter({
-                                'code': 'labeled_break',
-                                'args': 'x'
-                            });
-                        }
-                    } else {
-                        for (var r of res3) {
-                            if (res4.isInstance) {
-                                res4.iter(function (r) {
-                                    return res4.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res4.getReturnValue(true)) {
-                                case 'labeled_breakx':
-                                    return res1.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res4) {
-                                    return res1.stopIter({
-                                        'code': 'labeled_break',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
-                        }
+                x:
+                    for (var r of res2) {
+                        continue x;
                     }
-                }
             }
         });
     } else {
-        x:
-            for (var r of res1) {
-                if (res2.isInstance) {
-                    res2.iter(function (r) {
-                        if (res3.isInstance) {
-                            res3.iter(function (r) {
-                                if (res4.isInstance) {
-                                    res4.iter(function (r) {
-                                        return res4.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    });
-                                    switch (res4.getReturnValue(true)) {
-                                    case 'labeled_breakx':
-                                        return res3.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                } else {
-                                    for (var r of res4) {
-                                        return res3.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                }
-                            });
-                            switch (res3.getReturnValue(true)) {
-                            case 'labeled_breakx':
-                                return res2.stopIter({
-                                    'code': 'labeled_break',
-                                    'args': 'x'
-                                });
-                            }
-                        } else {
-                            for (var r of res3) {
-                                if (res4.isInstance) {
-                                    res4.iter(function (r) {
-                                        return res4.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    });
-                                    switch (res4.getReturnValue(true)) {
-                                    case 'labeled_breakx':
-                                        return res2.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                } else {
-                                    for (var r of res4) {
-                                        return res2.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    switch (res2.getReturnValue(true)) {
-                    case 'labeled_breakx':
-                        break x;
-                    }
-                } else {
+        for (var r of res1) {
+            if (res2.isInstance) {
+                res2.iter(function (r) {
+                    return;
+                });
+            } else {
+                x:
                     for (var r of res2) {
-                        if (res3.isInstance) {
-                            res3.iter(function (r) {
-                                if (res4.isInstance) {
-                                    res4.iter(function (r) {
-                                        return res4.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    });
-                                    switch (res4.getReturnValue(true)) {
-                                    case 'labeled_breakx':
-                                        return res3.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                } else {
-                                    for (var r of res4) {
-                                        return res3.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    }
-                                }
-                            });
-                            switch (res3.getReturnValue(true)) {
-                            case 'labeled_breakx':
-                                break x;
-                            }
-                        } else {
-                            for (var r of res3) {
-                                if (res4.isInstance) {
-                                    res4.iter(function (r) {
-                                        return res4.stopIter({
-                                            'code': 'labeled_break',
-                                            'args': 'x'
-                                        });
-                                    });
-                                    switch (res4.getReturnValue(true)) {
-                                    case 'labeled_breakx':
-                                        break x;
-                                    }
-                                } else {
-                                    for (var r of res4) {
-                                        break x;
-                                    }
-                                }
-                            }
-                        }
+                        continue x;
                     }
-                }
             }
+        }
     }
 }
 function N1qlQuery(query) {

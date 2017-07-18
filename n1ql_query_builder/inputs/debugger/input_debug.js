@@ -2,11 +2,10 @@ function query() {
 	var res1 = new N1qlQuery(`select * from \`beer-sample\` LIMIT 10;`);
 	var res2 = new N1qlQuery(`select * from \`beer-sample\` LIMIT 10;`);
 
-	x: for (var r of res1)
-		for (var r of res2)
-			for (var r of res3)
-				for (var r of res4)
-					break x;
+	for (var r of res1) {
+		x: for (var r of res2)
+			continue x;
+	}
 }
 
 function N1qlQuery(query) {
