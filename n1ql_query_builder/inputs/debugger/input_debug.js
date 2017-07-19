@@ -3,8 +3,9 @@ function query() {
 	var res2 = new N1qlQuery(`select * from \`beer-sample\` LIMIT 10;`);
 
 	for (var row of res1)
-		for (var row of res2)
-			return x;
+        for (var row of res2)
+            for (var row of res3)
+                return x;
 }
 
 function N1qlQuery(query) {

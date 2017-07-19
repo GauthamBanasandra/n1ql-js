@@ -65,6 +65,7 @@ function isFuncCalled(methodName, code) {
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Need to call execQuery() if the query isn't a select query.
 // TODO : Source map does not work properly for break and continue in nested iterators /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
+// TODO : 
 function getAst(code) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
@@ -162,15 +163,8 @@ function getAst(code) {
 							throw 'Not yet handled for ' + source.type;
 					}
 					break;
-
 				case Context.ReturnStatement:
-					source.loc = sourceCopy.loc;
-					if (sourceCopy.argument) {
-						source.argument = self.setLocForAllNodes(sourceCopy.argument.loc, source.argument);
-					} else {
-						self.forceSetLocForAllNodes(sourceCopy.loc, source);
-					}
-					break;
+					throw 'Not yet handled for ' + source.type;
 			}
 
 			return source;
@@ -214,6 +208,31 @@ function getAst(code) {
 			});
 
 			return astWithLoc.body[0].expression;
+		};
+
+		this.setLocMatchingNodes = function (source, target) {
+			var sourceNodeStack = new Stack(),
+				targetNodeStack = new Stack();
+
+			function convertTreeToStack(ast, stack) {
+				estraverse.traverse(ast, {
+					enter: function (node) {
+						stack.push(node);
+					}
+				});
+			}
+
+			convertTreeToStack(source, sourceNodeStack);
+			convertTreeToStack(target, targetNodeStack);
+
+			console.assert(sourceNodeStack.getSize() === targetNodeStack.getSize(), 'stack size must be same');
+			while (!sourceNodeStack.isEmpty()) {
+				var sourceNode = sourceNodeStack.pop();
+				var targetNode = targetNodeStack.pop();
+				if (sourceNode.loc) {
+					targetNode.loc = self.deepCopy(sourceNode.loc);
+				}
+			}
 		};
 
 		// Inserts the given node to the given parentBody at the specified index.
@@ -324,6 +343,10 @@ function getAst(code) {
 			stack.reverse();
 		};
 
+		this.isEmpty = function () {
+			return stack.length === 0;
+		};
+
 		// debug.
 		this.printAll = function () {
 			for (var item of stack) {
@@ -396,7 +419,7 @@ function getAst(code) {
 			clone.reverseElements();
 
 			return clone;
-		}
+		};
 	}
 
 	// Class to maintain the association of loop modifiers - break, continue, return etc. with JavaScript loops.
@@ -563,7 +586,10 @@ function getAst(code) {
 		IterTypeCheck: 'iter_type_check',
 		BreakStatement: 'break_statement',
 		ContinueStatement: 'continue_statement',
-		ReturnStatement: 'return_statement'
+		ReturnStatement: 'return_statement',
+		ReturnAltFound: 'return_alt_found',
+		ReturnAltInterrupt: 'return_alt_interrupt',
+		IterConsequent: 'iter_consequent'
 	};
 
 	// Utilities for AncestorStack
@@ -1088,6 +1114,7 @@ function getAst(code) {
 
 	// Returns if-else AST having iterator in consequent and for-of in alternate (dynamic type checking).
 	function IterCompatible(forOfNode) {
+		var self = this;
 		var stackHelper = new StackHelper(globalAncestorStack);
 
 		// Returns an iterator construct for a given for-of loop ast.
@@ -1205,6 +1232,7 @@ function getAst(code) {
 							stopIterAst = new StopIterAst(nodeCopy.right.name);
 							stopIterAst.arguments.push(arg.getAst());
 							returnStmtAst = new ReturnAst(stopIterAst);
+							self.mapSourceNode(node, returnStmtAst, Context.ReturnStatement);
 
 							var postIterArgs = JSON.stringify({
 								code: LoopModifier.CONST.RETURN,
@@ -1214,7 +1242,7 @@ function getAst(code) {
 							});
 
 							postIter.push(postIterArgs);
-							nodeUtils.replaceNode(node, returnStmtAst, Context.ReturnStatement);
+							nodeUtils.replaceNode(node, returnStmtAst);
 						}
 						break;
 					case 'IfStatement':
@@ -1227,7 +1255,7 @@ function getAst(code) {
 
 			var iter = new IteratorSkeletonAst(forOfNode.right.name, (forOfNode.left.name ? forOfNode.left.name : forOfNode.left.declarations[0].id.name));
 			iter.expression.arguments[0].body = iterator.nodeCopy.body;
-			this.mapSourceNode(forOfNode, iter);
+			self.mapSourceNode(forOfNode, iter, Context.IterConsequent);
 
 			var iterBlockAst = new BlockStatementAst(iter);
 
@@ -1244,14 +1272,76 @@ function getAst(code) {
 			return iterBlockAst;
 		};
 
-		this.mapSourceNode = function (source, target) {
-			target.loc = nodeUtils.deepCopy(source.loc);
-			target.expression.loc = nodeUtils.deepCopy(source.loc);
-			target.expression.callee.loc = nodeUtils.deepCopy(source.loc);
-			target.expression.callee.object.loc = nodeUtils.deepCopy(source.right.loc);
-			target.expression.callee.property.loc = nodeUtils.deepCopy(source.right.loc);
-			target.expression.arguments[0].loc = nodeUtils.deepCopy(source.right.loc);
-			target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);
+		this.mapSourceNode = function (source, target, context) {
+			switch (context) {
+				case Context.IterConsequent:
+					target.loc = nodeUtils.deepCopy(source.loc);
+					target.expression.loc = nodeUtils.deepCopy(source.loc);
+					target.expression.callee.loc = nodeUtils.deepCopy(source.loc);
+					target.expression.callee.object.loc = nodeUtils.deepCopy(source.right.loc);
+					target.expression.callee.property.loc = nodeUtils.deepCopy(source.right.loc);
+					target.expression.arguments[0].loc = nodeUtils.deepCopy(source.right.loc);
+					target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);
+					break;
+
+					// Maps the source to target loc during the following kind of transformation -
+					/*
+						source: return function () {
+							return inner;
+						};
+						target: return res1.stopIter({
+							'code': 'return',
+							'args': '(function () {\n    return inner;\n})',
+							'data': function () {
+								return inner;
+							}
+						});
+					 */
+				case Context.ReturnStatement:
+					console.assert(target.argument, 'target must have an argument');
+					target.loc = source.loc;
+					nodeUtils.forceSetLocForAllNodes(source.loc, target.argument);
+					if (source.argument) {
+						for (var prop of target.argument.arguments[0].properties) {
+							if (prop.key.value === 'data') {
+								console.assert(escodegen.generate(source.argument) === escodegen.generate(prop.value), 'replacing unequal values');
+								prop.value = nodeUtils.deepCopy(source.argument);
+								break;
+							}
+						}
+					}
+					break;
+
+					// Maps the source to target loc during the following kind of transformation -				
+					/*
+						source: return res.stopIter({
+							'code': 'return',
+							'args': 'res.getReturnValue().data',
+							'data': res.getReturnValue().data
+						});
+						target: return res.getReturnValue().data;
+					 */
+				case Context.ReturnAltFound:
+					console.assert(source.argument, 'source must have an argument');
+					target.loc = source.loc;
+					for (var prop of source.argument.arguments[0].properties) {
+						if (prop.key.value === 'data') {
+							console.assert(escodegen.generate(target.argument) === escodegen.generate(prop.value), 'replacing unequal values');
+							target.argument = nodeUtils.deepCopy(prop.value);
+							break;
+						}
+					}
+					break;
+
+				case Context.ReturnAltInterrupt:
+					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(target.argument.arguments[0]), 'stopIter args must match');
+					nodeUtils.setLocMatchingNodes(source, target);
+					break;
+				default:
+					// console.log('source:', escodegen.generate(source));
+					// console.log('target:', escodegen.generate(target));
+					throw 'Unhandled case: ' + context;
+			}
 		};
 
 		// Returns AST for 'else' block.
@@ -1298,7 +1388,9 @@ function getAst(code) {
 									args: node.metaData.args,
 									appendData: true
 								});
-								nodeUtils.replaceNode(node, new ReturnAst(arg.getDataAst()), Context.ReturnStatement);
+								returnStmtAst = new ReturnAst(arg.getDataAst());
+								self.mapSourceNode(node, returnStmtAst, Context.ReturnAltFound);
+								nodeUtils.replaceNode(node, returnStmtAst);
 								break;
 						}
 					}
@@ -1336,6 +1428,7 @@ function getAst(code) {
 								stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 								stopIterAst.arguments.push(arg.getAst());
 								returnStmtAst = new ReturnAst(stopIterAst);
+								self.mapSourceNode(node, returnStmtAst, Context.ReturnAltInterrupt);
 								break;
 						}
 
@@ -1437,6 +1530,7 @@ function getAst(code) {
 								stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 								stopIterAst.arguments.push(arg.getAst());
 								returnStmtAst = new ReturnAst(stopIterAst);
+								self.mapSourceNode(node, returnStmtAst, Context.ReturnStatement);
 
 								returnStmtAst.isAnnotated = true;
 								returnStmtAst.metaData = {
@@ -1446,7 +1540,7 @@ function getAst(code) {
 									targetFunction: node.targetFunction
 								};
 
-								nodeUtils.replaceNode(node, returnStmtAst, Context.ReturnStatement);
+								nodeUtils.replaceNode(node, returnStmtAst);
 							}
 						}
 						break;

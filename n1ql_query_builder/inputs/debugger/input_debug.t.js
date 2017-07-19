@@ -5,13 +5,39 @@ function query() {
         res1.iter(function (row) {
             if (res2.isInstance) {
                 res2.iter(function (row) {
-                    return res2.stopIter({
-                        'code': 'return',
-                        'args': '(x)',
-                        'data': x
-                    });
+                    if (res3.isInstance) {
+                        res3.iter(function (row) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        });
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(x)':
+                            return res2.stopIter({
+                                'code': 'return',
+                                'args': 'res3.getReturnValue().data',
+                                'data': res3.getReturnValue().data
+                            });
+                        }
+                    } else {
+                        for (var row of res3) {
+                            return res2.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        }
+                    }
                 });
                 switch (res2.getReturnValue(true)) {
+                case 'returnres3.getReturnValue().data':
+                    return res1.stopIter({
+                        'code': 'return',
+                        'args': 'res2.getReturnValue().data',
+                        'data': res2.getReturnValue().data
+                    });
                 case 'return(x)':
                     return res1.stopIter({
                         'code': 'return',
@@ -21,16 +47,38 @@ function query() {
                 }
             } else {
                 for (var row of res2) {
-                    return res1.stopIter({
-                        'code': 'return',
-                        'args': '(x)',
-                        'data': x
-                    });
+                    if (res3.isInstance) {
+                        res3.iter(function (row) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        });
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(x)':
+                            return res1.stopIter({
+                                'code': 'return',
+                                'args': 'res3.getReturnValue().data',
+                                'data': res3.getReturnValue().data
+                            });
+                        }
+                    } else {
+                        for (var row of res3) {
+                            return res1.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        }
+                    }
                 }
             }
         });
         switch (res1.getReturnValue(true)) {
         case 'returnres2.getReturnValue().data':
+            return res1.getReturnValue().data;;
+        case 'returnres3.getReturnValue().data':
             return res1.getReturnValue().data;;
         case 'return(x)':
             return res1.getReturnValue().data;;
@@ -39,19 +87,57 @@ function query() {
         for (var row of res1) {
             if (res2.isInstance) {
                 res2.iter(function (row) {
-                    return res2.stopIter({
-                        'code': 'return',
-                        'args': '(x)',
-                        'data': x
-                    });
+                    if (res3.isInstance) {
+                        res3.iter(function (row) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        });
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(x)':
+                            return res2.stopIter({
+                                'code': 'return',
+                                'args': 'res3.getReturnValue().data',
+                                'data': res3.getReturnValue().data
+                            });
+                        }
+                    } else {
+                        for (var row of res3) {
+                            return res2.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        }
+                    }
                 });
                 switch (res2.getReturnValue(true)) {
+                case 'returnres3.getReturnValue().data':
+                    return res2.getReturnValue().data;
                 case 'return(x)':
                     return res2.getReturnValue().data;
                 }
             } else {
                 for (var row of res2) {
-                    return x;
+                    if (res3.isInstance) {
+                        res3.iter(function (row) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(x)',
+                                'data': x
+                            });
+                        });
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(x)':
+                            return res3.getReturnValue().data;
+                        }
+                    } else {
+                        for (var row of res3) {
+                            return x;
+                        }
+                    }
                 }
             }
         }
