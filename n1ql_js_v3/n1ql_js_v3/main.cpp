@@ -17,7 +17,7 @@
 #include "n1ql.hpp"
 #define BUILTIN                                                                \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/builtin.js"
-#define SOURCE "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input.js"
+#define SOURCE "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input1.js"
 #define TRANSPILER                                                             \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/transpiler.js"
 #define ESPRIMA                                                                \

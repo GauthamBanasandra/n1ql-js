@@ -163,8 +163,10 @@ function getAst(code) {
 							throw 'Not yet handled for ' + source.type;
 					}
 					break;
-				case Context.ReturnStatement:
-					throw 'Not yet handled for ' + source.type;
+				
+				case Context.BreakAltInterrupt:
+					self.setLocMatchingNodes(sourceCopy, source);
+					break;
 			}
 
 			return source;
@@ -585,6 +587,7 @@ function getAst(code) {
 		N1qlQuery: 'n1ql_query',
 		IterTypeCheck: 'iter_type_check',
 		BreakStatement: 'break_statement',
+		BreakAltInterrupt: 'break_alt_interrupt',
 		ContinueStatement: 'continue_statement',
 		ReturnStatement: 'return_statement',
 		ReturnAltFound: 'return_alt_found',
@@ -1348,7 +1351,7 @@ function getAst(code) {
 		this.getIterAlternateAst = function () {
 			var iterator = new Iter(forOfNode);
 			iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
-				var lookup, stopIterAst, arg, returnStmtAst, stopNode = null;
+				var lookup, stopIterAst, arg, returnStmtAst, stopNode = null, context;
 
 				if (node.isAnnotated) {
 					// Targeted lookup for annotated nodes.
@@ -1373,10 +1376,7 @@ function getAst(code) {
 					});
 					if (lookup.targetFound) {
 						switch (node.metaData.code) {
-							case LoopModifier.CONST.LABELED_BREAK:
-								// debug.
-								console.log(escodegen.generate(nodeCopy), '\n\n');
-
+							case LoopModifier.CONST.LABELED_BREAK:								
 								nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args), Context.BreakStatement);
 								break;
 							case LoopModifier.CONST.LABELED_CONTINUE:
@@ -1405,7 +1405,9 @@ function getAst(code) {
 								});
 								returnStmtAst = new ReturnAst(stopIterAst);
 								stopIterAst.arguments.push(arg.getAst());
+								context = Context.BreakAltInterrupt;								
 								break;
+
 							case LoopModifier.CONST.LABELED_CONTINUE:
 								if (lookup.stopNode.parentLabel === node.metaData.args) {
 									returnStmtAst = new ReturnAst(null);
@@ -1419,6 +1421,7 @@ function getAst(code) {
 									stopIterAst.arguments.push(arg.getAst());
 								}
 								break;
+
 							case LoopModifier.CONST.RETURN:
 								arg = new Arg({
 									code: LoopModifier.CONST.RETURN,
@@ -1435,7 +1438,8 @@ function getAst(code) {
 						returnStmtAst.isAnnotated = true;
 						returnStmtAst.metaData = node.metaData;
 
-						nodeUtils.replaceNode(node, returnStmtAst);
+						nodeUtils.replaceNode(node, returnStmtAst, context);
+
 					}
 
 					return;

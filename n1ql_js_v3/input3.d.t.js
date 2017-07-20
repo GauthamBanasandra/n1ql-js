@@ -3,11 +3,29 @@ var res2 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
 if (res1.isInstance) {
     res1.iter(function (r1) {
         console.log('query1:', r1);
+        if (res2.isInstance) {
+            res2.iter(function (r2) {
+                console.log('query2:', r2);
+            });
+        } else {
+            for (var r2 of res2) {
+                console.log('query2:', r2);
+            }
+        }
     });
 } else {
     x:
         for (var r1 of res1) {
             console.log('query1:', r1);
+            if (res2.isInstance) {
+                res2.iter(function (r2) {
+                    console.log('query2:', r2);
+                });
+            } else {
+                for (var r2 of res2) {
+                    console.log('query2:', r2);
+                }
+            }
         }
 }
 function N1qlQuery(query) {
