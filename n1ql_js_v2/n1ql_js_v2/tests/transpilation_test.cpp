@@ -53,6 +53,7 @@ std::map<std::string, std::string> tc_name_input = {
     {"LabeledContinue5", "./inputs/test_inputs/input_labeled_continue5.txt"},
     {"LabeledContinue6", "./inputs/test_inputs/input_labeled_continue6.txt"},
     {"LabeledContinue7", "./inputs/test_inputs/input_labeled_continue7.txt"},
+    {"LabeledContinue8", "./inputs/test_inputs/input_labeled_continue8.txt"},
     {"Mixed1", "./inputs/test_inputs/input_mixed1.txt"},
     {"Break3n", "./inputs/test_inputs/input_break_3n.txt"}};
 
@@ -99,6 +100,8 @@ std::map<std::string, std::string> tc_name_expected = {
      "./inputs/test_expected/expected_labeled_continue6.txt"},
     {"LabeledContinue7",
      "./inputs/test_expected/expected_labeled_continue7.txt"},
+    {"LabeledContinue8",
+     "./inputs/test_expected/expected_labeled_continue8.txt"},
     {"Mixed1", "./inputs/test_expected/expected_mixed1.txt"},
     {"Break3n", "./inputs/test_expected/expected_break_3n.txt"}};
 
@@ -178,7 +181,9 @@ INSTANTIATE_TEST_CASE_P(
         TestParam("LabeledContinue6",
                   "Three nested iterators, continue to the outermost loop"),
         TestParam("LabeledContinue7",
-                  "Three nested iterators, continue to the middle loop")));
+                  "Three nested iterators, continue to the middle loop"),
+        TestParam("LabeledContinue8", "Three nested iterators inside a while "
+                                      "loop, continue to while loop")));
 
 INSTANTIATE_TEST_CASE_P(
     MixedExitCriteria, TranspilerTest,

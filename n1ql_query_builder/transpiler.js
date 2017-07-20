@@ -65,7 +65,6 @@ function isFuncCalled(methodName, code) {
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Need to call execQuery() if the query isn't a select query.
 // TODO : Source map does not work properly for break and continue in nested iterators /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
-// TODO : 
 function getAst(code) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
@@ -163,9 +162,19 @@ function getAst(code) {
 							throw 'Not yet handled for ' + source.type;
 					}
 					break;
-				
+
 				case Context.BreakAltInterrupt:
+					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');
 					self.setLocMatchingNodes(sourceCopy, source);
+					break;
+
+				case Context.ContinueAltInterrupt:
+					if (source.argument) {
+					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');						
+						self.setLocMatchingNodes(sourceCopy, source);
+					} else {
+						source.loc = sourceCopy.loc;
+					}
 					break;
 			}
 
@@ -589,6 +598,7 @@ function getAst(code) {
 		BreakStatement: 'break_statement',
 		BreakAltInterrupt: 'break_alt_interrupt',
 		ContinueStatement: 'continue_statement',
+		ContinueAltInterrupt: 'continue_alt_interrupt',
 		ReturnStatement: 'return_statement',
 		ReturnAltFound: 'return_alt_found',
 		ReturnAltInterrupt: 'return_alt_interrupt',
@@ -1196,6 +1206,7 @@ function getAst(code) {
 							nodeUtils.replaceNode(node, returnStmtAst, Context.BreakStatement);
 						}
 						break;
+
 					case 'ContinueStatement':
 						// Labeled continue statement.
 						if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
@@ -1220,6 +1231,7 @@ function getAst(code) {
 							nodeUtils.replaceNode(node, new ReturnAst(null), Context.ContinueStatement);
 						}
 						break;
+
 					case 'ReturnStatement':
 						if (returnMod.isReplaceReq(node)) {
 							// Return statement may or may not have arguments.
@@ -1248,6 +1260,7 @@ function getAst(code) {
 							nodeUtils.replaceNode(node, returnStmtAst);
 						}
 						break;
+
 					case 'IfStatement':
 						if (!/BlockStatement/.test(node.consequent.type)) {
 							nodeUtils.convertToBlockStmt(node);
@@ -1351,7 +1364,8 @@ function getAst(code) {
 		this.getIterAlternateAst = function () {
 			var iterator = new Iter(forOfNode);
 			iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
-				var lookup, stopIterAst, arg, returnStmtAst, stopNode = null, context;
+				var lookup, stopIterAst, arg, returnStmtAst, stopNode = null,
+					context;
 
 				if (node.isAnnotated) {
 					// Targeted lookup for annotated nodes.
@@ -1376,7 +1390,7 @@ function getAst(code) {
 					});
 					if (lookup.targetFound) {
 						switch (node.metaData.code) {
-							case LoopModifier.CONST.LABELED_BREAK:								
+							case LoopModifier.CONST.LABELED_BREAK:
 								nodeUtils.replaceNode(node, new LabeledBreakAst(node.metaData.args), Context.BreakStatement);
 								break;
 							case LoopModifier.CONST.LABELED_CONTINUE:
@@ -1403,9 +1417,9 @@ function getAst(code) {
 									code: node.metaData.code,
 									args: node.metaData.args
 								});
-								returnStmtAst = new ReturnAst(stopIterAst);
 								stopIterAst.arguments.push(arg.getAst());
-								context = Context.BreakAltInterrupt;								
+								returnStmtAst = new ReturnAst(stopIterAst);
+								context = Context.BreakAltInterrupt;
 								break;
 
 							case LoopModifier.CONST.LABELED_CONTINUE:
@@ -1417,9 +1431,10 @@ function getAst(code) {
 										code: node.metaData.code,
 										args: node.metaData.args
 									});
-									returnStmtAst = new ReturnAst(stopIterAst);
 									stopIterAst.arguments.push(arg.getAst());
+									returnStmtAst = new ReturnAst(stopIterAst);
 								}
+								context = Context.ContinueAltInterrupt;
 								break;
 
 							case LoopModifier.CONST.RETURN:

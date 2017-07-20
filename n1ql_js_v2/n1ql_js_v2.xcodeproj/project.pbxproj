@@ -616,11 +616,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/googletest/include/**",
+					/Users/gautham/projects/github/googletest/googletest/include,
 					/Users/gautham/.cbdepscache,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/googletest/build/**",
+					"/Users/gautham/projects/github/googletest/build/**",
 					"/Users/gautham/.cbdepscache/lib/**",
 				);
 				OTHER_LDFLAGS = "-ll";
@@ -632,11 +632,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/googletest/include/**",
+					/Users/gautham/projects/github/googletest/googletest/include,
 					/Users/gautham/.cbdepscache,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/googletest/build/**",
+					"/Users/gautham/projects/github/googletest/build/**",
 					"/Users/gautham/.cbdepscache/lib/**",
 				);
 				OTHER_LDFLAGS = "-ll";
