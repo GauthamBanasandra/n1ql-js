@@ -5,7 +5,7 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
-var transpiledCode = escodegen.generate(getAst(code), {
+var transpiledCode = escodegen.generate(getAst(code, 'input.js'), {
 	sourceMap: true,
 	sourceMapWithCode: true
 });
@@ -22,22 +22,26 @@ function saveTranspiledCode() {
 }
 saveTranspiledCode();
 
-function transpile(code) {
-	return escodegen.generate(getAst(code));
+function transpile(code, sourceFileName) {
+	var ast = getAst(code, sourceFileName);
+	return escodegen.generate(ast);
 }
 
 function jsFormat(code) {
-	return escodegen.generate(esprima.parse(code));
+	var ast = esprima.parse(code);
+	return escodegen.generate(ast);
 }
 
 function isTimerCalled(code) {
 	return isFuncCalled('docTimer', code) && isFuncCalled('nonDocTimer', code);
 }
 
-function getSourceMap(code) {
-	return escodegen.generate(getAst(code), {
-		sourceMap: true
-	});
+function getSourceMap(code, sourceFileName) {
+	var ast = getAst(code, sourceFileName);
+	return escodegen.generate(getAst(code, 'input.js'), {
+		sourceMap: true,
+		sourceMapWithCode: true
+	}).map;
 }
 
 // Checks if a function is called.
@@ -64,8 +68,7 @@ function isFuncCalled(methodName, code) {
 // handled in the lex.
 // TODO : Variables created in the iterator must be made available outside its scope.
 // TODO : Need to call execQuery() if the query isn't a select query.
-// TODO : Source map does not work properly for break and continue in nested iterators /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/input_labeled_break6.txt
-function getAst(code) {
+function getAst(code, sourceFileName) {
 	// A utility class for handling nodes of an AST.
 	function NodeUtils() {
 		var self = this;
@@ -95,17 +98,34 @@ function getAst(code) {
 			});
 
 			// Using this check temporarily.
-			if (!self.hasLocNode(sourceCopy)) {
-				return source;
-			}
+			// if (!self.hasLocNode(sourceCopy)) {
+			// 	return source;
+			// }
 
+			// Attach the loc nodes based on the context.
 			switch (context) {
+				// Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
+				/*
+					Before:
+					var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);					
+					After:
+					var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
+				*/
 				case Context.N1qlQuery:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
 					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
 					break;
 
+					// Mapping of if-else block to for-of loop.
+					/*
+						Before:
+						for (var r of res1){...}
+						After:
+						if (res1.isInstance) {
+							res1.iter(function (r) {...}
+						} else {...}
+					*/
 				case Context.IterTypeCheck:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					source.consequent.loc = self.deepCopy(sourceCopy.body.loc);
@@ -122,9 +142,11 @@ function getAst(code) {
 					}
 					break;
 
+					// The following case handles two-way mapping of loc nodes between continue and return statements.
 				case Context.ContinueStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					switch (source.type) {
+						// Return to continue statement mapping - source: return, target: continue
 						case 'ContinueStatement':
 							console.assert(/ReturnStatement/.test(sourceCopy.type), 'sourceCopy type must be ReturnStatement');
 							if (source.label) {
@@ -132,6 +154,7 @@ function getAst(code) {
 							}
 							break;
 
+							// Continue to return statement mapping - source: continue, target: return
 						case 'ReturnStatement':
 							console.assert(/ContinueStatement/.test(sourceCopy.type), 'sourceCopy type must be ContinueStatement');
 							if (source.argument && sourceCopy.label.loc) {
@@ -144,15 +167,17 @@ function getAst(code) {
 					}
 					break;
 
+					// The following case handles two-way mapping of loc nodes between break and return statements.
 				case Context.BreakStatement:
 					source.loc = self.deepCopy(sourceCopy.loc);
-
 					switch (source.type) {
+						// Return to break statement mapping - source: return, target: break
 						case 'BreakStatement':
 							console.assert(/ReturnStatement/.test(sourceCopy.type), 'sourceCopy type must be ReturnStatement');
 							source.label.loc = self.deepCopy(sourceCopy.argument.loc);
 							break;
 
+							// Break to return statement mapping - source: break, target: return
 						case 'ReturnStatement':
 							console.assert(/BreakStatement/.test(sourceCopy.type), 'sourceCopy type must be BreakStatement');
 							source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
@@ -163,11 +188,35 @@ function getAst(code) {
 					}
 					break;
 
+					// The following case handles mapping of loc nodes between two different 'stopIter' calls.
+					/*
+						Before:
+						return res2.stopIter({
+							'code': 'labeled_break',
+							'args': 'x'
+						});
+						After:
+						return res1.stopIter({
+							'code': 'labeled_break',
+							'args': 'x'
+						});
+					*/
 				case Context.BreakAltInterrupt:
 					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');
 					self.setLocMatchingNodes(sourceCopy, source);
 					break;
 
+					// The following case handles the mapping of loc nodes between stopIter and 
+					// return statement or between two stopIter statements as the above case.
+					/*
+						Before:
+						return res2.stopIter({
+								'code': 'labeled_continue',
+								'args': 'x'
+							});
+						After:
+						return;
+					 */
 				case Context.ContinueAltInterrupt:
 					if (source.argument) {
 						console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');
@@ -181,6 +230,7 @@ function getAst(code) {
 			return source;
 		};
 
+		// Checks if atleast one loc node is present in the AST.
 		this.hasLocNode = function (ast) {
 			var hasLoc = false;
 			estraverse.traverse(ast, {
@@ -196,6 +246,9 @@ function getAst(code) {
 			return hasLoc;
 		};
 
+		// Adds loc node for all the nodes in the AST.
+		// Thus, all the nodes of AST might end up having unnecessary loc nodes.
+		// Though this method wouldn't modify the parsing behaviour, it must be used as a last resort.
 		this.forceSetLocForAllNodes = function (loc, ast) {
 			estraverse.traverse(ast, {
 				enter: function (node) {
@@ -206,12 +259,17 @@ function getAst(code) {
 			});
 		};
 
+		// This is a safe method for adding loc nodes for a given AST.
+		// The disadvantage is that it can not be used with all the AST.		
 		this.setLocForAllNodes = function (loc, ast) {
+			// Generate the code snippet for the given AST.
 			var codeSnippet = escodegen.generate(ast);
+			// Parse with loc enabled to determine the nodes to which we can attach loc node.
 			var astWithLoc = esprima.parse(codeSnippet, {
 				loc: true
 			});
 
+			// We new traverse astWithLoc and replace all the loc nodes.
 			estraverse.traverse(astWithLoc, {
 				enter: function (node) {
 					node.loc = node.loc ? nodeUtils.deepCopy(loc) : null;
@@ -221,10 +279,13 @@ function getAst(code) {
 			return astWithLoc.body[0].expression;
 		};
 
+		// This is a safe method for performing a one-to-one copy of the loc nodes from AST1 to AST2.
+		// The two ASTs must have the same structure.
 		this.setLocMatchingNodes = function (source, target) {
 			var sourceNodeStack = new Stack(),
 				targetNodeStack = new Stack();
 
+			// Linearizes the given AST into a stack.
 			function convertTreeToStack(ast, stack) {
 				estraverse.traverse(ast, {
 					enter: function (node) {
@@ -237,6 +298,8 @@ function getAst(code) {
 			convertTreeToStack(target, targetNodeStack);
 
 			console.assert(sourceNodeStack.getSize() === targetNodeStack.getSize(), 'stack size must be same');
+			// Pop all nodes from the sourceNodeStack and if an element contains loc node, 
+			// copy it to the corresponding element in the targetNodeStack.
 			while (!sourceNodeStack.isEmpty()) {
 				var sourceNode = sourceNodeStack.pop();
 				var targetNode = targetNodeStack.pop();
@@ -250,7 +313,6 @@ function getAst(code) {
 		this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
 			console.assert(parentBody instanceof Array, 'parentBody must be an Array');
 			console.assert(parentBody.indexOf(refNode) !== -1, 'node not found in the parent body');
-
 			var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
 			parentBody.splice(insertIndex, 0, nodeToInsert);
 		};
@@ -285,7 +347,6 @@ function getAst(code) {
 		this.insertNodeArray = function (parentBody, insAfterNode, arrayToInsert) {
 			console.assert(parentBody instanceof Array, 'parentBody must be an Array');
 			console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
-
 			var insertIndex = parentBody.indexOf(insAfterNode) + 1;
 			parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
 		};
@@ -455,6 +516,7 @@ function getAst(code) {
 				associations.add('WhileStatement');
 				associations.add('LabeledStatement');
 				break;
+
 			case LoopModifier.CONST.CONTINUE:
 				associations.add('DoWhileStatement');
 				associations.add('ForStatement');
@@ -463,14 +525,17 @@ function getAst(code) {
 				associations.add('SwitchStatement');
 				associations.add('WhileStatement');
 				break;
+
 			case LoopModifier.CONST.LABELED_CONTINUE:
 			case LoopModifier.CONST.LABELED_BREAK:
 				associations.add('LabeledStatement');
 				break;
+
 			case LoopModifier.CONST.RETURN:
 				associations.add('FunctionDeclaration');
 				associations.add('FunctionExpression');
 				break;
+
 			default:
 				throw 'Invalid modifier';
 		}
@@ -486,20 +551,25 @@ function getAst(code) {
 					case LoopModifier.CONST.BREAK:
 						node.breakStackIndex = this.stackIndex;
 						break;
+
 					case LoopModifier.CONST.CONTINUE:
 						node.continueStackIndex = this.stackIndex;
 						break;
+
 					case LoopModifier.CONST.LABELED_BREAK:
 						console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
 						node.lblBreakStackIndex = this.stackIndex;
 						break;
+
 					case LoopModifier.CONST.RETURN:
 						node.returnStackIndex = this.stackIndex;
 						break;
+
 					case LoopModifier.CONST.LABELED_CONTINUE:
 						console.assert(/LabeledStatement/.test(node.type), 'can only push a labeled statement');
 						node.lblContinueStackIndex = this.stackIndex;
 						break;
+
 					default:
 						throw 'Invalid modifier type';
 				}
@@ -516,26 +586,31 @@ function getAst(code) {
 							return ancestorStack.pop();
 						}
 						break;
+
 					case LoopModifier.CONST.CONTINUE:
 						if (this.stackIndex === ancestorStack.peek().continueStackIndex) {
 							return ancestorStack.pop();
 						}
 						break;
+
 					case LoopModifier.CONST.LABELED_BREAK:
 						if (this.stackIndex === ancestorStack.peek().lblBreakStackIndex) {
 							return ancestorStack.pop();
 						}
 						break;
+
 					case LoopModifier.CONST.RETURN:
 						if (this.stackIndex === ancestorStack.peek().returnStackIndex) {
 							return ancestorStack.pop();
 						}
 						break;
+
 					case LoopModifier.CONST.LABELED_CONTINUE:
 						if (this.stackIndex === ancestorStack.peek().lblContinueStackIndex) {
 							return ancestorStack.pop();
 						}
 						break;
+
 					default:
 						throw 'Invalid modifier type';
 				}
@@ -555,6 +630,7 @@ function getAst(code) {
 				case LoopModifier.CONST.CONTINUE:
 				case LoopModifier.CONST.BREAK:
 					return ancestorStack.getSize() > 0 && /ForOfStatement/.test(ancestorStack.peek().type);
+
 				case LoopModifier.CONST.LABELED_CONTINUE:
 					// For labelled break, the replacement criteria is the absence of the label which the break is
 					// associated with.
@@ -564,14 +640,15 @@ function getAst(code) {
 							return args === node.label.name;
 						}
 					});
+
 					// For return statement, the replacement criteria is the absence of a function on TOS.
 				case LoopModifier.CONST.RETURN:
 					if (ancestorStack.getSize() === 0) {
 						return true;
 					}
-
 					return !(/FunctionDeclaration/.test(ancestorStack.peek().type) ||
 						/FunctionExpression/.test(ancestorStack.peek().type));
+
 				default:
 					throw 'Invalid modifier type';
 			}
@@ -816,6 +893,10 @@ function getAst(code) {
 		};
 	}
 
+	// Returns AST of the form -
+	/*
+		res.iter(function(row){...});
+	 */
 	function IteratorSkeletonAst(iterVar, arg) {
 		Ast.call(this, 'ExpressionStatement');
 		this.expression = {
@@ -1138,7 +1219,7 @@ function getAst(code) {
 			var iterProp = 'getReturnValue(true)';
 			var returnBubbleFunc = 'getReturnValue';
 
-			// List to store post iteration exit conditions.
+			// List to store post iteration exit statements.
 			var postIter = new PostIter(iterProp, returnBubbleFunc);
 
 			iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
@@ -1156,6 +1237,7 @@ function getAst(code) {
 							node.metaData.iterVar = nodeCopy.right.name;
 							arg = JSON.stringify(node.metaData);
 							break;
+
 						case LoopModifier.CONST.LABELED_BREAK:
 						case LoopModifier.CONST.LABELED_CONTINUE:
 							arg = new Arg({
@@ -1163,6 +1245,7 @@ function getAst(code) {
 								args: node.metaData.args
 							});
 							break;
+
 						default:
 							throw 'Unhandled case: ' + node.metaData.code;
 					}
@@ -1184,6 +1267,15 @@ function getAst(code) {
 					case 'BreakStatement':
 						stopIterAst = arg = null;
 						// Labeled break statement.
+						/*
+							Before:
+							break x;
+							After:
+							return res.stopIter({
+								'code': 'labeled_break',
+								'args': 'x'
+							});
+					 	*/
 						if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
 							stopIterAst = new StopIterAst(nodeCopy.right.name);
 							arg = new Arg({
@@ -1191,8 +1283,14 @@ function getAst(code) {
 								args: node.label.name
 							});
 							postIter.push(arg.toString());
-							// Unlabeled break statement.
 						} else if (!node.label && breakMod.isReplaceReq()) {
+							// Unlabeled break statement.
+							/*
+								Before:
+								break;
+								After:								
+								return res.stopIter({ 'code': 'break' });
+							 */
 							stopIterAst = new StopIterAst(nodeCopy.right.name);
 							arg = new Arg({
 								code: LoopModifier.CONST.BREAK
@@ -1209,6 +1307,15 @@ function getAst(code) {
 
 					case 'ContinueStatement':
 						// Labeled continue statement.
+						/*
+							Before:
+							continue x;
+							After:
+							return res.stopIter({
+								'code': 'labeled_continue',
+								'args': 'x'
+							});
+						 */
 						if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
 							if (nodeCopy.parentLabel === node.label.name) {
 								// If the target of labeled continue is its immediate parent, then just 'return'.
@@ -1228,11 +1335,27 @@ function getAst(code) {
 							nodeUtils.replaceNode(node, returnStmtAst, Context.ContinueStatement);
 						} else if (continueMod.isReplaceReq()) {
 							// Unlabeled continue statement.
+							/*
+								Before:
+								continue;
+								After:
+								return;
+							 */
 							nodeUtils.replaceNode(node, new ReturnAst(null), Context.ContinueStatement);
 						}
 						break;
 
 					case 'ReturnStatement':
+						/*
+							Before:
+							return a + b;
+							After:							
+							return res.stopIter({
+								'code': 'return',
+								'args': '(a + b)',
+								'data': a + b
+							});
+						 */
 						if (returnMod.isReplaceReq(node)) {
 							// Return statement may or may not have arguments.
 							// In case there's no argument, we populate it with null.
@@ -1288,8 +1411,16 @@ function getAst(code) {
 			return iterBlockAst;
 		};
 
+		// Maps loc nodes of source to target according to the context.
 		this.mapSourceNode = function (source, target, context) {
 			switch (context) {
+				// Maps the source to target loc during the following kind of transformation -
+				/*
+					Before:
+					for (var r of res3){...}
+					After:
+					res.iter(function (r) {...}
+				 */
 				case Context.IterConsequent:
 					target.loc = nodeUtils.deepCopy(source.loc);
 					target.expression.loc = nodeUtils.deepCopy(source.loc);
@@ -1349,13 +1480,24 @@ function getAst(code) {
 					}
 					break;
 
+					// Maps the source to target loc during the following kind of transformation -				
+					/*
+						source: return res1.stopIter({
+							'code': 'return',
+							'args': 'res.getReturnValue().data',
+							'data': res.getReturnValue().data
+						});
+						target: return res2.stopIter({
+							'code': 'return',
+							'args': 'res.getReturnValue().data',
+							'data': res.getReturnValue().data
+						});
+					 */
 				case Context.ReturnAltInterrupt:
 					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(target.argument.arguments[0]), 'stopIter args must match');
 					nodeUtils.setLocMatchingNodes(source, target);
 					break;
 				default:
-					// console.log('source:', escodegen.generate(source));
-					// console.log('target:', escodegen.generate(target));
 					throw 'Unhandled case: ' + context;
 			}
 		};
@@ -1606,7 +1748,7 @@ function getAst(code) {
 		attachComment: true,
 		sourceType: 'script',
 		loc: true,
-		source: 'input_debug.js'
+		source: sourceFileName
 	});
 
 	// nodeUtils.checkGlobals(ast);

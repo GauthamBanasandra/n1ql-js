@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>3</integer>
 		</dict>
+		<key>eventing.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
 		<key>n1ql_js_v3.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -63,6 +68,11 @@
 			<true/>
 		</dict>
 		<key>AC7BE7E11F136E20003A36BA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>ACA411A41F3AE7280073C207</key>
 		<dict>
 			<key>primary</key>
 			<true/>

@@ -245,11 +245,11 @@ int main(int argc, char *argv[]) {
     n1ql_handle = new N1QL(conn_pool);
     
     Transpiler transpiler(third_party_src);
-    std::string transpiled_src = transpiler.Transpile(src);
+    std::string transpiled_src = transpiler.Transpile(src, "input3.d.js");
     std::string t_code_path = GetTranspiledCodePath(d_code_path);
     WriteFile(transpiled_src, t_code_path);
     
-    std::string source_map = transpiler.GetSourceMap(src);
+    std::string source_map = transpiler.GetSourceMap(src, "input3.d.js");
     std::string sm_path = GetSourceMapPath(d_code_path);
     WriteFile(source_map, sm_path);
     

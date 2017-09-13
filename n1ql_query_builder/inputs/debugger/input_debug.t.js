@@ -1,154 +1,62 @@
 function query() {
-    var res1 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
+    var bucket = '`beer-sample`';
+    var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
     var res2 = new N1qlQuery('select * from `beer-sample` LIMIT 10;');
     x:
-        while (true) {
-            if (res1.isInstance) {
-                res1.iter(function (r) {
-                    if (res2.isInstance) {
-                        res2.iter(function (r) {
-                            if (res3.isInstance) {
-                                res3.iter(function (r) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res3.getReturnValue(true)) {
-                                case 'labeled_continuex':
-                                    return res2.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res3) {
-                                    return res2.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
+        while (true)
+            if (res3.isInstance) {
+                res3.iter(function (r) {
+                    if (res3.isInstance) {
+                        res3.iter(function (r) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(a + b)',
+                                'data': a + b
+                            });
                         });
-                        switch (res2.getReturnValue(true)) {
-                        case 'labeled_continuex':
-                            return res1.stopIter({
-                                'code': 'labeled_continue',
-                                'args': 'x'
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(a + b)':
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': 'res3.getReturnValue().data',
+                                'data': res3.getReturnValue().data
                             });
                         }
                     } else {
-                        for (var r of res2) {
-                            if (res3.isInstance) {
-                                res3.iter(function (r) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res3.getReturnValue(true)) {
-                                case 'labeled_continuex':
-                                    return res1.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res3) {
-                                    return res1.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
+                        for (var r of res3) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(a + b)',
+                                'data': a + b
+                            });
                         }
                     }
                 });
-                switch (res1.getReturnValue(true)) {
-                case 'labeled_continuex':
-                    continue x;
+                switch (res3.getReturnValue(true)) {
+                case 'returnres3.getReturnValue().data':
+                    return res3.getReturnValue().data;;
+                case 'return(a + b)':
+                    return res3.getReturnValue().data;;
                 }
             } else {
-                for (var r of res1) {
-                    if (res2.isInstance) {
-                        res2.iter(function (r) {
-                            if (res3.isInstance) {
-                                res3.iter(function (r) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res3.getReturnValue(true)) {
-                                case 'labeled_continuex':
-                                    return res2.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            } else {
-                                for (var r of res3) {
-                                    return res2.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                }
-                            }
+                for (var r of res3) {
+                    if (res3.isInstance) {
+                        res3.iter(function (r) {
+                            return res3.stopIter({
+                                'code': 'return',
+                                'args': '(a + b)',
+                                'data': a + b
+                            });
                         });
-                        switch (res2.getReturnValue(true)) {
-                        case 'labeled_continuex':
-                            continue x;
+                        switch (res3.getReturnValue(true)) {
+                        case 'return(a + b)':
+                            return res3.getReturnValue().data;
                         }
                     } else {
-                        for (var r of res2) {
-                            if (res3.isInstance) {
-                                res3.iter(function (r) {
-                                    return res3.stopIter({
-                                        'code': 'labeled_continue',
-                                        'args': 'x'
-                                    });
-                                });
-                                switch (res3.getReturnValue(true)) {
-                                case 'labeled_continuex':
-                                    continue x;
-                                }
-                            } else {
-                                for (var r of res3) {
-                                    continue x;
-                                }
-                            }
+                        for (var r of res3) {
+                            return a + b;
                         }
                     }
                 }
             }
-        }
-}
-function N1qlQuery(query) {
-    var stopSignal = false;
-    this.isInstance = true;
-    this.query = query;
-    var stopMeta = {};
-    this.iter = function (callback) {
-        for (var i = 0; i < 100; i++) {
-            if (!stopSignal) {
-                callback(i);
-            } else {
-                stopSignal = false;
-                return stopMeta;
-            }
-        }
-    };
-    this.stopIter = function (meta) {
-        stopMeta = meta;
-        stopSignal = true;
-    };
-    this.getReturnValue = function (concat) {
-        var returnValue;
-        if (concat) {
-            returnValue = stopMeta.code + stopMeta.args;
-        } else {
-            returnValue = stopMeta;
-        }
-        return returnValue;
-    };
 }

@@ -96,10 +96,10 @@ class Transpiler {
 
 public:
   Transpiler(std::string transpiler_src);
-  v8::Local<v8::Value> ExecTranspiler(std::string code, std::string function);
-  std::string Transpile(std::string user_code);
+  v8::Local<v8::Value> ExecTranspiler(std::string function, v8::Local<v8::Value> args[], int args_len);
+  std::string Transpile(std::string user_code, std::string filename);
   std::string JsFormat(std::string user_code);
-  std::string GetSourceMap(std::string user_code);
+  std::string GetSourceMap(std::string user_code, std::string filename);
   bool IsTimerCalled(std::string user_code);
   ~Transpiler() {}
 };

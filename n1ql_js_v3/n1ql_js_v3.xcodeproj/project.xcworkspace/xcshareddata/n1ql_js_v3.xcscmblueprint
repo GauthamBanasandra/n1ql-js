@@ -13,7 +13,7 @@
   "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "062682BA-491C-4F40-9E66-C3F39D5CC317",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
     "5A7FEAECFBBAD2D961D008B39736269EF91B8114" : "n1ql-js\/",
-    "02AA66712B630351CD19F9941307921CAA73D50A" : "couchbase\/checkout\/eventing\/",
+    "02AA66712B630351CD19F9941307921CAA73D50A" : "couchbase\/enterprise\/goproj\/src\/github.com\/couchbase\/eventing\/",
     "BD05E6163FCBBEEA07DDE2178CF3056F34BFC99B" : "v8inspector\/",
     "D9F2F88568060AB21532234138859F781C8C2636" : "v8\/v8\/",
     "4D49747E33C089DD965A6CAB62F4127747774560" : "escodegen\/"

@@ -26,6 +26,7 @@
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/escodegen.js"
 #define ESTRAVERSE                                                             \
   "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/estraverse.js"
+#define SOURCE_MAP "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/n1ql_js_v3/source-map.js"
 
 using namespace v8;
 
@@ -142,17 +143,18 @@ int main(int argc, char *argv[]) {
     std::string third_party_src = ReadFile(TRANSPILER) + '\n';
     third_party_src += ReadFile(ESCODEGEN) + '\n';
     third_party_src += ReadFile(ESTRAVERSE) + '\n';
-    third_party_src += ReadFile(ESPRIMA);
+    third_party_src += ReadFile(ESPRIMA) + '\n';
+    third_party_src += ReadFile(SOURCE_MAP) + '\n';
 
     ConnectionPool *conn_pool = new ConnectionPool(
         15, "127.0.0.1:12000", "default", "eventing", "asdasd");
     n1ql_handle = new N1QL(conn_pool);
 
     Transpiler transpiler(third_party_src);
-    src = transpiler.Transpile(src);
-
-    //        std::cout << src << std::endl;
-
+    std::cout << transpiler.GetSourceMap(src, "input.js") << std::endl;
+    
+    src = transpiler.Transpile(src, "input.js");
+    
     // Create a string containing the JavaScript source code.
     Local<String> source =
         String::NewFromUtf8(isolate, src.c_str(), NewStringType::kNormal)
