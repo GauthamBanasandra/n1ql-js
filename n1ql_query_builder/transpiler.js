@@ -170,7 +170,7 @@ function getAst(code) {
 
 				case Context.ContinueAltInterrupt:
 					if (source.argument) {
-					console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');						
+						console.assert(escodegen.generate(source.argument.arguments[0]) === escodegen.generate(sourceCopy.argument.arguments[0]), 'stopIter args must match');
 						self.setLocMatchingNodes(sourceCopy, source);
 					} else {
 						source.loc = sourceCopy.loc;
