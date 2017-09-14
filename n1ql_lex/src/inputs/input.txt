@@ -1,8 +1,27 @@
-var linq_res =	from city in cities
-				where city.area > 1000
-				select city.name;
-var n1ql_res =	select name
-				from city
-				where area > 1000;
+function n1ql()
+{
+    var bucket='default';
 
-select name from city where area > 1000;from city in cities where city.area > 1000 select city.name;
+
+    for(var i of all)
+        log(i);
+
+    var up=
+        UPSERT INTO :bucket (key, value)
+        VALUES ("game", {"name":"lara croft tomb raider"})
+        WHERE text == `hello`
+        RETURNING *;
+	/*	var all=
+        SELECT *
+        FROM :bucket
+        LIMIT 10;
+	*/
+
+	var res=
+		SELECT *
+		FROM :bucket
+		LIMIT 10;
+
+	printf('select * from `beer-sample`');
+}
+n1ql();

@@ -11,14 +11,13 @@
 	#include "jsify.hpp"
 
 	std::string parse(const char*);
+	lex_op_code lex_op;
 	void handle_str_start(int state);
 	void handle_str_stop(int state);
 	bool is_esc();
 
-	using namespace std;
-
 	// Contains the output plain JavaScript code.
-	string plain_js;
+	std::string plain_js, uniline_n1ql;
 	// Storing the state for resuming on switch.
 	int previous_state;
 %}
@@ -70,23 +69,142 @@
 (var|function)[ \t\n]+[rR][eE][vV][oO][kK][eE][ \t\n;=(]|[rR][eE][vV][oO][kK][eE][ \t\n]*:[ \t\n]*\{	{return KWD_REVOKE;}
 (var|function)[ \t\n]+[uU][pP][dD][aA][tT][eE][ \t\n;=(]|[uU][pP][dD][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return KWD_UPDATE;}
 (var|function)[ \t\n]+[uU][pP][sS][eE][rR][tT][ \t\n;=(]|[uU][pP][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return KWD_UPSERT;}
-[aA][lL][tT][eE][rR][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`alter ";}
-[bB][uU][iI][lL][dD][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`build ";}
-[cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`create ";}
-[dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`delete ";}
-[dD][rR][oO][pP][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`drop ";}
-[eE][xX][eE][cC][uU][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`execute ";}
-[eE][xX][pP][lL][aA][iI][nN][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`explain ";}
-[gG][rR][aA][nN][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`grant ";}
-[iI][nN][fF][eE][rR][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`infer ";}
-[iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`insert ";}
-[mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`merge ";}
-[pP][rR][eE][pP][aA][rR][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`prepare ";}
-[rR][eE][nN][aA][mM][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`rename ";}
-[sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`select ";}
-[rR][eE][vV][oO][kK][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`revoke ";}
-[uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`update ";}
-[uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{BEGIN N1QL; plain_js+="new N1qlQuery(`upsert ";}
+[aA][lL][tT][eE][rR][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`alter ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[bB][uU][iI][lL][dD][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`build ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[cC][rR][eE][aA][tT][eE][ \t\n][ \t\n]? {
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`create ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[dD][eE][lL][eE][tT][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`delete ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[dD][rR][oO][pP][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`drop ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[eE][xX][eE][cC][uU][tT][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`execute ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[eE][xX][pP][lL][aA][iI][nN][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`explain ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[gG][rR][aA][nN][tT][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`grant ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[iI][nN][fF][eE][rR][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`infer ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[iI][nN][sS][eE][rR][tT][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`insert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[mM][eE][rR][gG][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`merge ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[pP][rR][eE][pP][aA][rR][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`prepare ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[rR][eE][nN][aA][mM][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`rename ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[sS][eE][lL][eE][cC][tT][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`select ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[rR][eE][vV][oO][kK][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`revoke ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`update ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+[uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`upsert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 <N1QL>";"	{
 				BEGIN INITIAL;
 				plain_js+="`);";
@@ -94,14 +212,14 @@
 <N1QL>.	{
 			if(yytext[0]=='`' && !is_esc())
 				plain_js+="\\";
-			plain_js+=string(yytext);
+			plain_js+=std::string(yytext);
 		}
-<MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js+=string(yytext);}
-.	{plain_js+=string(yytext);}
+<MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js+=std::string(yytext);}
+.	{plain_js+=std::string(yytext);}
 \n	{plain_js+="\n";}
 %%
 // Parses the given input string.
-int Jsify(const char* input, string *output)
+int TransformSource(const char* input, std::string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
@@ -119,6 +237,20 @@ int Jsify(const char* input, string *output)
 	plain_js="";
 
 	return code;
+}
+
+// Converts N1QL embedded JS to native JS.
+int Jsify(const char* input, std::string *output)
+{
+	lex_op = JSIFY;
+	return TransformSource(input, output);
+}
+
+// Unilines Multiline N1QL embeddings.
+int UniLineN1ql(const char *input, std::string *output)
+{
+	lex_op = UNILINE_N1QL;
+	return TransformSource(input, output);
 }
 
 // Handles the concatenation of different types of strings.

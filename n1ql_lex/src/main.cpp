@@ -6,12 +6,12 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input_comment.txt");
+	ifstream file("inputs/input.txt");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	const char* input=source_code.c_str();
 	string plain_js_code;
-	int ret_code=Jsify(input, &plain_js_code);
+	int ret_code=UniLineN1ql(input, &plain_js_code);
 
 	switch(ret_code)
 	{
