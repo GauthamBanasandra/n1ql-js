@@ -730,18 +730,17 @@ char *yytext;
 	#include "jsify.hpp"
 
 	std::string parse(const char*);
+	lex_op_code lex_op;
 	void handle_str_start(int state);
 	void handle_str_stop(int state);
 	bool is_esc();
 
-	using namespace std;
-
 	// Contains the output plain JavaScript code.
-	string plain_js;
+	std::string plain_js, uniline_n1ql;
 	// Storing the state for resuming on switch.
 	int previous_state;
 
-#line 745 "lex.yy.c"
+#line 744 "lex.yy.c"
 
 #define INITIAL 0
 #define N1QL 1
@@ -929,10 +928,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 26 "n1ql_js_lex.l"
+#line 25 "n1ql_js_lex.l"
 
 	previous_state=YYSTATE;
-#line 936 "lex.yy.c"
+#line 935 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -1017,7 +1016,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "n1ql_js_lex.l"
+#line 27 "n1ql_js_lex.l"
 {
 			/* Start of a multi-line comment */
 			previous_state=YYSTATE;
@@ -1027,7 +1026,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 34 "n1ql_js_lex.l"
+#line 33 "n1ql_js_lex.l"
 {
 				/* Stop of a multi-line comment */
 				plain_js+="*/";
@@ -1037,12 +1036,12 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 39 "n1ql_js_lex.l"
+#line 38 "n1ql_js_lex.l"
 {plain_js+="\n";}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 40 "n1ql_js_lex.l"
+#line 39 "n1ql_js_lex.l"
 {
 			/* Single-line comment */
 			previous_state=YYSTATE;
@@ -1053,7 +1052,7 @@ YY_RULE_SETUP
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 46 "n1ql_js_lex.l"
+#line 45 "n1ql_js_lex.l"
 {
 				BEGIN previous_state;
 				plain_js+="\n";
@@ -1061,277 +1060,400 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 50 "n1ql_js_lex.l"
+#line 49 "n1ql_js_lex.l"
 {handle_str_start(DSTR); /* Handling double-quoted string */}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 51 "n1ql_js_lex.l"
+#line 50 "n1ql_js_lex.l"
 {handle_str_stop(DSTR);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 52 "n1ql_js_lex.l"
+#line 51 "n1ql_js_lex.l"
 {handle_str_start(SSTR); /* Handling single-quoted string */}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 53 "n1ql_js_lex.l"
+#line 52 "n1ql_js_lex.l"
 {handle_str_stop(SSTR);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 54 "n1ql_js_lex.l"
+#line 53 "n1ql_js_lex.l"
 {handle_str_start(TSTR); /* Handling templated string */}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 55 "n1ql_js_lex.l"
+#line 54 "n1ql_js_lex.l"
 {handle_str_stop(TSTR);}
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 56 "n1ql_js_lex.l"
+#line 55 "n1ql_js_lex.l"
 {return KWD_ALTER; /* Checking the constraints in this section */}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 57 "n1ql_js_lex.l"
+#line 56 "n1ql_js_lex.l"
 {return KWD_BUILD;}
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 58 "n1ql_js_lex.l"
+#line 57 "n1ql_js_lex.l"
 {return KWD_CREATE;}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 59 "n1ql_js_lex.l"
+#line 58 "n1ql_js_lex.l"
 {return KWD_DELETE;}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 60 "n1ql_js_lex.l"
+#line 59 "n1ql_js_lex.l"
 {return KWD_DROP;}
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 61 "n1ql_js_lex.l"
+#line 60 "n1ql_js_lex.l"
 {return KWD_EXECUTE;}
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 62 "n1ql_js_lex.l"
+#line 61 "n1ql_js_lex.l"
 {return KWD_EXPLAIN;}
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 63 "n1ql_js_lex.l"
+#line 62 "n1ql_js_lex.l"
 {return KWD_GRANT;}
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 64 "n1ql_js_lex.l"
+#line 63 "n1ql_js_lex.l"
 {return KWD_INFER;}
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 65 "n1ql_js_lex.l"
+#line 64 "n1ql_js_lex.l"
 {return KWD_INSERT;}
 	YY_BREAK
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 66 "n1ql_js_lex.l"
+#line 65 "n1ql_js_lex.l"
 {return KWD_MERGE;}
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 67 "n1ql_js_lex.l"
+#line 66 "n1ql_js_lex.l"
 {return KWD_PREPARE;}
 	YY_BREAK
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 68 "n1ql_js_lex.l"
+#line 67 "n1ql_js_lex.l"
 {return KWD_RENAME;}
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 69 "n1ql_js_lex.l"
+#line 68 "n1ql_js_lex.l"
 {return KWD_SELECT;}
 	YY_BREAK
 case 26:
 /* rule 26 can match eol */
 YY_RULE_SETUP
-#line 70 "n1ql_js_lex.l"
+#line 69 "n1ql_js_lex.l"
 {return KWD_REVOKE;}
 	YY_BREAK
 case 27:
 /* rule 27 can match eol */
 YY_RULE_SETUP
-#line 71 "n1ql_js_lex.l"
+#line 70 "n1ql_js_lex.l"
 {return KWD_UPDATE;}
 	YY_BREAK
 case 28:
 /* rule 28 can match eol */
 YY_RULE_SETUP
-#line 72 "n1ql_js_lex.l"
+#line 71 "n1ql_js_lex.l"
 {return KWD_UPSERT;}
 	YY_BREAK
 case 29:
 /* rule 29 can match eol */
 YY_RULE_SETUP
-#line 73 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`alter ";}
+#line 72 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`alter ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 30:
 /* rule 30 can match eol */
 YY_RULE_SETUP
-#line 74 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`build ";}
+#line 80 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`build ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 31:
 /* rule 31 can match eol */
 YY_RULE_SETUP
-#line 75 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`create ";}
+#line 88 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`create ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 32:
 /* rule 32 can match eol */
 YY_RULE_SETUP
-#line 76 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`delete ";}
+#line 96 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`delete ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 33:
 /* rule 33 can match eol */
 YY_RULE_SETUP
-#line 77 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`drop ";}
+#line 104 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`drop ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 34:
 /* rule 34 can match eol */
 YY_RULE_SETUP
-#line 78 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`execute ";}
+#line 112 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`execute ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 35:
 /* rule 35 can match eol */
 YY_RULE_SETUP
-#line 79 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`explain ";}
+#line 120 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`explain ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 36:
 /* rule 36 can match eol */
 YY_RULE_SETUP
-#line 80 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`grant ";}
+#line 128 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`grant ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 81 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`infer ";}
+#line 136 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`infer ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 38:
 /* rule 38 can match eol */
 YY_RULE_SETUP
-#line 82 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`insert ";}
+#line 144 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`insert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 83 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`merge ";}
+#line 152 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`merge ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 84 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`prepare ";}
+#line 160 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`prepare ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 41:
 /* rule 41 can match eol */
 YY_RULE_SETUP
-#line 85 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`rename ";}
+#line 168 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`rename ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 42:
 /* rule 42 can match eol */
 YY_RULE_SETUP
-#line 86 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`select ";}
+#line 176 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`select ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 43:
 /* rule 43 can match eol */
 YY_RULE_SETUP
-#line 87 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`revoke ";}
+#line 184 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`revoke ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 88 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`update ";}
+#line 192 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`update ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 89 "n1ql_js_lex.l"
-{BEGIN N1QL; plain_js+="new N1qlQuery(`upsert ";}
+#line 200 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`upsert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 90 "n1ql_js_lex.l"
+#line 208 "n1ql_js_lex.l"
 {
-				BEGIN INITIAL;
-				plain_js+="`);";
-			}
+		BEGIN INITIAL;
+		if(lex_op == JSIFY) {
+			plain_js+="`);";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += ";";
+		}
+	}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 94 "n1ql_js_lex.l"
+#line 216 "n1ql_js_lex.l"
 {
-			if(yytext[0]=='`' && !is_esc())
-				plain_js+="\\";
-			plain_js+=string(yytext);
-		}
+		if(yytext[0]=='`' && !is_esc())
+			plain_js+="\\";
+		plain_js+=std::string(yytext);
+	}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 99 "n1ql_js_lex.l"
-{plain_js+=string(yytext);}
+#line 221 "n1ql_js_lex.l"
+{plain_js+=std::string(yytext);}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 100 "n1ql_js_lex.l"
-{plain_js+=string(yytext);}
+#line 222 "n1ql_js_lex.l"
+{plain_js+=std::string(yytext);}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 101 "n1ql_js_lex.l"
+#line 223 "n1ql_js_lex.l"
 {plain_js+="\n";}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 102 "n1ql_js_lex.l"
+#line 224 "n1ql_js_lex.l"
 ECHO;
 	YY_BREAK
-#line 1335 "lex.yy.c"
+#line 1457 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2334,11 +2456,11 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 102 "n1ql_js_lex.l"
+#line 224 "n1ql_js_lex.l"
 
 
 // Parses the given input string.
-int Jsify(const char* input, string *output)
+int TransformSource(const char* input, std::string *output)
 {
 	// Set the input stream.
 	yy_scan_string(input);
@@ -2356,6 +2478,20 @@ int Jsify(const char* input, string *output)
 	plain_js="";
 
 	return code;
+}
+
+// Converts N1QL embedded JS to native JS.
+int Jsify(const char* input, std::string *output)
+{
+	lex_op = JSIFY;
+	return TransformSource(input, output);
+}
+
+// Unilines Multiline N1QL embeddings.
+int UniLineN1ql(const char *input, std::string *output)
+{
+	lex_op = UNILINE_N1QL;
+	return TransformSource(input, output);
 }
 
 // Handles the concatenation of different types of strings.

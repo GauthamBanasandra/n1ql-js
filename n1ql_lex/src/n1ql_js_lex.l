@@ -206,14 +206,18 @@
 		}
 	}
 <N1QL>";"	{
-				BEGIN INITIAL;
-				plain_js+="`);";
-			}
-<N1QL>.	{
-			if(yytext[0]=='`' && !is_esc())
-				plain_js+="\\";
-			plain_js+=std::string(yytext);
+		BEGIN INITIAL;
+		if(lex_op == JSIFY) {
+			plain_js+="`);";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += ";";
 		}
+	}
+<N1QL>.	{
+		if(yytext[0]=='`' && !is_esc())
+			plain_js+="\\";
+		plain_js+=std::string(yytext);
+	}
 <MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js+=std::string(yytext);}
 .	{plain_js+=std::string(yytext);}
 \n	{plain_js+="\n";}

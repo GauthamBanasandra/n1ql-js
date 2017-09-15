@@ -5,9 +5,10 @@ var fs = require('fs'),
 
 var filename = process.argv[2];
 var code = fs.readFileSync(filename, 'utf-8');
-var transpiledCode = escodegen.generate(getAst(code, 'input.js'), {
+var transpiledCode = escodegen.generate(getAst(code, filename), {
 	sourceMap: true,
-	sourceMapWithCode: true
+	sourceMapWithCode: true,
+	comment: true
 });
 
 console.log(transpiledCode.code);
@@ -20,11 +21,14 @@ function saveTranspiledCode() {
 	var smPath = filename.slice(0, filename.lastIndexOf('.js')) + '.map.json';
 	fs.writeFileSync(smPath, transpiledCode.map);
 }
+// Uncomment this line to save the transpiled code and the corresponding source map for it.
 saveTranspiledCode();
 
 function transpile(code, sourceFileName) {
 	var ast = getAst(code, sourceFileName);
-	return escodegen.generate(ast);
+	return escodegen.generate(ast, {
+		comment: true
+	});
 }
 
 function jsFormat(code) {
@@ -38,7 +42,7 @@ function isTimerCalled(code) {
 
 function getSourceMap(code, sourceFileName) {
 	var ast = getAst(code, sourceFileName);
-	return escodegen.generate(getAst(code, 'input.js'), {
+	return escodegen.generate(getAst(code, sourceFileName), {
 		sourceMap: true,
 		sourceMapWithCode: true
 	}).map;
@@ -1745,11 +1749,16 @@ function getAst(code, sourceFileName) {
 
 	// Get the Abstract Syntax Tree (ast) of the input code.
 	var ast = esprima.parse(code, {
-		attachComment: true,
+		range: true,
+		tokens: true,
+		comment: true,
 		sourceType: 'script',
 		loc: true,
 		source: sourceFileName
 	});
+
+	// Attaching comments is a separate step.
+	ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
 	// nodeUtils.checkGlobals(ast);
 
