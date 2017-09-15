@@ -1019,9 +1019,9 @@ YY_RULE_SETUP
 #line 27 "n1ql_js_lex.l"
 {
 			/* Start of a multi-line comment */
-			previous_state=YYSTATE;
+			previous_state = YYSTATE;
 			BEGIN MLCMT;
-			plain_js+="/*";
+			plain_js += "/*";
 		}
 	YY_BREAK
 case 2:
@@ -1029,7 +1029,7 @@ YY_RULE_SETUP
 #line 33 "n1ql_js_lex.l"
 {
 				/* Stop of a multi-line comment */
-				plain_js+="*/";
+				plain_js += "*/";
 				BEGIN previous_state;
 			}
 	YY_BREAK
@@ -1037,16 +1037,16 @@ case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
 #line 38 "n1ql_js_lex.l"
-{plain_js+="\n";}
+{plain_js += "\n";}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 39 "n1ql_js_lex.l"
 {
 			/* Single-line comment */
-			previous_state=YYSTATE;
+			previous_state = YYSTATE;
 			BEGIN SLCMT;
-			plain_js+="//";
+			plain_js += "//";
 		}
 	YY_BREAK
 case 5:
@@ -1055,7 +1055,7 @@ YY_RULE_SETUP
 #line 45 "n1ql_js_lex.l"
 {
 				BEGIN previous_state;
-				plain_js+="\n";
+				plain_js += "\n";
 			}
 	YY_BREAK
 case 6:
@@ -1427,33 +1427,35 @@ case 47:
 YY_RULE_SETUP
 #line 216 "n1ql_js_lex.l"
 {
-		if(yytext[0]=='`' && !is_esc())
-			plain_js+="\\";
-		plain_js+=std::string(yytext);
+		if(yytext[0] == '`' && !is_esc() && lex_op == JSIFY) {
+			plain_js += "\\";
+		}
+
+		plain_js += std::string(yytext);
 	}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 221 "n1ql_js_lex.l"
-{plain_js+=std::string(yytext);}
+#line 223 "n1ql_js_lex.l"
+{plain_js += std::string(yytext);}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 222 "n1ql_js_lex.l"
-{plain_js+=std::string(yytext);}
+#line 224 "n1ql_js_lex.l"
+{plain_js += std::string(yytext);}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 223 "n1ql_js_lex.l"
-{plain_js+="\n";}
+#line 225 "n1ql_js_lex.l"
+{plain_js += "\n";}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 224 "n1ql_js_lex.l"
+#line 226 "n1ql_js_lex.l"
 ECHO;
 	YY_BREAK
-#line 1457 "lex.yy.c"
+#line 1459 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2456,7 +2458,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 224 "n1ql_js_lex.l"
+#line 226 "n1ql_js_lex.l"
 
 
 // Parses the given input string.
@@ -2504,17 +2506,17 @@ void handle_str_start(int state)
 	{
 	case DSTR:
 		BEGIN DSTR;
-		plain_js+="\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
 		BEGIN SSTR;
-		plain_js+="'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
 		BEGIN TSTR;
-		plain_js+="`";
+		plain_js += "`";
 		break;
 	}
 }
@@ -2528,15 +2530,15 @@ void handle_str_stop(int state)
 	switch(state)
 	{
 	case DSTR:
-		plain_js+="\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
-		plain_js+="'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
-		plain_js+="`";
+		plain_js += "`";
 		break;
 	}
 }
@@ -2544,6 +2546,6 @@ void handle_str_stop(int state)
 // Tests whether the current character is an escape character.
 bool is_esc()
 {
-	return plain_js.length()>0?plain_js[plain_js.length()-1]=='\\':0;
+	return plain_js.length() > 0 ? plain_js[plain_js.length() - 1] == '\\' : 0;
 }
 

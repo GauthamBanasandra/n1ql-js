@@ -1,0 +1,11 @@
+try {
+        var res =   SELECT *
+                    FROM `
+                    non-existent-bucket `;
+
+        for(var row of res) {
+            log(row);
+        }
+    } catch (e) {
+
+    }

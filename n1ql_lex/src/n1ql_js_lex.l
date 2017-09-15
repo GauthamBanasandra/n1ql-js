@@ -26,25 +26,25 @@
 	previous_state=YYSTATE;
 "/*"	{
 			/* Start of a multi-line comment */
-			previous_state=YYSTATE;
+			previous_state = YYSTATE;
 			BEGIN MLCMT;
-			plain_js+="/*";
+			plain_js += "/*";
 		}
 <MLCMT>"*/"	{
 				/* Stop of a multi-line comment */
-				plain_js+="*/";
+				plain_js += "*/";
 				BEGIN previous_state;
 			}
-<MLCMT>\n	{plain_js+="\n";}
+<MLCMT>\n	{plain_js += "\n";}
 "//"	{
 			/* Single-line comment */
-			previous_state=YYSTATE;
+			previous_state = YYSTATE;
 			BEGIN SLCMT;
-			plain_js+="//";
+			plain_js += "//";
 		}
 <SLCMT>\n	{
 				BEGIN previous_state;
-				plain_js+="\n";
+				plain_js += "\n";
 			}
 ["]	{handle_str_start(DSTR); /* Handling double-quoted string */}
 <DSTR>["]	{handle_str_stop(DSTR);}
@@ -214,13 +214,15 @@
 		}
 	}
 <N1QL>.	{
-		if(yytext[0]=='`' && !is_esc())
-			plain_js+="\\";
-		plain_js+=std::string(yytext);
+		if(yytext[0] == '`' && !is_esc() && lex_op == JSIFY) {
+			plain_js += "\\";
+		}
+
+		plain_js += std::string(yytext);
 	}
-<MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js+=std::string(yytext);}
-.	{plain_js+=std::string(yytext);}
-\n	{plain_js+="\n";}
+<MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{plain_js += std::string(yytext);}
+.	{plain_js += std::string(yytext);}
+\n	{plain_js += "\n";}
 %%
 // Parses the given input string.
 int TransformSource(const char* input, std::string *output)
@@ -267,17 +269,17 @@ void handle_str_start(int state)
 	{
 	case DSTR:
 		BEGIN DSTR;
-		plain_js+="\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
 		BEGIN SSTR;
-		plain_js+="'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
 		BEGIN TSTR;
-		plain_js+="`";
+		plain_js += "`";
 		break;
 	}
 }
@@ -291,15 +293,15 @@ void handle_str_stop(int state)
 	switch(state)
 	{
 	case DSTR:
-		plain_js+="\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
-		plain_js+="'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
-		plain_js+="`";
+		plain_js += "`";
 		break;
 	}
 }
@@ -307,5 +309,5 @@ void handle_str_stop(int state)
 // Tests whether the current character is an escape character.
 bool is_esc()
 {
-	return plain_js.length()>0?plain_js[plain_js.length()-1]=='\\':0;
+	return plain_js.length() > 0 ? plain_js[plain_js.length() - 1] == '\\' : 0;
 }
