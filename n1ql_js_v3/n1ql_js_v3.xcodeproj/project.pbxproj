@@ -32,9 +32,9 @@
 		AC1BD96C1F0F4287008B16CA /* parse_deployment.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1BD9581F0F4256008B16CA /* parse_deployment.cc */; };
 		AC1BD96D1F0F4287008B16CA /* transpiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1BD9591F0F4256008B16CA /* transpiler.cc */; };
 		AC1BD96E1F0F4287008B16CA /* v8worker.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC1BD95A1F0F4256008B16CA /* v8worker.cc */; };
+		AC55AB261F7CC2C00043E107 /* http_parser.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC55AB251F7CC2BF0043E107 /* http_parser.cc */; };
 		AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */; };
 		AC7BE7E51F136E20003A36BA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC7BE7E41F136E20003A36BA /* main.cpp */; };
-		AC7BE7F61F136E56003A36BA /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = AC7BE7EB1F136E55003A36BA /* http_parser.c */; };
 		AC7BE7F71F136E56003A36BA /* inspector_agent.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC7BE7ED1F136E55003A36BA /* inspector_agent.cc */; };
 		AC7BE7F81F136E56003A36BA /* inspector_io.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC7BE7EF1F136E55003A36BA /* inspector_io.cc */; };
 		AC7BE7F91F136E56003A36BA /* inspector_socket_server.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC7BE7F11F136E55003A36BA /* inspector_socket_server.cc */; };
@@ -69,6 +69,8 @@
 		ACA411B21F3AE8320073C207 /* parse_deployment.cc in Sources */ = {isa = PBXBuildFile; fileRef = ACA411891F3AE6970073C207 /* parse_deployment.cc */; };
 		ACA411B31F3AE8320073C207 /* transpiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = ACA4118A1F3AE6970073C207 /* transpiler.cc */; };
 		ACA411B41F3AE8320073C207 /* v8worker.cc in Sources */ = {isa = PBXBuildFile; fileRef = ACA4118C1F3AE6970073C207 /* v8worker.cc */; };
+		ACDFF1E11F827F790020D804 /* jsify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACDFF1E01F827F790020D804 /* jsify.cpp */; };
+		ACDFF1E21F8281260020D804 /* jsify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACDFF1E01F827F790020D804 /* jsify.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -201,6 +203,7 @@
 		AC1BD9591F0F4256008B16CA /* transpiler.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = transpiler.cc; path = ../../couchbase/checkout/eventing/v8_consumer/src/transpiler.cc; sourceTree = "<group>"; };
 		AC1BD95A1F0F4256008B16CA /* v8worker.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = v8worker.cc; path = ../../couchbase/checkout/eventing/v8_consumer/src/v8worker.cc; sourceTree = "<group>"; };
 		AC3836571F208F48006E66A5 /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = transpiler.js; path = ../../couchbase/checkout/eventing/v8_consumer/src/transpiler.js; sourceTree = "<group>"; };
+		AC55AB251F7CC2BF0043E107 /* http_parser.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = http_parser.cc; path = ../../../v8inspector/http_parser.cc; sourceTree = "<group>"; };
 		AC67C1791ED56EE600DC2A5E /* transpiler.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
 		AC67C17A1ED56F9B00DC2A5E /* transpiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = transpiler.cpp; sourceTree = "<group>"; };
 		AC67C17D1ED5710600DC2A5E /* escodegen.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = escodegen.js; sourceTree = "<group>"; };
@@ -209,7 +212,6 @@
 		AC7BE7E21F136E20003A36BA /* debugger */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = debugger; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC7BE7E41F136E20003A36BA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC7BE7EA1F136E55003A36BA /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../../v8inspector/base64.h; sourceTree = "<group>"; };
-		AC7BE7EB1F136E55003A36BA /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = http_parser.c; path = ../../../v8inspector/http_parser.c; sourceTree = "<group>"; };
 		AC7BE7EC1F136E55003A36BA /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = http_parser.h; path = ../../../v8inspector/http_parser.h; sourceTree = "<group>"; };
 		AC7BE7ED1F136E55003A36BA /* inspector_agent.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = inspector_agent.cc; path = ../../../v8inspector/inspector_agent.cc; sourceTree = "<group>"; };
 		AC7BE7EE1F136E55003A36BA /* inspector_agent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inspector_agent.h; path = ../../../v8inspector/inspector_agent.h; sourceTree = "<group>"; };
@@ -257,6 +259,7 @@
 		ACAB6E931F17838100CDF261 /* input3.d.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = input3.d.js; sourceTree = "<group>"; };
 		ACAB6E941F17838100CDF261 /* input3.d.t.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = input3.d.t.js; sourceTree = "<group>"; };
 		ACAB6E951F17838100CDF261 /* input3.d.map.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = input3.d.map.json; sourceTree = "<group>"; };
+		ACDFF1E01F827F790020D804 /* jsify.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsify.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -389,6 +392,7 @@
 		AC10F4931F148D4000792B1C /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ACDFF1E01F827F790020D804 /* jsify.cpp */,
 				AC1A6B571ECEC8B400FFAE1F /* main.cpp */,
 				AC1A6B611ECECB8C00FFAE1F /* builtin.js */,
 				AC1A6B621ECEE71400FFAE1F /* n1ql.cpp */,
@@ -518,7 +522,7 @@
 		AC7BE7FC1F136E8A003A36BA /* src */ = {
 			isa = PBXGroup;
 			children = (
-				AC7BE7EB1F136E55003A36BA /* http_parser.c */,
+				AC55AB251F7CC2BF0043E107 /* http_parser.cc */,
 				AC7BE7ED1F136E55003A36BA /* inspector_agent.cc */,
 				AC7BE7EF1F136E55003A36BA /* inspector_io.cc */,
 				AC7BE7F11F136E55003A36BA /* inspector_socket_server.cc */,
@@ -742,6 +746,7 @@
 				AC1A6B581ECEC8B400FFAE1F /* main.cpp in Sources */,
 				AC1A6B641ECEE71400FFAE1F /* n1ql.cpp in Sources */,
 				AC67C17B1ED56F9B00DC2A5E /* transpiler.cpp in Sources */,
+				ACDFF1E11F827F790020D804 /* jsify.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -751,11 +756,12 @@
 			files = (
 				AC7BE7E51F136E20003A36BA /* main.cpp in Sources */,
 				AC7BE7F91F136E56003A36BA /* inspector_socket_server.cc in Sources */,
-				AC7BE7F61F136E56003A36BA /* http_parser.c in Sources */,
 				AC10F4941F148FE700792B1C /* n1ql.cpp in Sources */,
 				AC7BE7FA1F136E56003A36BA /* inspector_socket.cc in Sources */,
 				AC10F4951F148FE800792B1C /* transpiler.cpp in Sources */,
 				AC7BE7F81F136E56003A36BA /* inspector_io.cc in Sources */,
+				AC55AB261F7CC2C00043E107 /* http_parser.cc in Sources */,
+				ACDFF1E21F8281260020D804 /* jsify.cpp in Sources */,
 				AC7BE7F71F136E56003A36BA /* inspector_agent.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1022,6 +1028,10 @@
 					"~/projects/github/v8/v8/out.gn/x64.release/obj/third_party/icu/",
 					/usr/local/lib,
 				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DSTANDALONE_BUILD=1",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1041,6 +1051,10 @@
 					"~/projects/github/v8/v8/out.gn/x64.release/obj/src/inspector/",
 					"~/projects/github/v8/v8/out.gn/x64.release/obj/third_party/icu/",
 					/usr/local/lib,
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DSTANDALONE_BUILD=1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

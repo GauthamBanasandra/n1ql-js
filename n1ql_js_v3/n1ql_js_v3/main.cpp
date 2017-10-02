@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     n1ql_handle = new N1QL(conn_pool);
 
     Transpiler transpiler(third_party_src);
-    std::cout << transpiler.GetSourceMap(src, "input.js") << std::endl;
+//    std::cout << transpiler.GetSourceMap(src, "input.js") << std::endl;
     
     src = transpiler.Transpile(src, "input.js");
     

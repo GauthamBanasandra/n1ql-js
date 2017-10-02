@@ -11,7 +11,7 @@ int main()
 
 	const char* input=source_code.c_str();
 	string plain_js_code;
-	int ret_code = UniLineN1ql(input, &plain_js_code);
+	int ret_code = Jsify(input, &plain_js_code);
 
 	switch(ret_code)
 	{

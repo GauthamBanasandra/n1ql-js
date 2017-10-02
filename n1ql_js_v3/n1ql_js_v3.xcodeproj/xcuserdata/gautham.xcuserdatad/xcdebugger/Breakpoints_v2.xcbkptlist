@@ -56,11 +56,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../v8inspector/inspector_agent.cc"
-            timestampString = "521976566.162329"
+            timestampString = "528647003.962055"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "185"
-            endingLineNumber = "185"
+            startingLineNumber = "181"
+            endingLineNumber = "181"
             landmarkName = "FatalException(Local&lt;Value&gt; error, Local&lt;Message&gt; message)"
             landmarkType = "9">
          </BreakpointContent>
@@ -78,22 +78,6 @@
             startingLineNumber = "196"
             endingLineNumber = "196"
             landmarkName = "IterFunction(const v8::FunctionCallbackInfo&lt;v8::Value&gt; &amp;args)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "n1ql_js_v3/main.cpp"
-            timestampString = "522234758.41673"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "154"
-            endingLineNumber = "154"
-            landmarkName = "main(int argc, char *argv[])"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

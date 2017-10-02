@@ -22,7 +22,7 @@ function saveTranspiledCode() {
 	fs.writeFileSync(smPath, transpiledCode.map);
 }
 // Uncomment this line to save the transpiled code and the corresponding source map for it.
-saveTranspiledCode();
+// saveTranspiledCode();
 
 function transpile(code, sourceFileName) {
 	var ast = getAst(code, sourceFileName);
@@ -273,7 +273,7 @@ function getAst(code, sourceFileName) {
 				loc: true
 			});
 
-			// We new traverse astWithLoc and replace all the loc nodes.
+			// We now traverse astWithLoc and replace all the loc nodes.
 			estraverse.traverse(astWithLoc, {
 				enter: function (node) {
 					node.loc = node.loc ? nodeUtils.deepCopy(loc) : null;
@@ -362,7 +362,7 @@ function getAst(code, sourceFileName) {
 
 			// Replace the :<var> with proper substitution.
 			query = query.replace(re, '" + $1 + "');
-			query = 'new N1qlQuery("' + query + '");';
+			query = "new N1qlQuery('" + query + "');";
 
 			return esprima.parse(query).body[0].expression;
 		};
