@@ -2,7 +2,7 @@ function OnUpdate(doc, meta) {
     var bucket = '`beer-sample`',
         abvLim = 20;
 
-    var res = select brewery_id, name FROM :bucket WHERE type == 'beer' AND abv > :abvLim;
+    var res = meRge brewery_id, name FROM :bucket WHERE type == \\'beer\\' AND abv > :abvLim;
 
     for(var row of res) {
         log(row);

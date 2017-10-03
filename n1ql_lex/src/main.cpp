@@ -16,7 +16,7 @@ int main()
 	switch(ret_code)
 	{
 	case kOK:
-		cout << plain_js_code << endl<<ret_code;
+		cout << plain_js_code << endl << ret_code;
 		break;
 	case kKeywordSelect:
 		cout << "error: select is a reserved word"<<endl<<ret_code;;
