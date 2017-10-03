@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "jsify.hpp"
+#include "n1ql.h"
 
 using namespace std;
 
@@ -15,28 +15,28 @@ int main()
 
 	switch(ret_code)
 	{
-	case OK:
+	case kOK:
 		cout << plain_js_code << endl<<ret_code;
 		break;
-	case KWD_SELECT:
+	case kKeywordSelect:
 		cout << "error: select is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_CREATE:
+	case kKeywordCreate:
 		cout << "error: create is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_UPSERT:
+	case kKeywordUpsert:
 		cout << "error: upsert is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_INSERT:
+	case kKeywordInsert:
 		cout << "error: insert is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_DELETE:
+	case kKeywordDelete:
 		cout << "error: delete is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_UPDATE:
+	case kKeywordUpdate:
 		cout << "error: update is a reserved word"<<endl<<ret_code;;
 		break;
-	case KWD_MERGE:
+	case kKeywordMerge:
 		cout << "error: merge is a reserved word"<<endl<<ret_code;;
 		break;
 	default:
