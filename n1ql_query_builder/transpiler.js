@@ -118,7 +118,7 @@ function getAst(code, sourceFileName) {
 				case Context.N1qlQuery:
 					source.loc = self.deepCopy(sourceCopy.loc);
 					source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
-					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].quasis[0].loc);
+					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
 					break;
 
 					// Mapping of if-else block to for-of loop.
@@ -361,8 +361,8 @@ function getAst(code, sourceFileName) {
 			var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
 
 			// Replace the :<var> with proper substitution.
-			query = query.replace(re, '" + $1 + "');
-			query = "new N1qlQuery('" + query + "');";
+			query = query.replace(re, '\' + $1 + \'');
+			query = "new N1qlQuery(" + query + ");";
 
 			return esprima.parse(query).body[0].expression;
 		};
@@ -1794,7 +1794,7 @@ function getAst(code, sourceFileName) {
 		leave: function (node) {
 			// Perform variable substitution in query constructor.
 			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-				var queryAst = nodeUtils.getQueryAst(node.arguments[0].quasis[0].value.raw);
+				var queryAst = nodeUtils.getQueryAst(node.arguments[0].raw);
 				nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst), Context.N1qlQuery);
 			}
 

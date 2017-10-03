@@ -718,35 +718,29 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "n1ql_js_lex.l"
 #line 2 "n1ql_js_lex.l"
-// Copyright (c) 2017 Couchbase, Inc.
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//     http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an "AS IS"
-// BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-// or implied. See the License for the specific language governing
-// permissions and limitations under the License.
 	/*
 	* Input:	JavaScript code embedded with N1QL statements.
+
 	* Output:	Syntactically and semantically valid JavaScript code.
+
+	* TODO:		Escape the DSTR strings - necessary for esprima.
 	*/
-  #include "n1ql.h"
+	#include <iostream>
+	#include <fstream>
+	#include "n1ql.hpp"
 
 	std::string parse(const char*);
 	lex_op_code lex_op;
-
 	void handle_str_start(int state);
 	void handle_str_stop(int state);
 	bool is_esc();
 
 	// Contains the output plain JavaScript code.
-	std::string js_code;
+	std::string plain_js, uniline_n1ql;
 	// Storing the state for resuming on switch.
 	int previous_state;
 
-#line 750 "lex.yy.c"
+#line 744 "lex.yy.c"
 
 #define INITIAL 0
 #define N1QL 1
@@ -930,14 +924,14 @@ extern int yylex (void);
  */
 YY_DECL
 {
-	 yy_state_type yy_current_state;
-	 char *yy_cp, *yy_bp;
-	 int yy_act;
+	register yy_state_type yy_current_state;
+	register char *yy_cp, *yy_bp;
+	register int yy_act;
     
-#line 31 "n1ql_js_lex.l"
+#line 25 "n1ql_js_lex.l"
 
 	previous_state=YYSTATE;
-#line 941 "lex.yy.c"
+#line 935 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -981,7 +975,7 @@ YY_DECL
 yy_match:
 		do
 			{
-			 YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
+			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
 			if ( yy_accept[yy_current_state] )
 				{
 				(yy_last_accepting_state) = yy_current_state;
@@ -1022,286 +1016,446 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 33 "n1ql_js_lex.l"
+#line 27 "n1ql_js_lex.l"
 {
-		/* Start of a multi-line comment */
-		previous_state = YYSTATE;
-		BEGIN MLCMT;
-		js_code += "/*";
-	}
+			/* Start of a multi-line comment */
+			previous_state = YYSTATE;
+			BEGIN MLCMT;
+			plain_js += "/*";
+		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 39 "n1ql_js_lex.l"
+#line 33 "n1ql_js_lex.l"
 {
-		/* Stop of a multi-line comment */
-		js_code += "*/";
-		BEGIN previous_state;
-	}
+				/* Stop of a multi-line comment */
+				plain_js += "*/";
+				BEGIN previous_state;
+			}
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 44 "n1ql_js_lex.l"
-{js_code += "\n";}
+#line 38 "n1ql_js_lex.l"
+{plain_js += "\n";}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 45 "n1ql_js_lex.l"
+#line 39 "n1ql_js_lex.l"
 {
-		/* Single-line comment */
-		previous_state = YYSTATE;
-		BEGIN SLCMT;
-		js_code += "//";
-	}
+			/* Single-line comment */
+			previous_state = YYSTATE;
+			BEGIN SLCMT;
+			plain_js += "//";
+		}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 51 "n1ql_js_lex.l"
+#line 45 "n1ql_js_lex.l"
 {
-		BEGIN previous_state;
-		js_code += "\n";
-	}
+				BEGIN previous_state;
+				plain_js += "\n";
+			}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 55 "n1ql_js_lex.l"
+#line 49 "n1ql_js_lex.l"
 {handle_str_start(DSTR); /* Handling double-quoted string */}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 56 "n1ql_js_lex.l"
+#line 50 "n1ql_js_lex.l"
 {handle_str_stop(DSTR);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 57 "n1ql_js_lex.l"
+#line 51 "n1ql_js_lex.l"
 {handle_str_start(SSTR); /* Handling single-quoted string */}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 58 "n1ql_js_lex.l"
+#line 52 "n1ql_js_lex.l"
 {handle_str_stop(SSTR);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 59 "n1ql_js_lex.l"
+#line 53 "n1ql_js_lex.l"
 {handle_str_start(TSTR); /* Handling templated string */}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 60 "n1ql_js_lex.l"
+#line 54 "n1ql_js_lex.l"
 {handle_str_stop(TSTR);}
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 61 "n1ql_js_lex.l"
-{return kKeywordAlter; /* Checking the constraints in this section */}
+#line 55 "n1ql_js_lex.l"
+{return KWD_ALTER; /* Checking the constraints in this section */}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 62 "n1ql_js_lex.l"
-{return kKeywordBuild;}
+#line 56 "n1ql_js_lex.l"
+{return KWD_BUILD;}
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 63 "n1ql_js_lex.l"
-{return kKeywordCreate;}
+#line 57 "n1ql_js_lex.l"
+{return KWD_CREATE;}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 64 "n1ql_js_lex.l"
-{return kKeywordDelete;}
+#line 58 "n1ql_js_lex.l"
+{return KWD_DELETE;}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 65 "n1ql_js_lex.l"
-{return kKeywordDrop;}
+#line 59 "n1ql_js_lex.l"
+{return KWD_DROP;}
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 66 "n1ql_js_lex.l"
-{return kKeywordExecute;}
+#line 60 "n1ql_js_lex.l"
+{return KWD_EXECUTE;}
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 67 "n1ql_js_lex.l"
-{return kKeywordExplain;}
+#line 61 "n1ql_js_lex.l"
+{return KWD_EXPLAIN;}
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 68 "n1ql_js_lex.l"
-{return kKeywordGrant;}
+#line 62 "n1ql_js_lex.l"
+{return KWD_GRANT;}
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 69 "n1ql_js_lex.l"
-{return kKeywordInfer;}
+#line 63 "n1ql_js_lex.l"
+{return KWD_INFER;}
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 70 "n1ql_js_lex.l"
-{return kKeywordInsert;}
+#line 64 "n1ql_js_lex.l"
+{return KWD_INSERT;}
 	YY_BREAK
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 71 "n1ql_js_lex.l"
-{return kKeywordMerge;}
+#line 65 "n1ql_js_lex.l"
+{return KWD_MERGE;}
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 72 "n1ql_js_lex.l"
-{return kKeywordPrepare;}
+#line 66 "n1ql_js_lex.l"
+{return KWD_PREPARE;}
 	YY_BREAK
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 73 "n1ql_js_lex.l"
-{return kKeywordRename;}
+#line 67 "n1ql_js_lex.l"
+{return KWD_RENAME;}
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 74 "n1ql_js_lex.l"
-{return kKeywordSelect;}
+#line 68 "n1ql_js_lex.l"
+{return KWD_SELECT;}
 	YY_BREAK
 case 26:
 /* rule 26 can match eol */
 YY_RULE_SETUP
-#line 75 "n1ql_js_lex.l"
-{return kKeywordRevoke;}
+#line 69 "n1ql_js_lex.l"
+{return KWD_REVOKE;}
 	YY_BREAK
 case 27:
 /* rule 27 can match eol */
 YY_RULE_SETUP
-#line 76 "n1ql_js_lex.l"
-{return kKeywordUpdate;}
+#line 70 "n1ql_js_lex.l"
+{return KWD_UPDATE;}
 	YY_BREAK
 case 28:
 /* rule 28 can match eol */
 YY_RULE_SETUP
-#line 77 "n1ql_js_lex.l"
-{return kKeywordUpsert;}
+#line 71 "n1ql_js_lex.l"
+{return KWD_UPSERT;}
 	YY_BREAK
 case 29:
 /* rule 29 can match eol */
-#line 79 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 72 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`alter ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 30:
 /* rule 30 can match eol */
+YY_RULE_SETUP
 #line 80 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`build ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 31:
 /* rule 31 can match eol */
-#line 81 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 88 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`create ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 32:
 /* rule 32 can match eol */
-#line 82 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 96 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`delete ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 33:
 /* rule 33 can match eol */
-#line 83 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 104 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`drop ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 34:
 /* rule 34 can match eol */
-#line 84 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 112 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`execute ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 35:
 /* rule 35 can match eol */
-#line 85 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 120 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`explain ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 36:
 /* rule 36 can match eol */
-#line 86 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 128 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`grant ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 37:
 /* rule 37 can match eol */
-#line 87 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 136 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`infer ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 38:
 /* rule 38 can match eol */
-#line 88 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 144 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`insert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 39:
 /* rule 39 can match eol */
-#line 89 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 152 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`merge ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 40:
 /* rule 40 can match eol */
-#line 90 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 160 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`prepare ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 41:
 /* rule 41 can match eol */
-#line 91 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 168 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`rename ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 42:
 /* rule 42 can match eol */
-#line 92 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 176 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`select ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 43:
 /* rule 43 can match eol */
-#line 93 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 184 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`revoke ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 44:
 /* rule 44 can match eol */
-#line 94 "n1ql_js_lex.l"
+YY_RULE_SETUP
+#line 192 "n1ql_js_lex.l"
+{
+		BEGIN N1QL;
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`update ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
+		}
+	}
+	YY_BREAK
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 94 "n1ql_js_lex.l"
+#line 200 "n1ql_js_lex.l"
 {
 		BEGIN N1QL;
-		if(lex_op == kJsify) {
-			js_code += "new N1qlQuery('"+ std::string(yytext)+ " ";
-		} else if(lex_op == kUniLineN1QL) {
-			js_code += std::string(yytext);
+		if(lex_op == JSIFY) {
+			plain_js += "new N1qlQuery(`upsert ";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += std::string(yytext);
 		}
 	}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 102 "n1ql_js_lex.l"
+#line 208 "n1ql_js_lex.l"
 {
 		BEGIN INITIAL;
-		if(lex_op == kJsify) {
-			js_code+="');";
-		} else if(lex_op == kUniLineN1QL) {
-			js_code += ";";
+		if(lex_op == JSIFY) {
+			plain_js+="`);";
+		} else if(lex_op == UNILINE_N1QL) {
+			plain_js += ";";
 		}
 	}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 110 "n1ql_js_lex.l"
+#line 216 "n1ql_js_lex.l"
 {
-		if(yytext[0] == '\'' && !is_esc() && lex_op == kJsify) {
-			js_code += "\\";
+		if(yytext[0] == '`' && !is_esc() && lex_op == JSIFY) {
+			plain_js += "\\";
 		}
 
-		js_code += std::string(yytext);
+		plain_js += std::string(yytext);
 	}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 117 "n1ql_js_lex.l"
-{js_code += std::string(yytext);}
+#line 223 "n1ql_js_lex.l"
+{plain_js += std::string(yytext);}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 118 "n1ql_js_lex.l"
-{js_code += std::string(yytext);}
+#line 224 "n1ql_js_lex.l"
+{plain_js += std::string(yytext);}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 119 "n1ql_js_lex.l"
-{js_code += "\n";}
+#line 225 "n1ql_js_lex.l"
+{plain_js += "\n";}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 120 "n1ql_js_lex.l"
+#line 226 "n1ql_js_lex.l"
 ECHO;
 	YY_BREAK
-#line 1305 "lex.yy.c"
+#line 1459 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -1449,9 +1603,9 @@ case YY_STATE_EOF(TSTR):
  */
 static int yy_get_next_buffer (void)
 {
-    	 char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
-	 char *source = (yytext_ptr);
-	 int number_to_move, i;
+    	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+	register char *source = (yytext_ptr);
+	register int number_to_move, i;
 	int ret_val;
 
 	if ( (yy_c_buf_p) > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[(yy_n_chars) + 1] )
@@ -1583,14 +1737,14 @@ static int yy_get_next_buffer (void)
 
     static yy_state_type yy_get_previous_state (void)
 {
-	 yy_state_type yy_current_state;
-	 char *yy_cp;
+	register yy_state_type yy_current_state;
+	register char *yy_cp;
     
 	yy_current_state = (yy_start);
 
 	for ( yy_cp = (yytext_ptr) + YY_MORE_ADJ; yy_cp < (yy_c_buf_p); ++yy_cp )
 		{
-		 YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
+		register YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
 		if ( yy_accept[yy_current_state] )
 			{
 			(yy_last_accepting_state) = yy_current_state;
@@ -1615,10 +1769,10 @@ static int yy_get_next_buffer (void)
  */
     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state )
 {
-	 int yy_is_jam;
-    	 char *yy_cp = (yy_c_buf_p);
+	register int yy_is_jam;
+    	register char *yy_cp = (yy_c_buf_p);
 
-	 YY_CHAR yy_c = 1;
+	register YY_CHAR yy_c = 1;
 	if ( yy_accept[yy_current_state] )
 		{
 		(yy_last_accepting_state) = yy_current_state;
@@ -1636,9 +1790,9 @@ static int yy_get_next_buffer (void)
 	return yy_is_jam ? 0 : yy_current_state;
 }
 
-    static void yyunput (int c,  char * yy_bp )
+    static void yyunput (int c, register char * yy_bp )
 {
-	 char *yy_cp;
+	register char *yy_cp;
     
     yy_cp = (yy_c_buf_p);
 
@@ -1648,10 +1802,10 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		 yy_size_t number_to_move = (yy_n_chars) + 2;
-		 char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
+		register yy_size_t number_to_move = (yy_n_chars) + 2;
+		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		 char *source =
+		register char *source =
 				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
 
 		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
@@ -2263,7 +2417,7 @@ int yylex_destroy  (void)
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
 {
-	 int i;
+	register int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
 }
@@ -2272,7 +2426,7 @@ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
 #ifdef YY_NEED_STRLEN
 static int yy_flex_strlen (yyconst char * s )
 {
-	 int n;
+	register int n;
 	for ( n = 0; s[n]; ++n )
 		;
 
@@ -2304,11 +2458,12 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 120 "n1ql_js_lex.l"
+#line 226 "n1ql_js_lex.l"
 
 
 // Parses the given input string.
-int TransformSource(const char* input, std::string *output) {
+int TransformSource(const char* input, std::string *output)
+{
 	// Set the input stream.
 	yy_scan_string(input);
 
@@ -2319,86 +2474,81 @@ int TransformSource(const char* input, std::string *output) {
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	// Copy the output;
-	*output=js_code;
+	*output=plain_js;
 
 	// Clear the global variable for the next input.
-	js_code="";
+	plain_js="";
 
 	return code;
 }
 
 // Converts N1QL embedded JS to native JS.
-int Jsify(const char* input, std::string *output) {
-	lex_op = kJsify;
+int Jsify(const char* input, std::string *output)
+{
+	lex_op = JSIFY;
 	return TransformSource(input, output);
 }
 
 // Unilines Multiline N1QL embeddings.
-int UniLineN1QL(const char *input, std::string *output) {
-	lex_op = kUniLineN1QL;
+int UniLineN1ql(const char *input, std::string *output)
+{
+	lex_op = UNILINE_N1QL;
 	return TransformSource(input, output);
 }
 
 // Handles the concatenation of different types of strings.
 // It tries to escape the quote of the same kind.
-void handle_str_start(int state) {
+void handle_str_start(int state)
+{
 	previous_state=YYSTATE;
 
-	switch (state) {
+	switch (state)
+	{
 	case DSTR:
 		BEGIN DSTR;
-		js_code += "\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
 		BEGIN SSTR;
-		js_code += "'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
 		BEGIN TSTR;
-		js_code += "`";
+		plain_js += "`";
 		break;
 	}
 }
 
 // Restores the previous state and adds the appropriate closing quote.
-void handle_str_stop(int state) {
-	if(!is_esc()) {
+void handle_str_stop(int state)
+{
+	if(!is_esc())
 		BEGIN previous_state;
-	}
 
-	switch(state) {
+	switch(state)
+	{
 	case DSTR:
-		js_code += "\"";
+		plain_js += "\"";
 		break;
 
 	case SSTR:
-		js_code += "'";
+		plain_js += "'";
 		break;
 
 	case TSTR:
-		js_code += "`";
+		plain_js += "`";
 		break;
 	}
 }
 
-// Tests whether the quote character is escaped.
-bool is_esc() {
-	auto escaped = false;
-	auto i = js_code.length();
-	while(i-- > 0) {
-		if(js_code[i] != '\\') {
-			break;
-		}
-
-		escaped = !escaped;
-	}
-
-	return escaped;
+// Tests whether the current character is an escape character.
+bool is_esc()
+{
+	return plain_js.length() > 0 ? plain_js[plain_js.length() - 1] == '\\' : 0;
 }
 
-// A default yywrap
-extern "C" int yywrap() {
-	return 1;
+int yywrap() {
+  return 1;
 }

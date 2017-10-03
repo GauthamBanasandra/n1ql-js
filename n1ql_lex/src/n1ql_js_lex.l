@@ -11,16 +11,13 @@
 // permissions and limitations under the License.
 	/*
 	* Input:	JavaScript code embedded with N1QL statements.
-
 	* Output:	Syntactically and semantically valid JavaScript code.
-
-	* TODO:		Escape the DSTR strings - necessary for esprima.
 	*/
-	#include <iostream>
-    #include "n1ql.h"
+  #include "n1ql.h"
 
 	std::string parse(const char*);
 	lex_op_code lex_op;
+
 	void handle_str_start(int state);
 	void handle_str_stop(int state);
 	bool is_esc();

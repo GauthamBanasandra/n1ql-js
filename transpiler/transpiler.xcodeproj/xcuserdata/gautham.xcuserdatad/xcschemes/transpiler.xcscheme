@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0830"
+   LastUpgradeVersion = "0900"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
-      <PreActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "STANDALONE_BUILD=1">
-            </ActionContent>
-         </ExecutionAction>
-      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -23,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AC7BE7E11F136E20003A36BA"
-               BuildableName = "debugger"
-               BlueprintName = "debugger"
-               ReferencedContainer = "container:n1ql_js_v3.xcodeproj">
+               BlueprintIdentifier = "AC1FA5BB1F78C3F5004CF8CA"
+               BuildableName = "transpiler"
+               BlueprintName = "transpiler"
+               ReferencedContainer = "container:transpiler.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -42,10 +33,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AC7BE7E11F136E20003A36BA"
-            BuildableName = "debugger"
-            BlueprintName = "debugger"
-            ReferencedContainer = "container:n1ql_js_v3.xcodeproj">
+            BlueprintIdentifier = "AC1FA5BB1F78C3F5004CF8CA"
+            BuildableName = "transpiler"
+            BlueprintName = "transpiler"
+            ReferencedContainer = "container:transpiler.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -66,26 +57,26 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AC7BE7E11F136E20003A36BA"
-            BuildableName = "debugger"
-            BlueprintName = "debugger"
-            ReferencedContainer = "container:n1ql_js_v3.xcodeproj">
+            BlueprintIdentifier = "AC1FA5BB1F78C3F5004CF8CA"
+            BuildableName = "transpiler"
+            BlueprintName = "transpiler"
+            ReferencedContainer = "container:transpiler.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/gautham/projects/temp/js/file1.js"
-            isEnabled = "NO">
+            argument = "~/projects/github/n1ql-js/transpiler/transpiler/third_party"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/gautham/projects/github/n1ql-js/n1ql_js_v3/input3.js"
+            argument = "~/projects/github/n1ql-js/transpiler/transpiler/src/transpiler.js"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
-            key = "STANDALONE_BUILD"
-            value = "1"
+            key = "DYLD_LIBRARY_PATH"
+            value = "/Users/gautham/.cbdepscache/lib/"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
@@ -102,10 +93,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AC7BE7E11F136E20003A36BA"
-            BuildableName = "debugger"
-            BlueprintName = "debugger"
-            ReferencedContainer = "container:n1ql_js_v3.xcodeproj">
+            BlueprintIdentifier = "AC1FA5BB1F78C3F5004CF8CA"
+            BuildableName = "transpiler"
+            BlueprintName = "transpiler"
+            ReferencedContainer = "container:transpiler.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
