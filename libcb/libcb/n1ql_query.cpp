@@ -42,8 +42,12 @@ int main()
     // Allocate memory for the handle.
     memset(&options, 0, sizeof(options));
     options.version = 3;
-    options.v.v3.connstr = "couchbase://localhost";
-
+  options.v.v3.connstr = "couchbase://127.0.0.1:12000/"
+  "default?username=Administrator&select_bucket=true&"
+  "detailed_errcodes=1";
+  options.v.v3.type = LCB_TYPE_BUCKET;
+  options.v.v3.passwd = "asdasd";
+  
     // Initialize the handle.
     err = lcb_create(&instance, &options);
     if (err != LCB_SUCCESS)
@@ -65,7 +69,7 @@ int main()
     // Structure for writing the query.
     lcb_CMDN1QL cmd = {0};
     lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
-    err = lcb_n1p_setstmtz(n1ql_params, "SELECT * FROM default;");
+    err = lcb_n1p_setstmtz(n1ql_params, "SELECT * FROM `beer-sample`;");
     if (err != LCB_SUCCESS)
         end(instance, "unable to build query string", err);
 

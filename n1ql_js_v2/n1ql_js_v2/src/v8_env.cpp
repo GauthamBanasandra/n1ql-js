@@ -10,12 +10,13 @@
 #include "v8_env.hpp"
 
 using namespace std;
+using namespace v8;
 
 // Initializes the v8 engine.
 V8Env::V8Env() {
     V8::InitializeICU();
     V8::InitializeExternalStartupData(N1qlUtils::GetStartupData().c_str());
-    Platform *platform = platform::CreateDefaultPlatform();
+  	Platform *platform = platform::CreateDefaultPlatform();
     V8::InitializePlatform(platform);
     V8::Initialize();
 

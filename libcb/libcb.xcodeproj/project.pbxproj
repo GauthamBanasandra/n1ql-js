@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC1059EE1EEE94C60091A805 /* get_set.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1059ED1EEE94C60091A805 /* get_set.cpp */; };
+		AC2F2BE01F84D53400075B12 /* pos_param.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC2F2BDD1F84CE0800075B12 /* pos_param.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +28,7 @@
 		AC101F1A1ECC36020054EE98 /* nested_iter3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nested_iter3.cpp; sourceTree = "<group>"; };
 		AC1059ED1EEE94C60091A805 /* get_set.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = get_set.cpp; sourceTree = "<group>"; };
 		AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = duplicate_rows.cpp; sourceTree = "<group>"; };
+		AC2F2BDD1F84CE0800075B12 /* pos_param.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pos_param.cpp; sourceTree = "<group>"; };
 		ACA288961E711EF000275D54 /* n1ql_query.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql_query.cpp; sourceTree = "<group>"; };
 		ACA288971E711EF000275D54 /* stop_iter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stop_iter.cpp; sourceTree = "<group>"; };
 		ACDE05A51E710F500067C820 /* libcb */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = libcb; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,6 +63,7 @@
 				ACA288971E711EF000275D54 /* stop_iter.cpp */,
 				AC1059EA1EEE924F0091A805 /* nested_iter */,
 				AC1BEB981EDD1ADD00329D43 /* duplicate_rows.cpp */,
+				AC2F2BDD1F84CE0800075B12 /* pos_param.cpp */,
 			);
 			name = n1ql;
 			sourceTree = "<group>";
@@ -157,7 +159,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC1059EE1EEE94C60091A805 /* get_set.cpp in Sources */,
+				AC2F2BE01F84D53400075B12 /* pos_param.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

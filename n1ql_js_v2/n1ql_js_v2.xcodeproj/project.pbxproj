@@ -617,11 +617,12 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					/Users/gautham/projects/github/googletest/googletest/include,
-					/Users/gautham/.cbdepscache,
+					"~/.cbdepscache/include",
+					"~/.cbdepscache",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/Users/gautham/projects/github/googletest/build/**",
-					"/Users/gautham/.cbdepscache/lib/**",
+					"~/.cbdepscache/lib/**",
 				);
 				OTHER_LDFLAGS = "-ll";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -633,11 +634,12 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
 					/Users/gautham/projects/github/googletest/googletest/include,
-					/Users/gautham/.cbdepscache,
+					"~/.cbdepscache/include",
+					"~/.cbdepscache",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/Users/gautham/projects/github/googletest/build/**",
-					"/Users/gautham/.cbdepscache/lib/**",
+					"~/.cbdepscache/lib/**",
 				);
 				OTHER_LDFLAGS = "-ll";
 				PRODUCT_NAME = "$(TARGET_NAME)";

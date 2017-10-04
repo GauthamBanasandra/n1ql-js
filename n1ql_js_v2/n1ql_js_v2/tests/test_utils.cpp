@@ -61,7 +61,7 @@ void MapTestData(string test_data_path) {
 
 string Transpile(string source) {
     if (transpiler_js_src.length() == 0) {
-        transpiler_js_src = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_query_builder/transpiler.js");
+        transpiler_js_src = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_query_builder/transpiler_ut.js");
         transpiler_js_src += N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/estools.js");            
     }
 
