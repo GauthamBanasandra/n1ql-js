@@ -111,7 +111,7 @@ function getAst(code, sourceFileName) {
 				// Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
 				/*
 					Before:
-					var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);					
+					var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);
 					After:
 					var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
 				*/
@@ -210,7 +210,7 @@ function getAst(code, sourceFileName) {
 					self.setLocMatchingNodes(sourceCopy, source);
 					break;
 
-					// The following case handles the mapping of loc nodes between stopIter and 
+					// The following case handles the mapping of loc nodes between stopIter and
 					// return statement or between two stopIter statements as the above case.
 					/*
 						Before:
@@ -264,7 +264,7 @@ function getAst(code, sourceFileName) {
 		};
 
 		// This is a safe method for adding loc nodes for a given AST.
-		// The disadvantage is that it can not be used with all the AST.		
+		// The disadvantage is that it can not be used with all the AST.
 		this.setLocForAllNodes = function (loc, ast) {
 			// Generate the code snippet for the given AST.
 			var codeSnippet = escodegen.generate(ast);
@@ -302,7 +302,7 @@ function getAst(code, sourceFileName) {
 			convertTreeToStack(target, targetNodeStack);
 
 			console.assert(sourceNodeStack.getSize() === targetNodeStack.getSize(), 'stack size must be same');
-			// Pop all nodes from the sourceNodeStack and if an element contains loc node, 
+			// Pop all nodes from the sourceNodeStack and if an element contains loc node,
 			// copy it to the corresponding element in the targetNodeStack.
 			while (!sourceNodeStack.isEmpty()) {
 				var sourceNode = sourceNodeStack.pop();
@@ -1292,7 +1292,7 @@ function getAst(code, sourceFileName) {
 							/*
 								Before:
 								break;
-								After:								
+								After:
 								return res.stopIter({ 'code': 'break' });
 							 */
 							stopIterAst = new StopIterAst(nodeCopy.right.name);
@@ -1353,7 +1353,7 @@ function getAst(code, sourceFileName) {
 						/*
 							Before:
 							return a + b;
-							After:							
+							After:
 							return res.stopIter({
 								'code': 'return',
 								'args': '(a + b)',
@@ -1463,7 +1463,7 @@ function getAst(code, sourceFileName) {
 					}
 					break;
 
-					// Maps the source to target loc during the following kind of transformation -				
+					// Maps the source to target loc during the following kind of transformation -
 					/*
 						source: return res.stopIter({
 							'code': 'return',
@@ -1484,7 +1484,7 @@ function getAst(code, sourceFileName) {
 					}
 					break;
 
-					// Maps the source to target loc during the following kind of transformation -				
+					// Maps the source to target loc during the following kind of transformation -
 					/*
 						source: return res1.stopIter({
 							'code': 'return',
