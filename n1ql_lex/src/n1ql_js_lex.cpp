@@ -1273,7 +1273,9 @@ case 47:
 YY_RULE_SETUP
 #line 110 "n1ql_js_lex.l"
 {
-		if(yytext[0] == '\'' && !is_esc() && lex_op == kJsify) {
+		// Need to escape the escape character to preserve the raw-ness.
+		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
+		if(yytext[0] == '\\' || (yytext[0] == '\'' && !is_esc() && lex_op == kJsify)) {
 			js_code += "\\";
 		}
 
@@ -1282,26 +1284,26 @@ YY_RULE_SETUP
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 117 "n1ql_js_lex.l"
+#line 119 "n1ql_js_lex.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 118 "n1ql_js_lex.l"
+#line 120 "n1ql_js_lex.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 119 "n1ql_js_lex.l"
+#line 121 "n1ql_js_lex.l"
 {js_code += "\n";}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 120 "n1ql_js_lex.l"
+#line 122 "n1ql_js_lex.l"
 ECHO;
 	YY_BREAK
-#line 1305 "lex.yy.c"
+#line 1307 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2304,7 +2306,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 120 "n1ql_js_lex.l"
+#line 122 "n1ql_js_lex.l"
 
 
 // Parses the given input string.

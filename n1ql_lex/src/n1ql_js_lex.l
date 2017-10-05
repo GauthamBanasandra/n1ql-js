@@ -108,7 +108,9 @@
 		}
 	}
 <N1QL>.	{
-		if(yytext[0] == '\'' && !is_esc() && lex_op == kJsify) {
+		// Need to escape the escape character to preserve the raw-ness.
+		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
+		if(yytext[0] == '\\' || (yytext[0] == '\'' && !is_esc() && lex_op == kJsify)) {
 			js_code += "\\";
 		}
 
