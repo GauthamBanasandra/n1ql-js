@@ -12,6 +12,7 @@
 #include <iostream>
 #include <v8.h>
 
+#include "utils.hpp"
 #include "n1ql.h"
 
 Transpiler::Transpiler(std::string transpiler_src) {
@@ -87,12 +88,3 @@ bool Transpiler::IsTimerCalled(std::string handler_code) {
   
   return ToCBool(bool_result);
 }
-
-bool ToCBool(const v8::Local<v8::Boolean> &value) {
-  if (value.IsEmpty()) {
-    std::cout << "Failed to convert to bool" << '\n';
-  }
-  
-  return value->Value();
-}
-

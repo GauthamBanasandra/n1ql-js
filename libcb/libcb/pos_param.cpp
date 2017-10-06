@@ -73,8 +73,8 @@ int main() {
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
   std::string query =
-  "SELECT * FROM `beer-sample` WHERE name = $1";
-  std::string name = "[\"age\", 17]";
+  "SELECT * FROM $1 WHERE name = \"Rochefort 10\"";
+  std::string name = "`beer-sample`";
   
   err = lcb_n1p_setstmtz(n1ql_params, query.c_str());
   if (err != LCB_SUCCESS)

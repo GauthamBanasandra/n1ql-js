@@ -7,15 +7,27 @@
 #include <stdlib.h>
 #include <string>
 
+#include "n1ql.h"
+#include "utils.hpp"
+#include "log.hpp"
+
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
+
+#define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
+#define SOURCE_PATH PROJECT_ROOT"/transpiler/inputs/input1.js"
+#define THIRD_PARTY_PATH PROJECT_ROOT"/transpiler/third_party"
+#define TRANSPILER_JS_PATH PROJECT_ROOT"/transpiler/src/transpiler.js"
+#define BUILTIN_JS_PATH PROJECT_ROOT"/transpiler/src/builtin.js"
+
+N1QL *n1ql_handle;
 
 inline std::string ReadFile(std::string path) {
   std::string line, content;
   std::ifstream file(path);
   if (file.is_open()) {
     while (getline(file, line)) {
-      content += line;
+      content += line+"\n";
     }
     
     file.close();
@@ -26,14 +38,19 @@ inline std::string ReadFile(std::string path) {
   return content;
 }
 
-inline std::string GetTranspilerSrc(std::string third_party_path,
-                                    const char *transpiler_path) {
+inline std::string GetTranspilerSrc() {
   std::string transpiler_src;
-  transpiler_src += ReadFile(third_party_path + transpiler_path) + "\n" +
-  ReadFile(third_party_path + "esprima.js") + "\n" +
-  ReadFile(third_party_path + "escodegen.js") + "\n" +
-  ReadFile(third_party_path + "estraverse.js") + "\n";
+  transpiler_src += ReadFile(TRANSPILER_JS_PATH) + "\n" +
+  ReadFile(THIRD_PARTY_PATH"/esprima.js") + "\n" +
+  ReadFile(THIRD_PARTY_PATH"/escodegen.js") + "\n" +
+  ReadFile(THIRD_PARTY_PATH"/estraverse.js") + "\n";
   return transpiler_src;
+}
+
+void Log(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  for (int i = 0; i < args.Length(); i++) {
+    std::cout << JSONStringify(args.GetIsolate(), args[i]) << std::endl;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -50,22 +67,35 @@ int main(int argc, char *argv[]) {
   {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
-    v8::Local<v8::Context> context = v8::Context::New(isolate);
+    
+    auto global = v8::ObjectTemplate::New(isolate);
+    global->Set(v8Str(isolate, "log"), v8::FunctionTemplate::New(isolate, Log));
+    global->Set(v8Str(isolate, "iter"), v8::FunctionTemplate::New(isolate, IterFunction));
+    global->Set(v8Str(isolate, "stopIter"), v8::FunctionTemplate::New(isolate, StopIterFunction));
+    global->Set(v8Str(isolate, "execQuery"), v8::FunctionTemplate::New(isolate, ExecQueryFunction));
+    global->Set(v8Str(isolate, "getReturnValue"), v8::FunctionTemplate::New(isolate, GetReturnValueFunction));
+    auto context = v8::Context::New(isolate, nullptr, global);
     v8::Context::Scope context_scope(context);
     
-    std::string src = GetTranspilerSrc(argv[0], argv[1]);
-    std::cout << src << std::endl;
+    ConnectionPool *conn_pool = new ConnectionPool(15, "127.0.0.1:12000", "default", "eventing", "asdasd");
+    n1ql_handle = new N1QL(conn_pool);
     
-    v8::Local<v8::String> source =
-    v8::String::NewFromUtf8(isolate, "'Hello' + ', World!'",
-                            v8::NewStringType::kNormal)
-    .ToLocalChecked();
+    std::string transpiler_src = GetTranspilerSrc();
+    std::string js_src = ReadFile(SOURCE_PATH);
+    Transpiler transpiler(transpiler_src);
+    std::string transpiled_src = transpiler.Transpile(js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
+    std::string script_to_execute = transpiled_src + ReadFile(BUILTIN_JS_PATH);
+    
+    auto source = v8Str(isolate, script_to_execute.c_str());
     
     v8::Local<v8::Script> script =
     v8::Script::Compile(context, source).ToLocalChecked();
     v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
     v8::String::Utf8Value utf8(result);
     printf("%s\n", *utf8);
+    
+    delete conn_pool;
+    delete n1ql_handle;
   }
   
   // Dispose the isolate and tear down V8.

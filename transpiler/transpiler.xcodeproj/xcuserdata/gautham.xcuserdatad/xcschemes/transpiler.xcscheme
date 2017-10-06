@@ -63,16 +63,6 @@
             ReferencedContainer = "container:transpiler.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "~/projects/github/n1ql-js/transpiler/transpiler/third_party"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "~/projects/github/n1ql-js/transpiler/transpiler/src/transpiler.js"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "DYLD_LIBRARY_PATH"
