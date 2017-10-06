@@ -73,18 +73,12 @@ int main() {
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
   std::string query =
-  "SELECT * FROM `beer-sample` WHERE abv > $1 AND name = $2";
-  std::string abv_lim = "10";
-  std::string name = "\"Rochefort 10\"";
+  "SELECT * FROM `beer-sample` WHERE name = $1";
+  std::string name = "[\"age\", 17]";
   
   err = lcb_n1p_setstmtz(n1ql_params, query.c_str());
   if (err != LCB_SUCCESS)
     end(instance, "unable to build query string", err);
-  
-  err = lcb_n1p_posparam(n1ql_params, abv_lim.c_str(), abv_lim.length());
-  if (err != LCB_SUCCESS) {
-    end(instance, "unable to set positional parameter", err);
-  }
   
   err = lcb_n1p_posparam(n1ql_params, name.c_str(), name.length());
   if (err != LCB_SUCCESS) {
