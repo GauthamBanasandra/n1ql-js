@@ -1,14 +1,3 @@
-// Copyright (c) 2017 Couchbase, Inc.
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//     http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an "AS IS"
-// BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-// or implied. See the License for the specific language governing
-// permissions and limitations under the License.
-
 function transpile(code, sourceFileName) {
     var ast = getAst(code, sourceFileName);
     return escodegen.generate(ast, {
@@ -86,18 +75,18 @@ function getAst(code, sourceFileName) {
 
             // Using this check temporarily.
             // if (!self.hasLocNode(sourceCopy)) {
-            // 	return source;
+            //   return source;
             // }
 
             // Attach the loc nodes based on the context.
             switch (context) {
                 // Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
                 /*
-                	Before:
-                	var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);
-                	After:
-                	var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
-                */
+                 Before:
+                 var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);
+                 After:
+                 var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
+                 */
                 case Context.N1qlQuery:
                     source.loc = self.deepCopy(sourceCopy.loc);
                     source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
@@ -106,13 +95,13 @@ function getAst(code, sourceFileName) {
 
                     // Mapping of if-else block to for-of loop.
                     /*
-                    	Before:
-                    	for (var r of res1){...}
-                    	After:
-                    	if (res1.isInstance) {
-                    		res1.iter(function (r) {...}
-                    	} else {...}
-                    */
+                     Before:
+                     for (var r of res1){...}
+                     After:
+                     if (res1.isInstance) {
+                     res1.iter(function (r) {...}
+                     } else {...}
+                     */
                 case Context.IterTypeCheck:
                     source.loc = self.deepCopy(sourceCopy.loc);
                     source.consequent.loc = self.deepCopy(sourceCopy.body.loc);
@@ -121,9 +110,9 @@ function getAst(code, sourceFileName) {
                     source.test.property.loc = self.deepCopy(sourceCopy.right.loc);
 
                     // TODO: Currently, after breaking out from labeled break statement, it goes to the beginning of the for-of loop.
-                    //		Ideally, it should go to the end of the labeled block. This looks quite ideal to show the iteration behaviour -
-                    //		It stops at the enclosing for-of loops (iterators) before coming out and thus, demonstrating the stopping
-                    //		of iteration. Need to ask whether this is ok or if the default behaviour is needed.
+                    //    Ideally, it should go to the end of the labeled block. This looks quite ideal to show the iteration behaviour -
+                    //    It stops at the enclosing for-of loops (iterators) before coming out and thus, demonstrating the stopping
+                    //    of iteration. Need to ask whether this is ok or if the default behaviour is needed.
                     if (source.consequent.body.length > 1 && /SwitchStatement/.test(source.consequent.body[1].type)) {
                         self.forceSetLocForAllNodes(sourceCopy.loc, source.consequent.body[1]);
                     }
@@ -173,17 +162,17 @@ function getAst(code, sourceFileName) {
 
                     // The following case handles mapping of loc nodes between two different 'stopIter' calls.
                     /*
-                    	Before:
-                    	return res2.stopIter({
-                    		'code': 'labeled_break',
-                    		'args': 'x'
-                    	});
-                    	After:
-                    	return res1.stopIter({
-                    		'code': 'labeled_break',
-                    		'args': 'x'
-                    	});
-                    */
+                     Before:
+                     return res2.stopIter({
+                     'code': 'labeled_break',
+                     'args': 'x'
+                     });
+                     After:
+                     return res1.stopIter({
+                     'code': 'labeled_break',
+                     'args': 'x'
+                     });
+                     */
                 case Context.BreakAltInterrupt:
                     self.setLocMatchingNodes(sourceCopy, source);
                     break;
@@ -191,13 +180,13 @@ function getAst(code, sourceFileName) {
                     // The following case handles the mapping of loc nodes between stopIter and
                     // return statement or between two stopIter statements as the above case.
                     /*
-                    	Before:
-                    	return res2.stopIter({
-                    			'code': 'labeled_continue',
-                    			'args': 'x'
-                    		});
-                    	After:
-                    	return;
+                     Before:
+                     return res2.stopIter({
+                     'code': 'labeled_continue',
+                     'args': 'x'
+                     });
+                     After:
+                     return;
                      */
                 case Context.ContinueAltInterrupt:
                     if (source.argument) {
@@ -329,14 +318,68 @@ function getAst(code, sourceFileName) {
 
         // Build an ast node for N1QL function call from the query.
         this.getQueryAst = function(query) {
-            // Identifier regex.
-            var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
+            var subs = nodeUtils.placeholderSubstitutions(query);
+            return new N1QLQueryAst(subs.query, subs.placeholders);
+        };
 
-            // Replace the :<var> with proper substitution.
-            query = query.replace(re, '\' + $1 + \'');
-            query = "new N1qlQuery(" + query + ");";
+        this.placeholderSubstitutions = function(query) {
+            function isQuote(c) {
+                return c === '\'' || c === '"';
+            }
 
-            return esprima.parse(query).body[0].expression;
+            function isEscaped(i) {
+                var escCount = 0;
+                for (var j = i - 1; j >= 0; --j) {
+                    if (query[j] !== '\\') {
+                        break;
+                    }
+
+                    ++escCount;
+                }
+
+                return escCount & 1;
+            }
+
+            function parsePlaceholder(i) {
+                var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
+                var qMatch = re.exec(query.slice(i));
+                if (qMatch && qMatch.index === 0) {
+                    return qMatch[1];
+                }
+
+                return null;
+            }
+
+            var quoteStack = new Stack();
+            var substitutedQuery = '';
+            var placeholders = [];
+            for (var i = 0; i < query.length; ++i) {
+                var substituted = false;
+                if (isQuote(query[i]) && !isEscaped(i)) {
+                    if (quoteStack.isEmpty()) {
+                        quoteStack.push(query[i]);
+                    } else if (quoteStack.peek() === query[i]) {
+                        quoteStack.pop();
+                    }
+                } else if (query[i] === ':' && quoteStack.isEmpty()) {
+                    var placeholder = parsePlaceholder(i);
+                    if (placeholder) {
+                        placeholders.push(placeholder);
+                        substitutedQuery += '$' + placeholders.length;
+                        substituted = true;
+                        i += placeholder.length;
+                    }
+                }
+
+                if (!substituted) {
+                    substitutedQuery += query[i];
+                }
+            }
+
+            return {
+                query: substitutedQuery,
+                placeholders: placeholders
+            };
         };
 
         // Checks if the global scope contains only function declarations.
@@ -868,7 +911,7 @@ function getAst(code, sourceFileName) {
 
     // Returns AST of the form -
     /*
-    	res.iter(function(row){...});
+     res.iter(function(row){...});
      */
     function IteratorSkeletonAst(iterVar, arg) {
         Ast.call(this, 'ExpressionStatement');
@@ -907,6 +950,42 @@ function getAst(code, sourceFileName) {
     function BlockStatementAst(body) {
         Ast.call(this, 'BlockStatement');
         this.body = [body];
+    }
+
+    function N1QLQueryAst(query, posParams) {
+        Ast.call(this, 'NewExpression');
+        this.callee = {
+            "type": "Identifier",
+            "name": "N1qlQuery"
+        };
+        this.arguments = [{
+            "type": "Literal",
+            "value": query
+        }, {
+            "type": "ObjectExpression",
+            "properties": [{
+                "type": "Property",
+                "key": {
+                    "type": "Identifier",
+                    "name": "posParams"
+                },
+                "computed": false,
+                "value": {
+                    "type": "ArrayExpression",
+                    "elements": []
+                },
+                "kind": "init",
+                "method": false,
+                "shorthand": false
+            }]
+        }];
+
+        for (var param of posParams) {
+            this.arguments[1].properties[0].value.elements.push({
+                "type": "Identifier",
+                "name": param
+            });
+        }
     }
 
     // Class for maintaining the object that will be passed to 'stopIter'.
@@ -1229,14 +1308,14 @@ function getAst(code, sourceFileName) {
                         stopIterAst = arg = null;
                         // Labeled break statement.
                         /*
-							Before:
-							break x;
-							After:
-							return res.stopIter({
-								'code': 'labeled_break',
-								'args': 'x'
-							});
-					 	*/
+                         Before:
+                         break x;
+                         After:
+                         return res.stopIter({
+                         'code': 'labeled_break',
+                         'args': 'x'
+                         });
+                         */
                         if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
                             arg = new Arg({
@@ -1247,10 +1326,10 @@ function getAst(code, sourceFileName) {
                         } else if (!node.label && breakMod.isReplaceReq()) {
                             // Unlabeled break statement.
                             /*
-                            	Before:
-                            	break;
-                            	After:
-                            	return res.stopIter({ 'code': 'break' });
+                             Before:
+                             break;
+                             After:
+                             return res.stopIter({ 'code': 'break' });
                              */
                             stopIterAst = new StopIterAst(nodeCopy.right.name);
                             arg = new Arg({
@@ -1269,13 +1348,13 @@ function getAst(code, sourceFileName) {
                     case 'ContinueStatement':
                         // Labeled continue statement.
                         /*
-                        	Before:
-                        	continue x;
-                        	After:
-                        	return res.stopIter({
-                        		'code': 'labeled_continue',
-                        		'args': 'x'
-                        	});
+                         Before:
+                         continue x;
+                         After:
+                         return res.stopIter({
+                         'code': 'labeled_continue',
+                         'args': 'x'
+                         });
                          */
                         if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                             if (nodeCopy.parentLabel === node.label.name) {
@@ -1297,10 +1376,10 @@ function getAst(code, sourceFileName) {
                         } else if (continueMod.isReplaceReq()) {
                             // Unlabeled continue statement.
                             /*
-                            	Before:
-                            	continue;
-                            	After:
-                            	return;
+                             Before:
+                             continue;
+                             After:
+                             return;
                              */
                             nodeUtils.replaceNode(node, new ReturnAst(null), Context.ContinueStatement);
                         }
@@ -1308,14 +1387,14 @@ function getAst(code, sourceFileName) {
 
                     case 'ReturnStatement':
                         /*
-                        	Before:
-                        	return a + b;
-                        	After:
-                        	return res.stopIter({
-                        		'code': 'return',
-                        		'args': '(a + b)',
-                        		'data': a + b
-                        	});
+                         Before:
+                         return a + b;
+                         After:
+                         return res.stopIter({
+                         'code': 'return',
+                         'args': '(a + b)',
+                         'data': a + b
+                         });
                          */
                         if (returnMod.isReplaceReq(node)) {
                             // Return statement may or may not have arguments.
@@ -1377,10 +1456,10 @@ function getAst(code, sourceFileName) {
             switch (context) {
                 // Maps the source to target loc during the following kind of transformation -
                 /*
-                	Before:
-                	for (var r of res3){...}
-                	After:
-                	res.iter(function (r) {...}
+                 Before:
+                 for (var r of res3){...}
+                 After:
+                 res.iter(function (r) {...}
                  */
                 case Context.IterConsequent:
                     target.loc = nodeUtils.deepCopy(source.loc);
@@ -1394,16 +1473,16 @@ function getAst(code, sourceFileName) {
 
                     // Maps the source to target loc during the following kind of transformation -
                     /*
-                    	source: return function () {
-                    		return inner;
-                    	};
-                    	target: return res1.stopIter({
-                    		'code': 'return',
-                    		'args': '(function () {\n    return inner;\n})',
-                    		'data': function () {
-                    			return inner;
-                    		}
-                    	});
+                     source: return function () {
+                     return inner;
+                     };
+                     target: return res1.stopIter({
+                     'code': 'return',
+                     'args': '(function () {\n    return inner;\n})',
+                     'data': function () {
+                     return inner;
+                     }
+                     });
                      */
                 case Context.ReturnStatement:
                     target.loc = source.loc;
@@ -1420,12 +1499,12 @@ function getAst(code, sourceFileName) {
 
                     // Maps the source to target loc during the following kind of transformation -
                     /*
-                    	source: return res.stopIter({
-                    		'code': 'return',
-                    		'args': 'res.getReturnValue().data',
-                    		'data': res.getReturnValue().data
-                    	});
-                    	target: return res.getReturnValue().data;
+                     source: return res.stopIter({
+                     'code': 'return',
+                     'args': 'res.getReturnValue().data',
+                     'data': res.getReturnValue().data
+                     });
+                     target: return res.getReturnValue().data;
                      */
                 case Context.ReturnAltFound:
                     target.loc = source.loc;
@@ -1439,16 +1518,16 @@ function getAst(code, sourceFileName) {
 
                     // Maps the source to target loc during the following kind of transformation -
                     /*
-                    	source: return res1.stopIter({
-                    		'code': 'return',
-                    		'args': 'res.getReturnValue().data',
-                    		'data': res.getReturnValue().data
-                    	});
-                    	target: return res2.stopIter({
-                    		'code': 'return',
-                    		'args': 'res.getReturnValue().data',
-                    		'data': res.getReturnValue().data
-                    	});
+                     source: return res1.stopIter({
+                     'code': 'return',
+                     'args': 'res.getReturnValue().data',
+                     'data': res.getReturnValue().data
+                     });
+                     target: return res2.stopIter({
+                     'code': 'return',
+                     'args': 'res.getReturnValue().data',
+                     'data': res.getReturnValue().data
+                     });
                      */
                 case Context.ReturnAltInterrupt:
                     nodeUtils.setLocMatchingNodes(source, target);
@@ -1709,7 +1788,7 @@ function getAst(code, sourceFileName) {
     // Attaching comments is a separate step.
     ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
-//    nodeUtils.checkGlobals(ast);
+    // nodeUtils.checkGlobals(ast);
 
     estraverse.traverse(ast, {
         enter: function(node, parent) {
@@ -1742,7 +1821,7 @@ function getAst(code, sourceFileName) {
         leave: function(node) {
             // Perform variable substitution in query constructor.
             if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-                var queryAst = nodeUtils.getQueryAst(node.arguments[0].raw);
+                var queryAst = nodeUtils.getQueryAst(node.arguments[0].value);
                 nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst), Context.N1qlQuery);
             }
 

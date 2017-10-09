@@ -43,6 +43,7 @@
 		AC23CE3A1F875F0300DD7069 /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		AC23CE3C1F87600200DD7069 /* utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		AC23CE3D1F87600200DD7069 /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
+		AC7913C71F8B852100C5B523 /* input2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input2.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				AC23CE331F87504500DD7069 /* input1.js */,
+				AC7913C71F8B852100C5B523 /* input2.js */,
 			);
 			path = inputs;
 			sourceTree = "<group>";

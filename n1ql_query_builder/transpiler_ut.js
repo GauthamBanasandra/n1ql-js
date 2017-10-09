@@ -57,6 +57,7 @@ function getAst(code, sourceFileName) {
 
 		// Deletes a node from the body.
 		this.deleteNode = function (parentBody, nodeToDel) {
+						
 			var deleteIndex = parentBody.indexOf(nodeToDel);
 			parentBody.splice(deleteIndex, 1);
 		};
@@ -123,14 +124,14 @@ function getAst(code, sourceFileName) {
 					switch (source.type) {
 						// Return to continue statement mapping - source: return, target: continue
 						case 'ContinueStatement':
-							if (source.label) {
+														if (source.label) {
 								source.label.loc = self.deepCopy(sourceCopy.loc);
 							}
 							break;
 
 							// Continue to return statement mapping - source: continue, target: return
 						case 'ReturnStatement':
-							if (source.argument && sourceCopy.label.loc) {
+														if (source.argument && sourceCopy.label.loc) {
 								source.argument = self.setLocForAllNodes(sourceCopy.label.loc, source.argument);
 							}
 							break;
@@ -146,12 +147,12 @@ function getAst(code, sourceFileName) {
 					switch (source.type) {
 						// Return to break statement mapping - source: return, target: break
 						case 'BreakStatement':
-							source.label.loc = self.deepCopy(sourceCopy.argument.loc);
+														source.label.loc = self.deepCopy(sourceCopy.argument.loc);
 							break;
 
 							// Break to return statement mapping - source: break, target: return
 						case 'ReturnStatement':
-							source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
+														source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
 							break;
 
 						default:
@@ -173,7 +174,7 @@ function getAst(code, sourceFileName) {
 						});
 					*/
 				case Context.BreakAltInterrupt:
-					self.setLocMatchingNodes(sourceCopy, source);
+										self.setLocMatchingNodes(sourceCopy, source);
 					break;
 
 					// The following case handles the mapping of loc nodes between stopIter and
@@ -189,7 +190,7 @@ function getAst(code, sourceFileName) {
 					 */
 				case Context.ContinueAltInterrupt:
 					if (source.argument) {
-						self.setLocMatchingNodes(sourceCopy, source);
+												self.setLocMatchingNodes(sourceCopy, source);
 					} else {
 						source.loc = sourceCopy.loc;
 					}
@@ -266,7 +267,7 @@ function getAst(code, sourceFileName) {
 			convertTreeToStack(source, sourceNodeStack);
 			convertTreeToStack(target, targetNodeStack);
 
-			// Pop all nodes from the sourceNodeStack and if an element contains loc node,
+						// Pop all nodes from the sourceNodeStack and if an element contains loc node,
 			// copy it to the corresponding element in the targetNodeStack.
 			while (!sourceNodeStack.isEmpty()) {
 				var sourceNode = sourceNodeStack.pop();
@@ -279,7 +280,7 @@ function getAst(code, sourceFileName) {
 
 		// Inserts the given node to the given parentBody at the specified index.
 		this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
-			var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
+									var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
 			parentBody.splice(insertIndex, 0, nodeToInsert);
 		};
 
@@ -311,20 +312,74 @@ function getAst(code, sourceFileName) {
 
 		// Inserts an array of AST nodes into parentBody at the specified index.
 		this.insertNodeArray = function (parentBody, insAfterNode, arrayToInsert) {
-			var insertIndex = parentBody.indexOf(insAfterNode) + 1;
+									var insertIndex = parentBody.indexOf(insAfterNode) + 1;
 			parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
 		};
 
 		// Build an ast node for N1QL function call from the query.
 		this.getQueryAst = function (query) {
-			// Identifier regex.
-			var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/g;
+			var subs = nodeUtils.placeholderSubstitutions(query);
+			return new N1QLQueryAst(subs.query, subs.placeholders);
+		};
 
-			// Replace the :<var> with proper substitution.
-			query = query.replace(re, '\' + $1 + \'');
-			query = "new N1qlQuery(" + query + ");";
+		this.placeholderSubstitutions = function (query) {
+			function isQuote(c) {
+				return c === '\'' || c === '"';
+			}
 
-			return esprima.parse(query).body[0].expression;
+			function isEscaped(i) {
+				var escCount = 0;
+				for (var j = i - 1; j >= 0; --j) {
+					if (query[j] !== '\\') {
+						break;
+					}
+
+					++escCount;
+				}
+
+				return escCount & 1;
+			}
+
+			function parsePlaceholder(i) {
+				var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
+				var qMatch = re.exec(query.slice(i));
+				if (qMatch && qMatch.index === 0) {
+					return qMatch[1];
+				}
+
+				return null;
+			}
+
+			var quoteStack = new Stack();
+			var substitutedQuery = '';
+			var placeholders = [];
+			for (var i = 0; i < query.length; ++i) {
+				var substituted = false;
+				if (isQuote(query[i]) && !isEscaped(i)) {
+					if (quoteStack.isEmpty()) {
+						quoteStack.push(query[i]);
+					} else if (quoteStack.peek() === query[i]) {
+						quoteStack.pop();
+					}
+				} else if (query[i] === ':' && quoteStack.isEmpty()) {
+					var placeholder = parsePlaceholder(i);
+					if (placeholder) {
+						placeholders.push(placeholder);
+						substitutedQuery += '$' + placeholders.length;
+						substituted = true;
+						i += placeholder.length;
+					}
+				}
+
+				if (!substituted) {
+					substitutedQuery += query[i];
+				}
+			}
+
+			return {
+				query: substitutedQuery,
+				placeholders: placeholders
+			};
 		};
 
 		// Checks if the global scope contains only function declarations.
@@ -521,7 +576,7 @@ function getAst(code, sourceFileName) {
 						break;
 
 					case LoopModifier.CONST.LABELED_BREAK:
-						node.lblBreakStackIndex = this.stackIndex;
+												node.lblBreakStackIndex = this.stackIndex;
 						break;
 
 					case LoopModifier.CONST.RETURN:
@@ -529,7 +584,7 @@ function getAst(code, sourceFileName) {
 						break;
 
 					case LoopModifier.CONST.LABELED_CONTINUE:
-						node.lblContinueStackIndex = this.stackIndex;
+												node.lblContinueStackIndex = this.stackIndex;
 						break;
 
 					default:
@@ -586,7 +641,7 @@ function getAst(code, sourceFileName) {
 
 		// Returns a boolean suggesting whether the loop modifier needs to be replaced.
 		this.isReplaceReq = function (args) {
-			switch (this.modType) {
+						switch (this.modType) {
 				// For break and continue, the replacement criteria is the for-of node being the parent on TOS.
 				case LoopModifier.CONST.CONTINUE:
 				case LoopModifier.CONST.BREAK:
@@ -897,6 +952,44 @@ function getAst(code, sourceFileName) {
 		this.body = [body];
 	}
 
+	function N1QLQueryAst(query, posParams) {
+		Ast.call(this, 'NewExpression');
+		this.callee = {
+			"type": "Identifier",
+			"name": "N1qlQuery"
+		};
+		this.arguments = [{
+				"type": "Literal",
+				"value": query
+			},
+			{
+				"type": "ObjectExpression",
+				"properties": [{
+					"type": "Property",
+					"key": {
+						"type": "Identifier",
+						"name": "posParams"
+					},
+					"computed": false,
+					"value": {
+						"type": "ArrayExpression",
+						"elements": []
+					},
+					"kind": "init",
+					"method": false,
+					"shorthand": false
+				}]
+			}
+		];
+
+		for (var param of posParams) {
+			this.arguments[1].properties[0].value.elements.push({
+				"type": "Identifier",
+				"name": param
+			});
+		}
+	}
+
 	// Class for maintaining the object that will be passed to 'stopIter'.
 	function Arg(arg) {
 		this.code = arg.code;
@@ -994,6 +1087,7 @@ function getAst(code, sourceFileName) {
 						});
 						// If the label is found and doesn't point to the for-of node, then add a break <label>.
 						if (lookup.targetFound) {
+							
 							if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
 								pushCase = false;
 							} else {
@@ -1003,6 +1097,7 @@ function getAst(code, sourceFileName) {
 						// If the search was interrupted, then it means that it encountered a for-of node. So, add a
 						// 'return stopIter' node.
 						if (lookup.searchInterrupted) {
+							
 							stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 							arg = new Arg({
 								code: LoopModifier.CONST.LABELED_BREAK,
@@ -1029,6 +1124,7 @@ function getAst(code, sourceFileName) {
 							}
 						});
 						if (lookup.targetFound) {
+							
 							if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
 								pushCase = false;
 							} else {
@@ -1036,6 +1132,7 @@ function getAst(code, sourceFileName) {
 							}
 						}
 						if (lookup.searchInterrupted) {
+							
 							if (lookup.stopNode.parentLabel === postIter.args) {
 								returnStmtAst = new ReturnAst(null);
 							} else {
@@ -1067,9 +1164,11 @@ function getAst(code, sourceFileName) {
 							}
 						});
 						if (lookup.targetFound) {
+							
 							returnStmtAst = new ReturnAst(new ReturnDataAst(postIter.iterVar, this.returnBubbleFunc));
 						}
 						if (lookup.searchInterrupted) {
+							
 							stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 							arg = new Arg({
 								code: LoopModifier.CONST.RETURN,
@@ -1146,7 +1245,8 @@ function getAst(code, sourceFileName) {
 		};
 
 		// debug.
-		this.assertEmpty = function () {}
+		this.assertEmpty = function () {
+																	}
 	}
 
 	// Returns if-else AST having iterator in consequent and for-of in alternate (dynamic type checking).
@@ -1388,12 +1488,12 @@ function getAst(code, sourceFileName) {
 						});
 					 */
 				case Context.ReturnStatement:
-					target.loc = source.loc;
+										target.loc = source.loc;
 					nodeUtils.forceSetLocForAllNodes(source.loc, target.argument);
 					if (source.argument) {
 						for (var prop of target.argument.arguments[0].properties) {
 							if (prop.key.value === 'data') {
-								prop.value = nodeUtils.deepCopy(source.argument);
+																prop.value = nodeUtils.deepCopy(source.argument);
 								break;
 							}
 						}
@@ -1410,10 +1510,10 @@ function getAst(code, sourceFileName) {
 						target: return res.getReturnValue().data;
 					 */
 				case Context.ReturnAltFound:
-					target.loc = source.loc;
+										target.loc = source.loc;
 					for (var prop of source.argument.arguments[0].properties) {
 						if (prop.key.value === 'data') {
-							target.argument = nodeUtils.deepCopy(prop.value);
+														target.argument = nodeUtils.deepCopy(prop.value);
 							break;
 						}
 					}
@@ -1433,7 +1533,7 @@ function getAst(code, sourceFileName) {
 						});
 					 */
 				case Context.ReturnAltInterrupt:
-					nodeUtils.setLocMatchingNodes(source, target);
+										nodeUtils.setLocMatchingNodes(source, target);
 					break;
 				default:
 					throw 'Unhandled case: ' + context;
@@ -1489,7 +1589,7 @@ function getAst(code, sourceFileName) {
 						}
 					}
 					if (lookup.searchInterrupted) {
-						switch (node.metaData.code) {
+												switch (node.metaData.code) {
 							case LoopModifier.CONST.LABELED_BREAK:
 								stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 								arg = new Arg({
@@ -1553,6 +1653,7 @@ function getAst(code, sourceFileName) {
 								}
 							});
 							if (lookup.searchInterrupted) {
+								
 								stopIterAst = new StopIterAst(lookup.stopNode.right.name);
 								arg = new Arg({
 									code: LoopModifier.CONST.LABELED_BREAK,
@@ -1581,6 +1682,7 @@ function getAst(code, sourceFileName) {
 								}
 							});
 							if (lookup.searchInterrupted) {
+								
 								if (lookup.stopNode.parentLabel === node.label.name) {
 									returnStmtAst = new ReturnAst(null);
 								} else {
@@ -1713,6 +1815,7 @@ function getAst(code, sourceFileName) {
 					}
 				});
 				if (lookup.targetFound) {
+					
 					// TODO :   Anonymous function might require some attention because comparing null doesn't make sense.
 					node.targetFunction = lookup.stopNode.id ? lookup.stopNode.id.name : null;
 				}
@@ -1721,7 +1824,7 @@ function getAst(code, sourceFileName) {
 		leave: function (node) {
 			// Perform variable substitution in query constructor.
 			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-				var queryAst = nodeUtils.getQueryAst(node.arguments[0].raw);
+				var queryAst = nodeUtils.getQueryAst(node.arguments[0].value);
 				nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst), Context.N1qlQuery);
 			}
 

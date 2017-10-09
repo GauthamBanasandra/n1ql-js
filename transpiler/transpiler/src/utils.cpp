@@ -37,7 +37,7 @@ v8::Local<v8::String> v8Str(v8::Isolate *isolate, const char *str) {
 
 const char *JSONStringify(v8::Isolate *isolate, v8::Handle<v8::Value> object) {
   v8::HandleScope handle_scope(isolate);
-
+  
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Object> global = context->Global();
   
@@ -46,9 +46,10 @@ const char *JSONStringify(v8::Isolate *isolate, v8::Handle<v8::Value> object) {
 
   v8::Local<v8::Value> result;
   v8::Local<v8::Value> args[1];
-  args[0] = {object};
+  args[0] = object;
   result = JSON_stringify->Call(global, 1, args);
   v8::String::Utf8Value str(result->ToString());
   
-  return ToCString(str);
+//  return ToCString(str);
+  return *str;
 }

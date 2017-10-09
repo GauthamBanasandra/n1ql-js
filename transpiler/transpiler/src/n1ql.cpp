@@ -14,6 +14,7 @@
 #include <string>
 #include <v8.h>
 #include <vector>
+#include <forward_list>
 
 #include "log.hpp"
 #include "n1ql.h"
@@ -166,7 +167,7 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
   } else {
     if (resp->rc != LCB_SUCCESS) {
       auto errors = n1ql_handle->ExtractErrorMsg(resp->row, isolate);
-//      V8Worker::exception.Throw(instance, resp->rc, errors);
+      //      V8Worker::exception.Throw(instance, resp->rc, errors);
     }
     
     q_handler.iter_handler->metadata = resp->row;
@@ -195,7 +196,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
   } else {
     if (resp->rc != LCB_SUCCESS) {
       auto errors = n1ql_handle->ExtractErrorMsg(resp->row, q_handler.isolate);
-//      V8Worker::exception.Throw(instance, resp->rc, errors);
+      //      V8Worker::exception.Throw(instance, resp->rc, errors);
     }
     
     q_handler.block_handler->metadata = resp->row;
@@ -211,20 +212,29 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   lcb_t &instance = q_handler.instance;
   lcb_error_t err;
   lcb_CMDN1QL cmd = {0};
-  lcb_N1QLHANDLE handle = NULL;
+  lcb_N1QLHANDLE handle = nullptr;
   cmd.handle = &handle;
   cmd.callback = RowCallback<HandlerType>;
   
   lcb_N1QLPARAMS *n1ql_params = lcb_n1p_new();
   err = lcb_n1p_setstmtz(n1ql_params, q_handler.query.c_str());
-  if (err != LCB_SUCCESS)
+  if (err != LCB_SUCCESS) {
     ConnectionPool::Error(instance, "unable to build query string", err);
+  }
+  
+  for(const auto &param : *q_handler.pos_params){
+    err = lcb_n1p_posparam(n1ql_params, param.c_str(), param.length());
+    if (err != LCB_SUCCESS) {
+      ConnectionPool::Error(instance, "unable to set positional parameters", err);
+    }
+  }
   
   lcb_n1p_mkcmd(n1ql_params, &cmd);
   
-  err = lcb_n1ql_query(instance, NULL, &cmd);
-  if (err != LCB_SUCCESS)
+  err = lcb_n1ql_query(instance, nullptr, &cmd);
+  if (err != LCB_SUCCESS){
     ConnectionPool::Error(instance, "unable to query", err);
+  }
   
   lcb_n1p_free(n1ql_params);
   
@@ -234,9 +244,26 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   lcb_wait(instance);
   
   // Resource clean-up.
-  lcb_set_cookie(instance, NULL);
+  lcb_set_cookie(instance, nullptr);
   n1ql_handle->qhandler_stack.Pop();
   inst_pool->Restore(instance);
+}
+
+std::list<std::string> ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::Isolate *isolate = args.GetIsolate();
+  v8::HandleScope handle_scope(isolate);
+  
+  auto options = args.This()->Get(v8Str(isolate, "options"))->ToObject();
+  auto pos_params = options->Get(v8Str(isolate, "posParams")).As<v8::Array>();
+  std::list<std::string> pos_params_l;
+
+  for (auto i = 0; i < pos_params->Length(); ++i) {
+    v8::String::Utf8Value param(pos_params->Get(i));
+    std::cout << *param << std::endl;
+    pos_params_l.push_back(*param);
+  }
+  
+  return pos_params_l;
 }
 
 // iter() function that is exposed to JavaScript.
@@ -249,9 +276,9 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     std::string hash = SetUniqueHash(args);
     
     // Query to run.
-    v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
-    v8::Local<v8::Value> query_value = args.This()->Get(query_name);
-    v8::String::Utf8Value query_string(query_value);
+    auto query = args.This()->Get(v8Str(isolate, "query"));
+    v8::String::Utf8Value query_string(query);
+    auto pos_params = ExtractPosParams(args);
     
     // Callback function to execute.
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args[0]);
@@ -262,6 +289,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     QueryHandler q_handler;
     q_handler.hash = hash;
     q_handler.query = *query_string;
+    q_handler.pos_params = &pos_params;
     q_handler.isolate = args.GetIsolate();
     q_handler.iter_handler = &iter_handler;
     
@@ -311,15 +339,16 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     std::string hash = SetUniqueHash(args);
     
     // Query to run.
-    v8::Local<v8::Name> query_name = v8::String::NewFromUtf8(isolate, "query");
-    v8::Local<v8::Value> query_value = args.This()->Get(query_name);
-    v8::String::Utf8Value query_string(query_value);
+    auto query = args.This()->Get(v8Str(isolate, "query"));
+    v8::String::Utf8Value query_string(query);
+    auto pos_params = ExtractPosParams(args);
     
     // Prepare data for query execution.
     BlockingQueryHandler block_handler;
     QueryHandler q_handler;
     q_handler.hash = hash;
     q_handler.query = *query_string;
+    q_handler.pos_params = &pos_params;
     q_handler.isolate = args.GetIsolate();
     q_handler.block_handler = &block_handler;
     
@@ -595,4 +624,3 @@ template <typename T> v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle) {
   auto result = handle.ToLocal(&value);
   return handle_scope.Escape(value);
 }
-

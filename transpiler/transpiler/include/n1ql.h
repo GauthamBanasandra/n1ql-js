@@ -18,6 +18,7 @@
 #include <string>
 #include <v8.h>
 #include <vector>
+#include <list>
 
 #include "libcouchbase/couchbase.h"
 #include "libcouchbase/n1ql.h"
@@ -64,6 +65,7 @@ struct QueryHandler {
   v8::Isolate *isolate = nullptr;
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;
+  std::list<std::string> *pos_params = nullptr;
 };
 
 // Pool of lcb instances and routines for pool management.
@@ -162,6 +164,7 @@ void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
                     std::string key_hash_str, std::string value_hash_str);
 void PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
 template <typename T> v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
+std::list<std::string> ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args);
 
 #endif
 
