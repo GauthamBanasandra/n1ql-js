@@ -1,0 +1,4 @@
+var k = 'key';
+var v = '{"k" : "v"}';
+var res = UPSERT INTO sample (KEY, VALUE) VALUES (:k, :v);
+res.execQuery();
