@@ -12,20 +12,20 @@
 #include <iostream>
 #include <v8.h>
 
-#include "utils.hpp"
 #include "n1ql.h"
+#include "utils.hpp"
 
 Transpiler::Transpiler(std::string transpiler_src) {
   isolate = v8::Isolate::GetCurrent();
   v8::EscapableHandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
-  
+
   context = v8::Context::New(isolate, NULL, global);
   v8::Context::Scope context_scope(context);
   auto source = v8::String::NewFromUtf8(isolate, transpiler_src.c_str());
   auto script = v8::Script::Compile(context, source).ToLocalChecked();
   script->Run(context).ToLocalChecked();
-  
+
   this->context = handle_scope.Escape(context);
 }
 
@@ -38,7 +38,7 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(std::string function,
   auto function_def = context->Global()->Get(function_name);
   auto function_ref = v8::Local<v8::Function>::Cast(function_def);
   auto result = function_ref->Call(function_ref, args_len, args);
-  
+
   return handle_scope.Escape(result);
 }
 
@@ -52,11 +52,11 @@ std::string Transpiler::Transpile(std::string handler_code,
   args[1] = v8::String::NewFromUtf8(isolate, src_filename.c_str());
   auto result = ExecTranspiler("transpile", args, 2);
   v8::String::Utf8Value utf8result(result);
-  
+
   std::string src_transpiled = *utf8result;
   src_transpiled += "\n//# sourceMappingURL=http://" + host_addr + ":" +
-  eventing_port + "/debugging/" + src_map_name;
-  
+                    eventing_port + "/debugging/" + src_map_name;
+
   return src_transpiled;
 }
 
@@ -65,7 +65,7 @@ std::string Transpiler::JsFormat(std::string handler_code) {
   args[0] = v8::String::NewFromUtf8(isolate, handler_code.c_str());
   auto result = ExecTranspiler("jsFormat", args, 1);
   v8::String::Utf8Value utf8result(result);
-  
+
   return *utf8result;
 }
 
@@ -76,7 +76,7 @@ std::string Transpiler::GetSourceMap(std::string handler_code,
   args[1] = v8::String::NewFromUtf8(isolate, src_filename.c_str());
   auto result = ExecTranspiler("getSourceMap", args, 2);
   v8::String::Utf8Value utf8result(result);
-  
+
   return *utf8result;
 }
 
@@ -85,6 +85,6 @@ bool Transpiler::IsTimerCalled(std::string handler_code) {
   args[0] = v8::String::NewFromUtf8(isolate, handler_code.c_str());
   auto result = ExecTranspiler("isTimerCalled", args, 1);
   auto bool_result = v8::Local<v8::Boolean>::Cast(result);
-  
+
   return ToCBool(bool_result);
 }

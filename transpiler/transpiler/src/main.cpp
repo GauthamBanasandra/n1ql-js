@@ -104,10 +104,7 @@ int main(int argc, char *argv[]) {
     std::string transpiled_src = transpiler.Transpile(js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
     std::string script_to_execute = transpiled_src + ReadFile(BUILTIN_JS_PATH);
     
-    std::cout << script_to_execute << std::endl;
-    
     auto source = v8Str(isolate, script_to_execute.c_str());
-    
     v8::Local<v8::Script> script =
     v8::Script::Compile(context, source).ToLocalChecked();
     v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();

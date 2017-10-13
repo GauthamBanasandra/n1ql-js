@@ -27,6 +27,7 @@
 	// Storing the state for resuming on switch.
 	int previous_state;
 %}
+%option nounput
 %x N1QL MLCMT SLCMT DSTR SSTR TSTR
 %%
 	previous_state=YYSTATE;
