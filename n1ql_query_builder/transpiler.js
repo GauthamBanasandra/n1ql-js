@@ -3,16 +3,12 @@ var fs = require('fs'),
 	estraverse = require('estraverse'),
 	escodegen = require('escodegen');
 
-var filename = process.argv[2];
-var code = fs.readFileSync(filename, 'utf-8');
-var transpiledCode = escodegen.generate(getAst(code, filename), {
-	sourceMap: true,
-	sourceMapWithCode: true,
-	comment: true
-});
+var filename = process.argv[2],
+	code = fs.readFileSync(filename, 'utf-8'),
+	transpiledCode = transpile(code, filename);
 
-console.log(transpiledCode.code);
-esprima.parse(transpiledCode.code);
+console.log(transpiledCode);
+esprima.parse(transpiledCode);
 
 function saveTranspiledCode() {
 	var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
@@ -357,51 +353,75 @@ function getAst(code, sourceFileName) {
 
 		// Build an ast node for N1QL function call from the query.
 		this.getQueryAst = function (query) {
-			var subs = nodeUtils.placeholderSubstitutions(query);
+			var qParser = new QueryParser(),
+				subs = qParser.parse(query);
 			return new N1QLQueryAst(subs.query, subs.placeholders);
 		};
 
-		this.placeholderSubstitutions = function (query) {
-			function isQuote(c) {
-				return c === '\'' || c === '"';
+		// Checks if the global scope contains only function declarations.
+		this.checkGlobals = function (ast) {
+			for (var node of ast.body) {
+				if (!/FunctionDeclaration/.test(node.type)) {
+					throw 'Only function declaration are allowed in global scope';
+				}
+			}
+		}
+	}
+
+	function QueryParser() {
+		function isQuote(c) {
+			return c === '\'' || c === '"';
+		}
+
+		function isEscaped(query, i) {
+			var escCount = 0;
+			for (var j = i - 1; j >= 0; --j) {
+				if (query[j] !== '\\') {
+					break;
+				}
+
+				++escCount;
 			}
 
-			function isEscaped(i) {
-				var escCount = 0;
-				for (var j = i - 1; j >= 0; --j) {
-					if (query[j] !== '\\') {
-						break;
+			return escCount & 1;
+		}
+
+		function parsePlaceholder(query, i) {
+			var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
+			var qMatch = re.exec(query.slice(i));
+			if (qMatch && qMatch.index === 0) {
+				return qMatch[1];
+			}
+
+			return null;
+		}
+
+		function manageQuoteStack(quoteStack, query, i, callback) {
+			if (isQuote(query[i]) && !isEscaped(query, i)) {
+				if (quoteStack.isEmpty()) {
+					quoteStack.push(query[i]);
+					if (callback && callback.if) {
+						callback.if();
 					}
-
-					++escCount;
+				} else if (quoteStack.peek() === query[i]) {
+					quoteStack.pop();
+					if (callback && callback.else) {
+						callback.else();
+					}
 				}
-
-				return escCount & 1;
 			}
+		}
 
-			function parsePlaceholder(i) {
-				var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-				var qMatch = re.exec(query.slice(i));
-				if (qMatch && qMatch.index === 0) {
-					return qMatch[1];
-				}
+		this.parse = function (query) {
+			var quoteStack = new Stack(),
+				substitutedQuery = '',
+				placeholders = [];
 
-				return null;
-			}
-
-			var quoteStack = new Stack();
-			var substitutedQuery = '';
-			var placeholders = [];
 			for (var i = 0; i < query.length; ++i) {
 				var substituted = false;
-				if (isQuote(query[i]) && !isEscaped(i)) {
-					if (quoteStack.isEmpty()) {
-						quoteStack.push(query[i]);
-					} else if (quoteStack.peek() === query[i]) {
-						quoteStack.pop();
-					}
-				} else if (query[i] === ':' && quoteStack.isEmpty()) {
-					var placeholder = parsePlaceholder(i);
+				manageQuoteStack(quoteStack, query, i);
+				if (query[i] === ':' && quoteStack.isEmpty()) {
+					var placeholder = parsePlaceholder(query, i);
 					if (placeholder) {
 						placeholders.push(placeholder);
 						substitutedQuery += '$' + placeholders.length;
@@ -415,20 +435,35 @@ function getAst(code, sourceFileName) {
 				}
 			}
 
+			// Quote stack must be empty.
+			console.assert(quoteStack.isEmpty(), 'Quote stack must be empty, otherwise, the string is malformed in the query');
 			return {
 				query: substitutedQuery,
 				placeholders: placeholders
 			};
 		};
 
-		// Checks if the global scope contains only function declarations.
-		this.checkGlobals = function (ast) {
-			for (var node of ast.body) {
-				if (!/FunctionDeclaration/.test(node.type)) {
-					throw 'Only function declaration are allowed in global scope';
-				}
+		this.getStrLoc = function (query) {
+			var quoteStack = new Stack();
+			var strLoc = [];
+
+			for (var i = 0; i < query.length; ++i) {
+				manageQuoteStack(quoteStack, query, i, {
+					if: function () {
+						strLoc.push({
+							start: i
+						});
+					},
+					else: function () {
+						strLoc[strLoc.length - 1].stop = i;
+					}
+				});
 			}
-		}
+
+			// Quote stack must be empty.
+			console.assert(quoteStack.isEmpty(), 'Quote stack must be empty, otherwise, the string is malformed in the query');
+			return strLoc;
+		};
 	}
 
 	// A general purpose stack.
