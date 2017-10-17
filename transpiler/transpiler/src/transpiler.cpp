@@ -24,6 +24,7 @@ Transpiler::Transpiler(std::string transpiler_src) {
   v8::Context::Scope context_scope(context);
   auto source = v8::String::NewFromUtf8(isolate, transpiler_src.c_str());
   auto script = v8::Script::Compile(context, source).ToLocalChecked();
+
   script->Run(context).ToLocalChecked();
 
   this->context = handle_scope.Escape(context);

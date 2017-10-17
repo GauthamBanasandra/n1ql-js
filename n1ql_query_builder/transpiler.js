@@ -33,7 +33,7 @@ function jsFormat(code) {
 }
 
 function isTimerCalled(code) {
-	return isFuncCalled('docTimer', code) && isFuncCalled('nonDocTimer', code);
+	return isFuncCalled('docTimer', code) || isFuncCalled('nonDocTimer', code);
 }
 
 function getSourceMap(code, sourceFileName) {
@@ -107,9 +107,9 @@ function getAst(code, sourceFileName) {
 				// Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
 				/*
 					Before:
-					var res1 = new N1qlQuery(`select * from :bucket LIMIT 10;`);
+					var res1 = new N1qlQuery('select * from :bucket LIMIT 10;');
 					After:
-					var res1 = new N1qlQuery('select * from ' + bucket + ' LIMIT 10;');
+					var res1 = new N1qlQuery('select * from $1 LIMIT 10;', {posParams : [bucket]});
 				*/
 				case Context.N1qlQuery:
 					source.loc = self.deepCopy(sourceCopy.loc);
