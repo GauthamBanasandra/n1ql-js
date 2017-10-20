@@ -1,0 +1,6 @@
+function query() {
+    for (var row of res1)
+        for (var row of res2)
+            for (var row of res3)
+                return x;
+}

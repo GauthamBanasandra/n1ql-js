@@ -1,0 +1,21 @@
+update
+
+
+
+:
+
+
+{
+    {function OnUpdate(doc, meta) 
+    {
+        var bucket='tutorial',
+            type='actor';
+
+        var res=UPDATE :bucket USE KEYS "baldwin" SET type=:type RETURNING type;
+        
+        for(var row of res)
+        {
+            log(row);
+        }
+    }
+    }

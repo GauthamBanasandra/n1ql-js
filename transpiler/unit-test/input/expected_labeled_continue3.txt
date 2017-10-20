@@ -1,0 +1,27 @@
+if (res1.isInstance) {
+    res1.iter(function (r) {
+        if (res2.isInstance) {
+            res2.iter(function (r) {
+                return;
+            });
+        } else {
+            x:
+                for (var r of res2) {
+                    continue x;
+                }
+        }
+    });
+} else {
+    for (var r of res1) {
+        if (res2.isInstance) {
+            res2.iter(function (r) {
+                return;
+            });
+        } else {
+            x:
+                for (var r of res2) {
+                    continue x;
+                }
+        }
+    }
+}

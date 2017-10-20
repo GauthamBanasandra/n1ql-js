@@ -1,0 +1,20 @@
+function query() {
+    if (res.isInstance) {
+        res.iter(function (row) {
+            return res.stopIter({
+                'code': 'return',
+                'args': '(null)',
+                'data': null
+            });
+        });
+        switch (res.getReturnValue(true)) {
+        case 'return(null)':
+            return res.getReturnValue().data;;
+        }
+    } else {
+        for (var row of res) {
+            return;
+        }
+    }
+    return;
+}

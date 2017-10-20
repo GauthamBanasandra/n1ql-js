@@ -1,0 +1,10 @@
+function OnUpdate(doc, meta){
+    var bucket='default';
+
+    var res=new N1qlQuery(`select * FROM :bucket`);
+
+    for(var row of res)
+    {
+        log(row);
+    }
+}

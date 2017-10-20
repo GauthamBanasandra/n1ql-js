@@ -1,0 +1,37 @@
+if (res.isInstance) {
+    res.iter(function (i) {
+        switch (i) {
+        case '1':
+            if (res2.isInstance) {
+                res2.iter(function (row) {
+                    return res2.stopIter({ 'code': 'break' });
+                });
+            } else {
+                for (var row of res2) {
+                    break;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    });
+} else {
+    for (var i of res) {
+        switch (i) {
+        case '1':
+            if (res2.isInstance) {
+                res2.iter(function (row) {
+                    return res2.stopIter({ 'code': 'break' });
+                });
+            } else {
+                for (var row of res2) {
+                    break;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}

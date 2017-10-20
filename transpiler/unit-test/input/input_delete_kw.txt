@@ -1,0 +1,6 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+    var delete;
+    DELETE * FROM :bucket;
+}

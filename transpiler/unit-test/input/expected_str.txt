@@ -1,0 +1,14 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+    
+    var res=new N1qlQuery(`select * FROM :bucket`);
+    
+    /* The following line must not expand as it is inside a string */
+    log('Output of the query - SELECT * FROM :bucket');
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+}

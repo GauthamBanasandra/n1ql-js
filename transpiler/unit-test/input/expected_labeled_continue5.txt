@@ -1,0 +1,40 @@
+if (res1.isInstance) {
+    res1.iter(function (r) {
+        if (res2.isInstance) {
+            res2.iter(function (r) {
+                return res2.stopIter({
+                    'code': 'labeled_continue',
+                    'args': 'x'
+                });
+            });
+            switch (res2.getReturnValue(true)) {
+            case 'labeled_continuex':
+                return;
+            }
+        } else {
+            for (var r of res2) {
+                return;
+            }
+        }
+    });
+} else {
+    x:
+        for (var r of res1) {
+            if (res2.isInstance) {
+                res2.iter(function (r) {
+                    return res2.stopIter({
+                        'code': 'labeled_continue',
+                        'args': 'x'
+                    });
+                });
+                switch (res2.getReturnValue(true)) {
+                case 'labeled_continuex':
+                    continue x;
+                }
+            } else {
+                for (var r of res2) {
+                    continue x;
+                }
+            }
+        }
+}

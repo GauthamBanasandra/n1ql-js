@@ -1,0 +1,43 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+
+    CREATE INDEX abv_id ON :bucket(abv);
+
+    var value={'id':'01', 'type':'airline'};
+
+    var res=INSERT INTO :bucket (KEY, VALUE) VALUES ('k001', :value) RETURNING META.id() as docid;
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+
+    res=SELECT * FROM :bucket;
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+
+    MERGE INTO :bucket p USING orders o ON KEY o.productId WHEN MATCHED THEN UPDATE SET p.lastSaleDate = o.orderDate WHEN MATCHED THEN DELETE WHERE p.inventoryCount  <= 0;
+
+    bucket='tutorial';
+    type='actor';
+
+    res=UPDATE :bucket USE KEYS "baldwin" SET type=:type RETURNING type;
+    
+    for(var row of res)
+    {
+        log(row);
+    }
+
+    res=UPSERT INTO product (KEY, VALUE) VALUES ("odwalla-juice1", { "productId": "odwalla-juice1", "unitPrice": 5.40, "type": "product", "color":"red"}) RETURNING *;
+
+    for(var row of res)
+    {
+        log(row);
+    }
+    
+    DELETE * FROM :bucket;
+}

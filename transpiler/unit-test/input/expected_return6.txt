@@ -1,0 +1,66 @@
+function query() {
+    if (res1.isInstance) {
+        res1.iter(function (row) {
+            if (res2.isInstance) {
+                res2.iter(function (row) {
+                    return res2.stopIter({
+                        'code': 'return',
+                        'args': '(function () {\n    return inner;\n})',
+                        'data': function () {
+                            return inner;
+                        }
+                    });
+                });
+                switch (res2.getReturnValue(true)) {
+                case 'return(function () {\n    return inner;\n})':
+                    return res1.stopIter({
+                        'code': 'return',
+                        'args': 'res2.getReturnValue().data',
+                        'data': res2.getReturnValue().data
+                    });
+                }
+            } else {
+                for (var row of res2) {
+                    return res1.stopIter({
+                        'code': 'return',
+                        'args': '(function () {\n    return inner;\n})',
+                        'data': function () {
+                            return inner;
+                        }
+                    });
+                }
+            }
+        });
+        switch (res1.getReturnValue(true)) {
+        case 'returnres2.getReturnValue().data':
+            return res1.getReturnValue().data;;
+        case 'return(function () {\n    return inner;\n})':
+            return res1.getReturnValue().data;;
+        }
+    } else {
+        for (var row of res1) {
+            if (res2.isInstance) {
+                res2.iter(function (row) {
+                    return res2.stopIter({
+                        'code': 'return',
+                        'args': '(function () {\n    return inner;\n})',
+                        'data': function () {
+                            return inner;
+                        }
+                    });
+                });
+                switch (res2.getReturnValue(true)) {
+                case 'return(function () {\n    return inner;\n})':
+                    return res2.getReturnValue().data;
+                }
+            } else {
+                for (var row of res2) {
+                    return function () {
+                        return inner;
+                    };
+                }
+            }
+        }
+    }
+    return x;
+}

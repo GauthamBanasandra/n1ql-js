@@ -1,0 +1,9 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+    create
+    :
+    {
+        CREATE INDEX abv_id ON :bucket(abv);
+    }
+}

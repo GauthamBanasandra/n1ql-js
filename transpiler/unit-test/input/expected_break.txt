@@ -1,0 +1,9 @@
+if (res.isInstance) {
+    res.iter(function (r) {
+        return res.stopIter({ 'code': 'break' });
+    });
+} else {
+    for (var r of res) {
+        break;
+    }
+}

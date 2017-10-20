@@ -1,0 +1,13 @@
+function OnUpdate(doc, meta) 
+{
+    var bucket='default';
+    
+    var res=SELECT * FROM :bucket;
+    
+    select:{
+        for(var row of res)
+        {
+            log(row);
+        }
+    }
+}
