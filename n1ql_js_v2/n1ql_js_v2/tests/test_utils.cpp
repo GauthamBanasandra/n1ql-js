@@ -23,56 +23,63 @@ string transpiler_js_src;
 V8Env v8env;
 
 string ReadFile(string filename) {
-    if (test_data.size() == 0) {
-        system("python /Users/gautham/projects/file_modifier/input_combine.py /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/ > /Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/inputs/inputs/jsify_inputs.txt");
-        MapTestData(N1qlUtils::GetTestInputPath());
-    }
-
-    //    ifstream file(filename);
-    //    string source((istreambuf_iterator<char>(file)),
-    //                  istreambuf_iterator<char>());
-
-    return test_data[filename];
+  if (test_data.size() == 0) {
+    system("python /Users/gautham/projects/file_modifier/input_combine.py "
+           "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/"
+           "inputs/inputs/ > "
+           "/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/"
+           "inputs/inputs/jsify_inputs.txt");
+    MapTestData(N1qlUtils::GetTestInputPath());
+  }
+  
+  //    ifstream file(filename);
+  //    string source((istreambuf_iterator<char>(file)),
+  //                  istreambuf_iterator<char>());
+  
+  return test_data[filename];
 }
 
 void MapTestData(string test_data_path) {
-    ifstream test_data_file(test_data_path);
-    string delimiter =
-        "*********************************************************"
-        "*******************************************";
-    string line;
-    string key;
-
-    while (getline(test_data_file, key)) {
-        string value;
-
-        do {
-            if (line != "") {
-                value += line + "\n";
-            }
-
-            getline(test_data_file, line);
-        } while (line != delimiter);
-
-        test_data[key] = value;
-        line = "";
-    }
+  ifstream test_data_file(test_data_path);
+  string delimiter = "*********************************************************"
+  "*******************************************";
+  string line;
+  string key;
+  
+  while (getline(test_data_file, key)) {
+    string value;
+    
+    do {
+      if (line != "") {
+        value += line + "\n";
+      }
+      
+      getline(test_data_file, line);
+    } while (line != delimiter);
+    
+    test_data[key] = value;
+    line = "";
+  }
 }
 
 string Transpile(string source) {
-    if (transpiler_js_src.length() == 0) {
-        transpiler_js_src = N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_query_builder/transpiler_ut.js");
-        transpiler_js_src += N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/n1ql_js_v2/src/estools.js");            
-    }
-
-    string transpiled_js =
-        v8env.Build(transpiler_js_src, source, EXEC_TRANSPILER);
-    return transpiled_js;
+  if (transpiler_js_src.length() == 0) {
+    transpiler_js_src =
+    N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/"
+                        "n1ql_query_builder/transpiler_ut.js");
+    transpiler_js_src +=
+    N1qlUtils::ReadFile("/Users/gautham/projects/github/n1ql-js/n1ql_js_v2/"
+                        "n1ql_js_v2/src/estools.js");
+  }
+  
+  string transpiled_js =
+  v8env.Build(transpiler_js_src, source, EXEC_TRANSPILER);
+  return transpiled_js;
 }
 
 string FormatJs(string input) {
-    string jsFormatSrc = N1qlUtils::ReadFile(N1qlUtils::GetJsFormatPath());
-    string formattedJs = v8env.Build(jsFormatSrc, input, EXEC_JS_FORMAT);
-
-    return formattedJs;
+  string jsFormatSrc = N1qlUtils::ReadFile(N1qlUtils::GetJsFormatPath());
+  string formattedJs = v8env.Build(jsFormatSrc, input, EXEC_JS_FORMAT);
+  
+  return formattedJs;
 }

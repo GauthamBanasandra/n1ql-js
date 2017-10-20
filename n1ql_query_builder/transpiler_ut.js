@@ -16,7 +16,7 @@ function isTimerCalled(code) {
 
 function getSourceMap(code, sourceFileName) {
     var ast = getAst(code, sourceFileName);
-    return escodegen.generate(getAst(code, sourceFileName), {
+    return escodegen.generate(ast, {
         sourceMap: true,
         sourceMapWithCode: true
     }).map;
@@ -329,14 +329,16 @@ function getAst(code, sourceFileName) {
                     throw 'Only function declaration are allowed in global scope';
                 }
             }
-        }
+        };
     }
 
+    // A non-full-fledged parser to convert N1QL queries to parameterized queries.
     function QueryParser() {
         function isQuote(c) {
-            return c === '\'' || c === '"';
+            return c === '\'' || c === '"' || c === '`';
         }
 
+        // Back-tracks and finds if the i-th character is escaped.
         function isEscaped(query, i) {
             var escCount = 0;
             for (var j = i - 1; j >= 0; --j) {
@@ -347,9 +349,11 @@ function getAst(code, sourceFileName) {
                 ++escCount;
             }
 
+            // A character is escaped if it has odd number of escape character preceding it.
             return escCount & 1;
         }
 
+        // Parses placeholder having regex - :IDENT from the i-th character.
         function parsePlaceholder(query, i) {
             var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
             var qMatch = re.exec(query.slice(i));
@@ -360,17 +364,22 @@ function getAst(code, sourceFileName) {
             return null;
         }
 
+        // Utility method to maintain quote stack.
+        // Essentially, it keeps track of whether the i-th character is inside N1QL
+        // string or not and executes the callback upon entry / exit of N1QL string.
         function manageQuoteStack(quoteStack, query, i, callback) {
             if (isQuote(query[i]) && !isEscaped(query, i)) {
                 if (quoteStack.isEmpty()) {
+                    // Enter N1QL string.
                     quoteStack.push(query[i]);
-                    if (callback && callback.if) {
-                        callback.if();
+                    if (callback && callback.enter) {
+                        callback.enter();
                     }
                 } else if (quoteStack.peek() === query[i]) {
                     quoteStack.pop();
-                    if (callback && callback.else) {
-                        callback.else();
+                    // Exit N1QL string.
+                    if (callback && callback.exit) {
+                        callback.exit();
                     }
                 }
             }
@@ -381,6 +390,7 @@ function getAst(code, sourceFileName) {
                 substitutedQuery = '',
                 placeholders = [];
 
+            // Parse and substitute placeholders with $NUM.
             for (var i = 0; i < query.length; ++i) {
                 var substituted = false;
                 manageQuoteStack(quoteStack, query, i);
@@ -404,27 +414,6 @@ function getAst(code, sourceFileName) {
                 query: substitutedQuery,
                 placeholders: placeholders
             };
-        };
-
-        this.getStrLoc = function(query) {
-            var quoteStack = new Stack();
-            var strLoc = [];
-
-            for (var i = 0; i < query.length; ++i) {
-                manageQuoteStack(quoteStack, query, i, {
-                    if: function() {
-                        strLoc.push({
-                            start: i
-                        });
-                    },
-                    else: function() {
-                        strLoc[strLoc.length - 1].stop = i;
-                    }
-                });
-            }
-
-            // Quote stack must be empty.
-            return strLoc;
         };
     }
 

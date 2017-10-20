@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		AC0FBA491E792247002073B3 /* query_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA481E792247002073B3 /* query_engine.cpp */; };
 		AC0FBA4C1E797FBF002073B3 /* n1ql_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC0FBA4B1E797FBF002073B3 /* n1ql_js.cpp */; };
-		AC15CE8D1E6ECC0400B71475 /* libv8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0F141E6EC7B700706E47 /* libv8.dylib */; };
 		AC15FD0E1ECC8F30002CAE5C /* pass_ref.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC15FD021ECC8EC9002CAE5C /* pass_ref.cpp */; };
 		ACC5778E1E6ED0CC006D73EE /* exec_js.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */; };
 		ACC577921E6ED14D006D73EE /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACC577901E6ED14D006D73EE /* utils.cpp */; };
@@ -23,8 +22,6 @@
 		ACE512F81E6D30960094AFEC /* jsify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACE512F71E6D30960094AFEC /* jsify.cpp */; };
 		ACEA0EEC1E6E8D7800706E47 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACEA0EEB1E6E8D7800706E47 /* main.cpp */; };
 		ACEA0EF21E6E8DC900706E47 /* jsify_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACEA0EF11E6E8DC900706E47 /* jsify_test.cpp */; };
-		ACEA0EF31E6E8DE600706E47 /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0EE11E6E8A0D00706E47 /* libgtest.a */; };
-		ACEA0EF41E6E8DE800706E47 /* libgtest_main.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACEA0EE01E6E8A0D00706E47 /* libgtest_main.a */; };
 		ACEA0EF71E6E963200706E47 /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACEA0EF51E6E963200706E47 /* test_utils.cpp */; };
 		ACFA2A441E72A9AA00DE9B12 /* jsify_inputs.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = ACFA2A431E728FE100DE9B12 /* jsify_inputs.txt */; };
 		ACFD27B91E8130CC0056FB4E /* transpilation_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACFD27B81E8130CC0056FB4E /* transpilation_test.cpp */; };
@@ -81,6 +78,7 @@
 		AC15FD071ECC8F14002CAE5C /* pass_ref */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pass_ref; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC15FD101ECC915B002CAE5C /* pass_ref.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = pass_ref.js; path = ../n1ql_js_v2/inputs/pass_ref.js; sourceTree = "<group>"; };
 		AC1B3F601E822AAF00627F84 /* estools.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estools.js; sourceTree = "<group>"; };
+		AC6C76BD1F99AEAA00D31C13 /* libgtest.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgtest.a; path = ../../googletest/build/googlemock/gtest/libgtest.a; sourceTree = "<group>"; };
 		ACAB534F1E6FC29C00C9FE73 /* test_utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = test_utils.hpp; path = n1ql_js_v2/tests/test_utils.hpp; sourceTree = SOURCE_ROOT; };
 		ACC5778C1E6ED0CC006D73EE /* exec_js.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = exec_js.cpp; sourceTree = "<group>"; };
 		ACC577901E6ED14D006D73EE /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
@@ -131,9 +129,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC15CE8D1E6ECC0400B71475 /* libv8.dylib in Frameworks */,
-				ACEA0EF31E6E8DE600706E47 /* libgtest.a in Frameworks */,
-				ACEA0EF41E6E8DE800706E47 /* libgtest_main.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +229,7 @@
 		ACEA0EDF1E6E8A0D00706E47 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AC6C76BD1F99AEAA00D31C13 /* libgtest.a */,
 				ACEA0F171E6ECB0200706E47 /* libv8_base.a */,
 				ACEA0F181E6ECB0200706E47 /* libv8_external_snapshot.a */,
 				ACEA0F191E6ECB0200706E47 /* libv8_libbase.a */,
@@ -616,15 +612,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
-					/Users/gautham/projects/github/googletest/googletest/include,
+					"~/projects/github/googletest/googletest/include",
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/build/**",
-					"~/.cbdepscache/lib/**",
+					"~/projects/github/googletest/build",
+					"~/.cbdepscache/lib",
 				);
-				OTHER_LDFLAGS = "-ll";
+				OTHER_LDFLAGS = (
+					"-ll",
+					"-lgtest",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -633,15 +632,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = (
-					/Users/gautham/projects/github/googletest/googletest/include,
+					"~/projects/github/googletest/googletest/include",
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/Users/gautham/projects/github/googletest/build/**",
-					"~/.cbdepscache/lib/**",
+					"~/projects/github/googletest/build",
+					"~/.cbdepscache/lib",
 				);
-				OTHER_LDFLAGS = "-ll";
+				OTHER_LDFLAGS = (
+					"-ll",
+					"-lgtest",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

@@ -2270,7 +2270,12 @@ function OnUpdate(doc, meta)
 {
     var bucket='default';
     
-    var res=SELECT * FROM :bucket;
+    var res=SELECT * FROM :bucket WHERE name = ':bucket';
+    
+		var res=new N1qlQuery(`SELECT * FROM `+bucket +`WHERE name = ':bucket'`);
+
+    var res=SELECT * FROM system:bucket WHERE name = ':bucket';
+    var res=SELECT * FROM `beer-sample` WHERE name = ':bucket';
     
     for(var row of res)
     {

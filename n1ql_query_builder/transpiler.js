@@ -365,7 +365,7 @@ function getAst(code, sourceFileName) {
 					throw 'Only function declaration are allowed in global scope';
 				}
 			}
-		}
+		};
 	}
 
 	// A non-full-fledged parser to convert N1QL queries to parameterized queries.

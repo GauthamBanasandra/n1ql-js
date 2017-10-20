@@ -9,6 +9,8 @@
 #ifndef utils_hpp
 #define utils_hpp
 
+#include <v8.h>
+
 const char *ToCString(const v8::String::Utf8Value &value);
 bool ToCBool(const v8::Local<v8::Boolean> &value);
 v8::Local<v8::String> v8Str(v8::Isolate *isolate, const char *str);
