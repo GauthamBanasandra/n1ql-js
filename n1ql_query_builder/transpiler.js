@@ -33,7 +33,7 @@ function jsFormat(code) {
 }
 
 function isTimerCalled(code) {
-	return isFuncCalled('docTimer', code) || isFuncCalled('nonDocTimer', code);
+	return isFuncCalled('docTimer', code) || isFuncCalled('cronTimer', code);
 }
 
 function getSourceMap(code, sourceFileName) {
@@ -117,6 +117,16 @@ function getAst(code, sourceFileName) {
 					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
 					break;
 
+				// Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
+				/*
+					Before:
+					new N1qlQuery('delete bucket["key"]');
+					After:
+					delete bucket["key"];
+				*/
+				case Context.N1qlQueryRevert:
+					self.setLocForAllNodes(sourceCopy.loc, source);
+					break;
 					// Mapping of if-else block to for-of loop.
 					/*
 						Before:
@@ -365,6 +375,28 @@ function getAst(code, sourceFileName) {
 					throw 'Only function declaration are allowed in global scope';
 				}
 			}
+		};
+
+		// Checks if the N1QL query must be reverted back to JavaScript expression.
+		this.isRevertReq = function (query) {
+			// Checks if the given statement is a valid JavaScript expression.
+			function isJsExpression(stmt) {
+				try {
+					esprima.parse(stmt);
+					return true;
+				} catch (e) {
+					return false;
+				}
+			};
+
+			// Check whether N1QL query begins with delete and is parsable as a
+      // JavaScript expression.
+			var tokens = query.split(/\s/g);
+			if (tokens.length && tokens[0] === 'delete') {
+				return isJsExpression(query);
+			}
+
+			return false;
 		};
 	}
 
@@ -752,6 +784,7 @@ function getAst(code, sourceFileName) {
 
 	Context = {
 		N1qlQuery: 'n1ql_query',
+		N1qlQueryRevert: 'n1ql_query_revert',
 		IterTypeCheck: 'iter_type_check',
 		BreakStatement: 'break_statement',
 		BreakAltInterrupt: 'break_alt_interrupt',
@@ -1909,8 +1942,15 @@ function getAst(code, sourceFileName) {
 		leave: function (node) {
 			// Perform variable substitution in query constructor.
 			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-				var queryAst = nodeUtils.getQueryAst(node.arguments[0].value);
-				nodeUtils.replaceNode(node, nodeUtils.deepCopy(queryAst), Context.N1qlQuery);
+				var query = node.arguments[0].value;
+				if (nodeUtils.isRevertReq(query)) {
+					// Revert the query back to JavaScript expression if necessary.
+					var ast = esprima.parse(query).body[0].expression;
+					nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQueryRevert);
+				} else {
+					var ast = nodeUtils.getQueryAst(query);
+					nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQuery);
+				}
 			}
 
 			// TODO : Handle the case when the source of for-of loop is of type x.y

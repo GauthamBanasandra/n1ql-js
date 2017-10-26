@@ -14,7 +14,6 @@
 #define DELIMITER "****************************************************************************************************"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input2.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
