@@ -12,13 +12,13 @@
 #ifndef N1QL_H
 #define N1QL_H
 
+#include <list>
 #include <map>
 #include <queue>
 #include <stack>
 #include <string>
 #include <v8.h>
 #include <vector>
-#include <list>
 
 #include "libcouchbase/couchbase.h"
 #include "libcouchbase/n1ql.h"
@@ -68,6 +68,12 @@ struct QueryHandler {
   std::list<std::string> *pos_params = nullptr;
 };
 
+// Data type for cookie to be used during row callback execution.
+struct HandlerCookie {
+  v8::Isolate *isolate = nullptr;
+  lcb_N1QLHANDLE handle = nullptr;
+};
+
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 private:
@@ -107,6 +113,7 @@ public:
 
 class N1QL {
 private:
+  v8::Isolate *isolate;
   ConnectionPool *inst_pool;
   // Callback for each row.
   template <typename>
@@ -114,7 +121,8 @@ private:
                           const lcb_RESPN1QL *resp);
   
 public:
-  N1QL(ConnectionPool *inst_pool) : inst_pool(inst_pool) {}
+  N1QL(ConnectionPool *inst_pool, v8::Isolate *isolate)
+  : inst_pool(inst_pool), isolate(isolate) {}
   HashedStack qhandler_stack;
   std::vector<std::string> ExtractErrorMsg(const char *metadata,
                                            v8::Isolate *isolate);
@@ -165,7 +173,7 @@ void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
                     std::string key_hash_str, std::string value_hash_str);
 void PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
 template <typename T> v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
-std::list<std::string> ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args);
+std::list<std::string>
+ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args);
 
 #endif
-
