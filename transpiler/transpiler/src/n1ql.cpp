@@ -207,7 +207,7 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   q_handler.instance = inst_pool->GetResource();
 
   // Schedule the data to support query.
-  n1ql_handle->qhandler_stack.Push(q_handler);
+  qhandler_stack.Push(q_handler);
 
   lcb_t &instance = q_handler.instance;
   lcb_error_t err;
@@ -246,7 +246,7 @@ template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
 
   // Resource clean-up.
   lcb_set_cookie(instance, nullptr);
-  n1ql_handle->qhandler_stack.Pop();
+  qhandler_stack.Pop();
   inst_pool->Restore(instance);
 }
 

@@ -100,6 +100,7 @@ public:
   void Pop();
   QueryHandler Top() { return qstack.top(); }
   QueryHandler *Get(std::string index_hash) { return qmap[index_hash]; }
+  // TODO : Deduce return type
   int Size() { return static_cast<int>(qstack.size()); }
   ~HashedStack() {}
 };
