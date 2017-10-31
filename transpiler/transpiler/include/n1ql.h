@@ -163,7 +163,7 @@ template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
                       ResultType &result);
 
-std::string AppendStackIndex(int obj_hash);
+std::string AppendStackIndex(int obj_hash, v8::Isolate *isolate);
 bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args, std::string key);
 std::string SetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);
 std::string GetUniqueHash(const v8::FunctionCallbackInfo<v8::Value> &args);

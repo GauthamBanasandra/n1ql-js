@@ -20,8 +20,6 @@
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
 
-N1QL *n1ql_handle;
-
 inline std::string ReadFile(std::string path) {
   std::string line, content;
   std::ifstream file(path);
@@ -103,7 +101,8 @@ int main(int argc, char *argv[]) {
     
     ConnectionPool *conn_pool = new ConnectionPool(
                                                    15, "127.0.0.1:12000", "default", "eventing", "asdasd");
-    n1ql_handle = new N1QL(conn_pool, isolate);
+    auto n1ql_handle = new N1QL(conn_pool, isolate);
+    isolate->SetData(5, n1ql_handle);
     
     std::string transpiler_src = GetTranspilerSrc();
     std::string js_src = ReadFile(SOURCE_PATH);
