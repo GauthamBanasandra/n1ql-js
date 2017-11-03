@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     ConnectionPool *conn_pool = new ConnectionPool(
                                                    15, "127.0.0.1:12000", "default", "eventing", "asdasd");
     auto n1ql_handle = new N1QL(conn_pool, isolate);
-    isolate->SetData(5, n1ql_handle);
+    isolate->SetData(3, n1ql_handle);
     
     std::string transpiler_src = GetTranspilerSrc();
     std::string js_src = ReadFile(SOURCE_PATH);
