@@ -85,6 +85,9 @@ int main(int argc, char *argv[]) {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     
+    struct Data data;
+    isolate->SetData(DATA_SLOT, &data);
+    
     auto global = v8::ObjectTemplate::New(isolate);
     global->Set(v8Str(isolate, "log"),
                 v8::FunctionTemplate::New(isolate, LogProper));
@@ -101,8 +104,7 @@ int main(int argc, char *argv[]) {
     
     ConnectionPool *conn_pool = new ConnectionPool(
                                                    15, "127.0.0.1:12000", "default", "eventing", "asdasd");
-    auto n1ql_handle = new N1QL(conn_pool, isolate);
-    isolate->SetData(3, n1ql_handle);
+    data.n1ql_handle = new N1QL(conn_pool, isolate);
     
     std::string transpiler_src = GetTranspilerSrc();
     std::string js_src = ReadFile(SOURCE_PATH);
@@ -119,7 +121,7 @@ int main(int argc, char *argv[]) {
     printf("%s\n", *utf8);
     
     delete conn_pool;
-    delete n1ql_handle;
+    delete data.n1ql_handle;
   }
   
   // Dispose the isolate and tear down V8.

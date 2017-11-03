@@ -62,7 +62,6 @@ struct QueryHandler {
   std::string hash;
   std::string query;
   lcb_t instance = nullptr;
-  v8::Isolate *isolate = nullptr;
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;
   std::list<std::string> *pos_params = nullptr;

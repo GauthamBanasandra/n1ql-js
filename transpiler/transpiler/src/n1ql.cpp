@@ -135,7 +135,7 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
                                          const lcb_RESPN1QL *resp) {
   auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
   v8::Isolate *isolate = cookie->isolate;
-  auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+  auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
   QueryHandler q_handler = n1ql_handle->qhandler_stack.Top();
   v8::HandleScope handle_scope(isolate);
   
@@ -178,7 +178,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
                                              const lcb_RESPN1QL *resp) {
   auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
   v8::Isolate *isolate = cookie->isolate;
-  auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+  auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
   QueryHandler q_handler = n1ql_handle->qhandler_stack.Top();
   
   if (!(resp->rflags & LCB_RESP_F_FINAL)) {
@@ -196,7 +196,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
     free(row_str);
   } else {
     if (resp->rc != LCB_SUCCESS) {
-      auto errors = n1ql_handle->ExtractErrorMsg(resp->row, q_handler.isolate);
+      auto errors = n1ql_handle->ExtractErrorMsg(resp->row, isolate);
       //      V8Worker::exception.Throw(instance, resp->rc, errors);
     }
     
@@ -292,10 +292,9 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     q_handler.hash = hash;
     q_handler.query = *query_string;
     q_handler.pos_params = &pos_params;
-    q_handler.isolate = args.GetIsolate();
     q_handler.iter_handler = &iter_handler;
     
-    auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+    auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
     n1ql_handle->ExecQuery<IterQueryHandler>(q_handler);
     
     // Add query metadata.
@@ -319,7 +318,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     // Get the unique hash for this object that was set by IterFunction.
     std::string hash = GetUniqueHash(args);
     
-    auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+    auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
     // Cancel the query corresponding to the unique hash.
     QueryHandler *q_handler = n1ql_handle->qhandler_stack.Get(hash);
     lcb_t instance = q_handler->instance;
@@ -353,10 +352,9 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     q_handler.hash = hash;
     q_handler.query = *query_string;
     q_handler.pos_params = &pos_params;
-    q_handler.isolate = args.GetIsolate();
     q_handler.block_handler = &block_handler;
     
-    auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+    auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
     n1ql_handle->ExecQuery<BlockingQueryHandler>(q_handler);
     
     std::vector<std::string> &rows = block_handler.rows;
@@ -448,7 +446,7 @@ void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
 }
 
 std::string AppendStackIndex(int obj_hash, v8::Isolate *isolate) {
-  auto n1ql_handle = reinterpret_cast<N1QL *>(isolate->GetData(3));
+  auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
   std::string index_hash = std::to_string(obj_hash) + '|';
   index_hash += std::to_string(n1ql_handle->qhandler_stack.Size());
   
