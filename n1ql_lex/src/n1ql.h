@@ -22,12 +22,15 @@ enum op_code {
 };
 
 enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
-
-int Jsify(const char* input, std::string *output);
-int UniLineN1ql(const char *input, std::string *output);
-int CommentN1QL(const char *input, std::string *output);
+enum class pos_type { kN1QLBegin, kN1QLEnd };
 
 struct Pos {
 	unsigned long long line_no;
 	unsigned long long index;
+	pos_type type;
 };
+
+int Jsify(const char* input, std::string *output);
+int UniLineN1ql(const char *input, std::string *output);
+int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out);
+

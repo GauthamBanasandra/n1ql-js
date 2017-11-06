@@ -14,7 +14,6 @@
 	* Output:	Syntactically and semantically valid JavaScript code.
 	*/
 	#include <list>
-	#include <iostream>
   #include "n1ql.h"
 
 	std::string parse(const char*);
@@ -24,8 +23,8 @@
 	void handle_str_stop(int state);
 	bool is_esc();
 
-	Pos line;
-	std::list<Pos> n1ql_pos;
+	Pos pos;
+	std::list<Pos> *n1ql_pos;
 	// Contains the output plain JavaScript code.
 	std::string js_code;
 	// Storing the state for resuming on switch.
@@ -105,9 +104,10 @@
 		} else if(lex_op == kUniLineN1QL) {
 			js_code += std::string(yytext);
 		} else if(lex_op == kCommentN1QL) {
-			line.index = js_code.length();
-			line.line_no = std::count(js_code.begin() + line.line_no, js_code.end(), '\n') + 1;
-			n1ql_pos.push_back(line);
+			pos.index = js_code.length();
+			pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
+			pos.type = pos_type::kN1QLBegin;
+			n1ql_pos->push_back(pos);
 
 			js_code += "/*" + std::string(yytext);
 		}
@@ -121,9 +121,10 @@
 		} else if(lex_op == kCommentN1QL) {
 			js_code += "*/$;";
 
-			line.index = js_code.length() - 1;
-			line.line_no = std::count(js_code.begin() + line.line_no, js_code.end(), '\n') + 1;
-			n1ql_pos.push_back(line);
+			pos.index = js_code.length() - 1;
+			pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
+			pos.type = pos_type::kN1QLEnd;
+			n1ql_pos->push_back(pos);
 		}
 	}
 <N1QL>.	{
@@ -160,6 +161,7 @@ int TransformSource(const char* input, std::string *output) {
 
 	// Clear the global variable for the next input.
 	js_code = "";
+	pos.index = pos.line_no = 0;
 
 	return code;
 }
@@ -176,14 +178,11 @@ int UniLineN1QL(const char *input, std::string *output) {
 	return TransformSource(input, output);
 }
 
-int CommentN1QL(const char *input, std::string *output) {
+int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out) {
 	lex_op = kCommentN1QL;
-	auto code = TransformSource(input, output);
-	for(const auto &pos : n1ql_pos) {
-		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " << js_code[pos.index] << '\n';
-	}
+	n1ql_pos = pos_out;
 
-	return code;
+	return TransformSource(input, output);
 }
 
 // Handles the concatenation of different types of strings.
