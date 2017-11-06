@@ -9,21 +9,18 @@
 // BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 // or implied. See the License for the specific language governing
 // permissions and limitations under the License.
-	/*
-	* Input:	JavaScript code embedded with N1QL statements.
-	* Output:	Syntactically and semantically valid JavaScript code.
-	*/
+
 	#include <list>
   #include "n1ql.h"
 
-	std::string parse(const char*);
 	lex_op_code lex_op;
 
-	void handle_str_start(int state);
-	void handle_str_stop(int state);
-	bool is_esc();
+	void HandleStrStart(int state);
+	void HandleStrStop(int state);
+	bool IsEsc();
+	void UpdatePos(pos_type type);
 
-	Pos pos;
+	int pos_type_len[2];
 	std::list<Pos> *n1ql_pos;
 	// Contains the output plain JavaScript code.
 	std::string js_code;
@@ -58,12 +55,12 @@
 		BEGIN previous_state;
 		js_code += "\n";
 	}
-["]	{handle_str_start(DSTR); /* Handling double-quoted string */}
-<DSTR>["]	{handle_str_stop(DSTR);}
-[']	{handle_str_start(SSTR); /* Handling single-quoted string */}
-<SSTR>[']	{handle_str_stop(SSTR);}
-[`]	{handle_str_start(TSTR); /* Handling templated string */}
-<TSTR>[`]	{handle_str_stop(TSTR);}
+["]	{HandleStrStart(DSTR); /* Handling double-quoted string */}
+<DSTR>["]	{HandleStrStop(DSTR);}
+[']	{HandleStrStart(SSTR); /* Handling single-quoted string */}
+<SSTR>[']	{HandleStrStop(SSTR);}
+[`]	{HandleStrStart(TSTR); /* Handling templated string */}
+<TSTR>[`]	{HandleStrStop(TSTR);}
 (var|function)[ \t\n]+[aA][lL][tT][eE][rR][ \t\n;=(]|[aA][lL][tT][eE][rR][ \t\n]*:[ \t\n]*\{	{return kKeywordAlter; /* Checking the constraints in this section */}
 (var|function)[ \t\n]+[bB][uU][iI][lL][dD][ \t\n;=(]|[bB][uU][iI][lL][dD][ \t\n]*:[ \t\n]*\{	{return kKeywordBuild;}
 (var|function)[ \t\n]+[cC][rR][eE][aA][tT][eE][ \t\n;=(]|[cC][rR][eE][aA][tT][eE][ \t\n]*:[ \t\n]*\{	{return kKeywordCreate;}
@@ -104,11 +101,7 @@
 		} else if(lex_op == kUniLineN1QL) {
 			js_code += std::string(yytext);
 		} else if(lex_op == kCommentN1QL) {
-			pos.index = js_code.length();
-			pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
-			pos.type = pos_type::kN1QLBegin;
-			n1ql_pos->push_back(pos);
-
+			UpdatePos(pos_type::kN1QLBegin);
 			js_code += "/*" + std::string(yytext);
 		}
 	}
@@ -120,17 +113,13 @@
 			js_code += ";";
 		} else if(lex_op == kCommentN1QL) {
 			js_code += "*/$;";
-
-			pos.index = js_code.length() - 1;
-			pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
-			pos.type = pos_type::kN1QLEnd;
-			n1ql_pos->push_back(pos);
+			UpdatePos(pos_type::kN1QLEnd);
 		}
 	}
 <N1QL>.	{
 		// Need to escape the escape character to preserve the raw-ness.
 		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
-		if(yytext[0] == '\\' || (yytext[0] == '\'' && !is_esc() && lex_op == kJsify)) {
+		if(yytext[0] == '\\' || (yytext[0] == '\'' && !IsEsc() && lex_op == kJsify)) {
 			js_code += "\\";
 		}
 
@@ -150,19 +139,19 @@ int TransformSource(const char* input, std::string *output) {
 	// Set the input stream.
 	yy_scan_string(input);
 
-	// Begin lexer.
+	// pos_type_len represents the length that each pos_type will take
+	pos_type_len[static_cast<std::size_t>(pos_type::kN1QLBegin)] = 2;
+	pos_type_len[static_cast<std::size_t>(pos_type::kN1QLEnd)] = 3;
+
 	int code = yylex();
 
 	// Clear the buffer allocation after the lex.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
-	// Copy the output;
 	*output = js_code;
 
 	// Clear the global variable for the next input.
 	js_code = "";
-	pos.index = pos.line_no = 0;
-
 	return code;
 }
 
@@ -185,9 +174,33 @@ int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out)
 	return TransformSource(input, output);
 }
 
+void UpdatePos(pos_type type) {
+	Pos pos;
+	if(!n1ql_pos->empty()) {
+		pos = n1ql_pos->back();
+	}
+
+	pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
+	switch(type) {
+		case pos_type::kN1QLBegin:
+			pos.index = js_code.length();
+			pos.type = pos_type::kN1QLBegin;
+			pos.type_len = pos_type_len[static_cast<std::size_t>(pos_type::kN1QLBegin)];
+		break;
+
+		case pos_type::kN1QLEnd:
+			pos.index = js_code.length() - 1;
+			pos.type = pos_type::kN1QLEnd;
+			pos.type_len = pos_type_len[static_cast<std::size_t>(pos_type::kN1QLEnd)];
+		break;
+	}
+
+	n1ql_pos->push_back(pos);
+}
+
 // Handles the concatenation of different types of strings.
 // It tries to escape the quote of the same kind.
-void handle_str_start(int state) {
+void HandleStrStart(int state) {
 	previous_state=YYSTATE;
 
 	switch (state) {
@@ -209,8 +222,8 @@ void handle_str_start(int state) {
 }
 
 // Restores the previous state and adds the appropriate closing quote.
-void handle_str_stop(int state) {
-	if(!is_esc()) {
+void HandleStrStop(int state) {
+	if(!IsEsc()) {
 		BEGIN previous_state;
 	}
 
@@ -230,7 +243,7 @@ void handle_str_stop(int state) {
 }
 
 // Tests whether the quote character is escaped.
-bool is_esc() {
+bool IsEsc() {
 	auto escaped = false;
 	auto i = js_code.length();
 	while(i-- > 0) {

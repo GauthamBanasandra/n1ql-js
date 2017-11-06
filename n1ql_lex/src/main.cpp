@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input1.txt");
+	ifstream file("inputs/input2.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	const char* input=source_code.c_str();
@@ -58,7 +58,7 @@ int main()
 		}
 
 		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " <<
-		plain_js_code[pos.index] << "\tType: " << type << '\n';
+		plain_js_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
 	}
 
 	return 0;

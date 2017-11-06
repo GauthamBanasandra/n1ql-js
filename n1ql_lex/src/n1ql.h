@@ -25,9 +25,10 @@ enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 enum class pos_type { kN1QLBegin, kN1QLEnd };
 
 struct Pos {
+	pos_type type;
+	int type_len;
 	unsigned long long line_no;
 	unsigned long long index;
-	pos_type type;
 };
 
 int Jsify(const char* input, std::string *output);
