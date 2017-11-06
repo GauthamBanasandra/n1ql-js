@@ -167,6 +167,7 @@ int UniLineN1QL(const char *input, std::string *output) {
 	return TransformSource(input, output);
 }
 
+// Comments out N1QL statements and substitutes $ in its place
 int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out) {
 	lex_op = kCommentN1QL;
 	n1ql_pos = pos_out;
@@ -174,12 +175,14 @@ int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out)
 	return TransformSource(input, output);
 }
 
+// Adds an entry to keep track of N1QL queries in the js_code
 void UpdatePos(pos_type type) {
 	Pos pos;
 	if(!n1ql_pos->empty()) {
 		pos = n1ql_pos->back();
 	}
 
+	// Count the number of newlines since the previously updated pos
 	pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
 	switch(type) {
 		case pos_type::kN1QLBegin:
