@@ -13,6 +13,8 @@
 	* Input:	JavaScript code embedded with N1QL statements.
 	* Output:	Syntactically and semantically valid JavaScript code.
 	*/
+	#include <list>
+	#include <iostream>
   #include "n1ql.h"
 
 	std::string parse(const char*);
@@ -22,6 +24,8 @@
 	void handle_str_stop(int state);
 	bool is_esc();
 
+	Pos line;
+	std::list<Pos> n1ql_pos;
 	// Contains the output plain JavaScript code.
 	std::string js_code;
 	// Storing the state for resuming on switch.
@@ -42,7 +46,9 @@
 		js_code += "*/";
 		BEGIN previous_state;
 	}
-<MLCMT>\n	{js_code += "\n";}
+<MLCMT>\n	{
+		js_code += "\n";
+	}
 "//"	{
 		/* Single-line comment */
 		previous_state = YYSTATE;
@@ -95,17 +101,29 @@
 [uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
 		BEGIN N1QL;
 		if(lex_op == kJsify) {
-			js_code += "new N1qlQuery('"+ std::string(yytext)+ " ";
+			js_code += "new N1qlQuery('"+ std::string(yytext) + " ";
 		} else if(lex_op == kUniLineN1QL) {
 			js_code += std::string(yytext);
+		} else if(lex_op == kCommentN1QL) {
+			line.index = js_code.length();
+			line.line_no = std::count(js_code.begin() + line.line_no, js_code.end(), '\n') + 1;
+			n1ql_pos.push_back(line);
+
+			js_code += "/*" + std::string(yytext);
 		}
 	}
 <N1QL>";"	{
 		BEGIN INITIAL;
 		if(lex_op == kJsify) {
-			js_code+="');";
+			js_code += "');";
 		} else if(lex_op == kUniLineN1QL) {
 			js_code += ";";
+		} else if(lex_op == kCommentN1QL) {
+			js_code += "*/$;";
+
+			line.index = js_code.length() - 1;
+			line.line_no = std::count(js_code.begin() + line.line_no, js_code.end(), '\n') + 1;
+			n1ql_pos.push_back(line);
 		}
 	}
 <N1QL>.	{
@@ -117,6 +135,11 @@
 
 		js_code += std::string(yytext);
 	}
+<N1QL>\n {
+		if(lex_op == kCommentN1QL) {
+			js_code += "\n";
+		}
+	}
 <MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{js_code += std::string(yytext);}
 .	{js_code += std::string(yytext);}
 \n	{js_code += "\n";}
@@ -127,16 +150,16 @@ int TransformSource(const char* input, std::string *output) {
 	yy_scan_string(input);
 
 	// Begin lexer.
-	int code=yylex();
+	int code = yylex();
 
 	// Clear the buffer allocation after the lex.
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	// Copy the output;
-	*output=js_code;
+	*output = js_code;
 
 	// Clear the global variable for the next input.
-	js_code="";
+	js_code = "";
 
 	return code;
 }
@@ -151,6 +174,16 @@ int Jsify(const char* input, std::string *output) {
 int UniLineN1QL(const char *input, std::string *output) {
 	lex_op = kUniLineN1QL;
 	return TransformSource(input, output);
+}
+
+int CommentN1QL(const char *input, std::string *output) {
+	lex_op = kCommentN1QL;
+	auto code = TransformSource(input, output);
+	for(const auto &pos : n1ql_pos) {
+		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " << js_code[pos.index] << '\n';
+	}
+
+	return code;
 }
 
 // Handles the concatenation of different types of strings.

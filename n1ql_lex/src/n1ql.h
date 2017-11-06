@@ -21,7 +21,13 @@ enum op_code {
   kKeywordUpsert
 };
 
-enum lex_op_code { kJsify, kUniLineN1QL };
+enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 
 int Jsify(const char* input, std::string *output);
 int UniLineN1ql(const char *input, std::string *output);
+int CommentN1QL(const char *input, std::string *output);
+
+struct Pos {
+	unsigned long long line_no;
+	unsigned long long index;
+};
