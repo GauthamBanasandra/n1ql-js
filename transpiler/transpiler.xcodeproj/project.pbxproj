@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AC1C8A691FAC489100740154 /* js_exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1C8A671FAC489100740154 /* js_exception.cpp */; };
 		AC1FA5C01F78C3F5004CF8CA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1FA5BF1F78C3F5004CF8CA /* main.cpp */; };
 		AC1FA5CB1F78C8B1004CF8CA /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1FA5CA1F78C8B1004CF8CA /* transpiler.cpp */; };
 		AC23CE381F875E9000DD7069 /* n1ql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE371F875E9000DD7069 /* n1ql.cpp */; };
@@ -43,6 +44,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AC1C8A671FAC489100740154 /* js_exception.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = js_exception.cpp; sourceTree = "<group>"; };
+		AC1C8A681FAC489100740154 /* js_exception.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = js_exception.hpp; sourceTree = "<group>"; };
 		AC1FA5BC1F78C3F5004CF8CA /* transpiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = transpiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1FA5BF1F78C3F5004CF8CA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC1FA5C91F78C83A004CF8CA /* n1ql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = n1ql.h; sourceTree = "<group>"; };
@@ -53,13 +56,13 @@
 		AC23CE2F1F874EAA00DD7069 /* estraverse.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estraverse.js; sourceTree = "<group>"; };
 		AC23CE301F874EAA00DD7069 /* escodegen.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = escodegen.js; sourceTree = "<group>"; };
 		AC23CE311F874FAC00DD7069 /* builtin.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = builtin.js; sourceTree = "<group>"; };
-		AC23CE331F87504500DD7069 /* input10.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input10.js; sourceTree = "<group>"; };
+		AC23CE331F87504500DD7069 /* input1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input1.js; sourceTree = "<group>"; };
 		AC23CE371F875E9000DD7069 /* n1ql.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = n1ql.cpp; sourceTree = "<group>"; };
 		AC23CE391F875F0300DD7069 /* log.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = log.cpp; sourceTree = "<group>"; };
 		AC23CE3A1F875F0300DD7069 /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		AC23CE3C1F87600200DD7069 /* utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		AC23CE3D1F87600200DD7069 /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
-		AC572CDB1FA6EBDB00C6C9D5 /* input30.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input30.js; sourceTree = "<group>"; };
+		AC572CDB1FA6EBDB00C6C9D5 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
 		AC6C76C31F99B04100D31C13 /* unit-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unit-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC6C76C51F99B04100D31C13 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC6C76F61F99BDA200D31C13 /* test-utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "test-utils.cpp"; sourceTree = "<group>"; };
@@ -180,8 +183,8 @@
 		AC6C776E1F99D5C500D31C13 /* expected_return6.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = expected_return6.txt; sourceTree = "<group>"; };
 		AC6C776F1F99D5C500D31C13 /* expected_delete.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = expected_delete.txt; sourceTree = "<group>"; };
 		AC6C77701F99D5C500D31C13 /* input_labeled_break7.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input_labeled_break7.txt; sourceTree = "<group>"; };
-		AC7913C71F8B852100C5B523 /* input20.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input20.js; sourceTree = "<group>"; };
-		ACA3243C1FAB204B008D5FEA /* input1.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input1.js; sourceTree = "<group>"; };
+		AC7913C71F8B852100C5B523 /* input2.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input2.js; sourceTree = "<group>"; };
+		ACA3243C1FAB204B008D5FEA /* input4.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input4.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -244,6 +247,7 @@
 				AC23CE371F875E9000DD7069 /* n1ql.cpp */,
 				AC23CE391F875F0300DD7069 /* log.cpp */,
 				AC23CE3C1F87600200DD7069 /* utils.cpp */,
+				AC1C8A671FAC489100740154 /* js_exception.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -254,6 +258,7 @@
 				AC1FA5C91F78C83A004CF8CA /* n1ql.h */,
 				AC23CE3A1F875F0300DD7069 /* log.hpp */,
 				AC23CE3D1F87600200DD7069 /* utils.hpp */,
+				AC1C8A681FAC489100740154 /* js_exception.hpp */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -272,10 +277,10 @@
 		AC23CE321F87503000DD7069 /* inputs */ = {
 			isa = PBXGroup;
 			children = (
-				AC23CE331F87504500DD7069 /* input10.js */,
-				AC7913C71F8B852100C5B523 /* input20.js */,
-				AC572CDB1FA6EBDB00C6C9D5 /* input30.js */,
-				ACA3243C1FAB204B008D5FEA /* input1.js */,
+				AC23CE331F87504500DD7069 /* input1.js */,
+				AC7913C71F8B852100C5B523 /* input2.js */,
+				AC572CDB1FA6EBDB00C6C9D5 /* input3.js */,
+				ACA3243C1FAB204B008D5FEA /* input4.js */,
 			);
 			path = inputs;
 			sourceTree = "<group>";
@@ -516,6 +521,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC1C8A691FAC489100740154 /* js_exception.cpp in Sources */,
 				AC1FA5C01F78C3F5004CF8CA /* main.cpp in Sources */,
 				AC23CE3E1F87600200DD7069 /* utils.cpp in Sources */,
 				AC1FA5CB1F78C8B1004CF8CA /* transpiler.cpp in Sources */,

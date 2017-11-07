@@ -37,3 +37,7 @@ int Jsify(const char* input, std::string *output);
 int UniLineN1ql(const char *input, std::string *output);
 int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out);
 
+void HandleStrStart(int state);
+void HandleStrStop(int state);
+bool IsEsc();
+void UpdatePos(pos_type type);

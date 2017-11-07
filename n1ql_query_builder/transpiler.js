@@ -20,6 +20,11 @@ function saveTranspiledCode() {
 // Uncomment this line to save the transpiled code and the corresponding source map for it.
 // saveTranspiledCode();
 
+function compile(code) {
+	var ast = esprima.parse(code);
+	return escodegen.generate(ast);	
+}
+
 function transpile(code, sourceFileName) {
 	var ast = getAst(code, sourceFileName);
 	return escodegen.generate(ast, {

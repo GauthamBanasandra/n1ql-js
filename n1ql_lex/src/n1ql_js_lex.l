@@ -14,12 +14,6 @@
   #include "n1ql.h"
 
 	lex_op_code lex_op;
-
-	void HandleStrStart(int state);
-	void HandleStrStop(int state);
-	bool IsEsc();
-	void UpdatePos(pos_type type);
-
 	int pos_type_len[2];
 	std::list<Pos> *n1ql_pos;
 	// Contains the output plain JavaScript code.
@@ -113,6 +107,8 @@
 			js_code += ";";
 		} else if(lex_op == kCommentN1QL) {
 			js_code += "*/$;";
+			// TODO : Before updating n1ql_pos, need to mangle the multiline comment tokens '/* and '*/' that are present in
+			// the N1QL queries as comment matching in JavaScript follows greedy matching
 			UpdatePos(pos_type::kN1QLEnd);
 		}
 	}
