@@ -62,6 +62,7 @@
 		AC23CE3A1F875F0300DD7069 /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		AC23CE3C1F87600200DD7069 /* utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		AC23CE3D1F87600200DD7069 /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
+		AC29B6D11FB171990095AD8E /* input5.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input5.js; sourceTree = "<group>"; };
 		AC572CDB1FA6EBDB00C6C9D5 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
 		AC6C76C31F99B04100D31C13 /* unit-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unit-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC6C76C51F99B04100D31C13 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -281,6 +282,7 @@
 				AC7913C71F8B852100C5B523 /* input2.js */,
 				AC572CDB1FA6EBDB00C6C9D5 /* input3.js */,
 				ACA3243C1FAB204B008D5FEA /* input4.js */,
+				AC29B6D11FB171990095AD8E /* input5.js */,
 			);
 			path = inputs;
 			sourceTree = "<group>";

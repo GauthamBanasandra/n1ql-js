@@ -135,16 +135,19 @@ class Transpiler {
   v8::Local<v8::Context> context;
   
 public:
-  Transpiler(std::string transpiler_src);
-  v8::Local<v8::Value> ExecTranspiler(std::string function,
+  Transpiler(const std::string &transpiler_src);
+  v8::Local<v8::Value> ExecTranspiler(const std::string &function,
                                       v8::Local<v8::Value> args[],
-                                      int args_len);
-  std::string Transpile(std::string user_code, std::string filename,
-                        std::string src_map_name, std::string host_addr,
-                        std::string eventing_port);
-  std::string JsFormat(std::string user_code);
-  std::string GetSourceMap(std::string user_code, std::string filename);
-  bool IsTimerCalled(std::string user_code);
+                                      const int &args_len);
+  std::string Transpile(const std::string &handler_code,
+                        const std::string &src_filename,
+                        const std::string &src_map_name,
+                        const std::string &host_addr,
+                        const std::string &eventing_port);
+  std::string JsFormat(const std::string &handler_code);
+  std::string GetSourceMap(const std::string &handler_code,
+                           const std::string &src_filename);
+  bool IsTimerCalled(const std::string &handler_code);
   ~Transpiler() {}
 };
 
