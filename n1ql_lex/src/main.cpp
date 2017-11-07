@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input2.js");
+	ifstream file("inputs/input6.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	const char* input=source_code.c_str();

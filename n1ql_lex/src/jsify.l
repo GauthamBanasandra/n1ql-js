@@ -173,7 +173,7 @@ int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out)
 
 // Adds an entry to keep track of N1QL queries in the js_code
 void UpdatePos(pos_type type) {
-	Pos pos;
+	Pos pos(type);
 	if(!n1ql_pos->empty()) {
 		pos = n1ql_pos->back();
 	}

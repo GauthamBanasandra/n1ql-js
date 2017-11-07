@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <stdlib.h>
 #include <string>
 
@@ -70,6 +71,44 @@ void LogProper(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 }
 
+std::string GetScriptToExecute(const std::string &js_src) {
+  std::string plain_js;
+  std::list<Pos> n1ql_pos;
+  auto code = CommentN1QL(js_src.c_str(), &plain_js, &n1ql_pos);
+  if (code != kOK) {
+    std::cout << "CommentN1QL failed with code: " << code << std::endl;
+  }
+  
+  for (const auto &pos : n1ql_pos) {
+    std::string type;
+    switch (pos.type) {
+      case pos_type::kN1QLBegin:
+        type = "N1QL Begin";
+        break;
+      case pos_type::kN1QLEnd:
+        type = "N1QL End";
+        break;
+    }
+    
+    std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no
+    << "\tValue: " << plain_js[pos.index] << "\tType: " << type
+    << "\tLen: " << pos.type_len << '\n';
+  }
+  
+  plain_js.clear();
+  
+  code = Jsify(js_src.c_str(), &plain_js);
+  if (code != kOK) {
+    std::cout << "Jsify failed with code: " << code << std::endl;
+  }
+  
+  auto transpiler_src = GetTranspilerSrc();
+  Transpiler transpiler(transpiler_src);
+  auto transpiled_src = transpiler.Transpile(
+                                             plain_js, "input1.js", "input1.map.json", "127.0.0.1", "9090");
+  return transpiled_src + ReadFile(BUILTIN_JS_PATH);
+}
+
 int main(int argc, char *argv[]) {
   v8::V8::InitializeICUDefaultLocation(argv[0]);
   v8::V8::InitializeExternalStartupData(argv[0]);
@@ -102,21 +141,16 @@ int main(int argc, char *argv[]) {
     auto context = v8::Context::New(isolate, nullptr, global);
     v8::Context::Scope context_scope(context);
     
-    ConnectionPool *conn_pool = new ConnectionPool(
-                                                   15, "127.0.0.1:12000", "default", "eventing", "asdasd");
+    auto conn_pool = new ConnectionPool(15, "127.0.0.1:12000", "default",
+                                        "eventing", "asdasd");
     data.n1ql_handle = new N1QL(conn_pool, isolate);
     
-    std::string transpiler_src = GetTranspilerSrc();
-    std::string js_src = ReadFile(SOURCE_PATH);
-    Transpiler transpiler(transpiler_src);
-    std::string transpiled_src = transpiler.Transpile(
-                                                      js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
-    std::string script_to_execute = transpiled_src + ReadFile(BUILTIN_JS_PATH);
+    auto js_src = ReadFile(SOURCE_PATH);
+    auto script_to_execute = GetScriptToExecute(js_src);
     
     auto source = v8Str(isolate, script_to_execute.c_str());
-    v8::Local<v8::Script> script =
-    v8::Script::Compile(context, source).ToLocalChecked();
-    v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
+    auto script = v8::Script::Compile(context, source).ToLocalChecked();
+    auto result = script->Run(context).ToLocalChecked();
     v8::String::Utf8Value utf8(result);
     printf("%s\n", *utf8);
     

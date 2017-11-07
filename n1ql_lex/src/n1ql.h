@@ -23,10 +23,12 @@ enum op_code {
 
 enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 
-// Possible insertion types for CommentN1QL
+// Insertion types for CommentN1QL
 enum class pos_type { kN1QLBegin, kN1QLEnd };
 // Keeps track of the type of literal inserted during CommentN1QL
 struct Pos {
+	Pos(pos_type type) : type(type), type_len(0), line_no(0), index(0) {}
+
 	pos_type type;
 	int type_len;
 	unsigned long long line_no;

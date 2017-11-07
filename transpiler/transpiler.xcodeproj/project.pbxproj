@@ -13,6 +13,7 @@
 		AC23CE381F875E9000DD7069 /* n1ql.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE371F875E9000DD7069 /* n1ql.cpp */; };
 		AC23CE3B1F875F0300DD7069 /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE391F875F0300DD7069 /* log.cpp */; };
 		AC23CE3E1F87600200DD7069 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE3C1F87600200DD7069 /* utils.cpp */; };
+		AC29B6D51FB178140095AD8E /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC29B6D41FB178140095AD8E /* jsify.cc */; };
 		AC6C76C61F99B04100D31C13 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC6C76C51F99B04100D31C13 /* main.cpp */; };
 		AC6C76CA1F99B08300D31C13 /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1FA5CA1F78C8B1004CF8CA /* transpiler.cpp */; };
 		AC6C76CB1F99B11200D31C13 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE3C1F87600200DD7069 /* utils.cpp */; };
@@ -63,6 +64,8 @@
 		AC23CE3C1F87600200DD7069 /* utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		AC23CE3D1F87600200DD7069 /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
 		AC29B6D11FB171990095AD8E /* input5.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input5.js; sourceTree = "<group>"; };
+		AC29B6D21FB176570095AD8E /* jsify.l */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.lex; path = jsify.l; sourceTree = "<group>"; };
+		AC29B6D41FB178140095AD8E /* jsify.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jsify.cc; sourceTree = "<group>"; };
 		AC572CDB1FA6EBDB00C6C9D5 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
 		AC6C76C31F99B04100D31C13 /* unit-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unit-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC6C76C51F99B04100D31C13 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -249,6 +252,8 @@
 				AC23CE391F875F0300DD7069 /* log.cpp */,
 				AC23CE3C1F87600200DD7069 /* utils.cpp */,
 				AC1C8A671FAC489100740154 /* js_exception.cpp */,
+				AC29B6D21FB176570095AD8E /* jsify.l */,
+				AC29B6D41FB178140095AD8E /* jsify.cc */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -451,6 +456,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AC1FA5C31F78C3F5004CF8CA /* Build configuration list for PBXNativeTarget "transpiler" */;
 			buildPhases = (
+				AC29B6D31FB177890095AD8E /* ShellScript */,
 				AC1FA5B81F78C3F5004CF8CA /* Sources */,
 				AC1FA5B91F78C3F5004CF8CA /* Frameworks */,
 				AC1FA5BA1F78C3F5004CF8CA /* CopyFiles */,
@@ -518,11 +524,28 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AC29B6D31FB177890095AD8E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "lex -o /Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc /Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		AC1FA5B81F78C3F5004CF8CA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC29B6D51FB178140095AD8E /* jsify.cc in Sources */,
 				AC1C8A691FAC489100740154 /* js_exception.cpp in Sources */,
 				AC1FA5C01F78C3F5004CF8CA /* main.cpp in Sources */,
 				AC23CE3E1F87600200DD7069 /* utils.cpp in Sources */,
