@@ -21,8 +21,22 @@ function saveTranspiledCode() {
 // saveTranspiledCode();
 
 function compile(code) {
-	var ast = esprima.parse(code);
-	return escodegen.generate(ast);	
+	try {
+		var ast = esprima.parse(code);
+		return {
+			language: 'JavaScript',
+			compileSuccess: true
+		};
+	} catch (e) {
+		return {
+			language: 'JavaScript',
+			compileSuccess: false,
+			index: e.index,
+			lineNumber: e.lineNumber,
+			columnNumber: e.column,
+			description: e.description
+		}
+	}
 }
 
 function transpile(code, sourceFileName) {
@@ -122,13 +136,13 @@ function getAst(code, sourceFileName) {
 					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
 					break;
 
-				// Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
-				/*
-					Before:
-					new N1qlQuery('delete bucket["key"]');
-					After:
-					delete bucket["key"];
-				*/
+					// Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
+					/*
+						Before:
+						new N1qlQuery('delete bucket["key"]');
+						After:
+						delete bucket["key"];
+					*/
 				case Context.N1qlQueryRevert:
 					self.setLocForAllNodes(sourceCopy.loc, source);
 					break;
@@ -395,7 +409,7 @@ function getAst(code, sourceFileName) {
 			};
 
 			// Check whether N1QL query begins with delete and is parsable as a
-      // JavaScript expression.
+			// JavaScript expression.
 			var tokens = query.split(/\s/g);
 			if (tokens.length && tokens[0] === 'delete') {
 				return isJsExpression(query);

@@ -1,3 +1,22 @@
+function compile(code) {
+  try {
+    var ast = esprima.parse(code);
+    return {
+    language: 'JavaScript',
+    compileSuccess: true
+    };
+  } catch (e) {
+    return {
+    language: 'JavaScript',
+    compileSuccess: false,
+    index: e.index,
+    lineNumber: e.lineNumber,
+    columnNumber: e.column,
+    description: e.description
+    }
+  }
+}
+
 function transpile(code, sourceFileName) {
 	var ast = getAst(code, sourceFileName);
 	return escodegen.generate(ast, {
@@ -92,6 +111,13 @@ function getAst(code, sourceFileName) {
 					source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
 					break;
 
+					// Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
+					/*
+						Before:
+						new N1qlQuery('delete bucket["key"]');
+						After:
+						delete bucket["key"];
+					*/
 				case Context.N1qlQueryRevert:
 					self.setLocForAllNodes(sourceCopy.loc, source);
 					break;
@@ -334,6 +360,7 @@ function getAst(code, sourceFileName) {
 			}
 		};
 
+		// Checks if the N1QL query must be reverted back to JavaScript expression.
 		this.isRevertReq = function (query) {
 			// Checks if the given statement is a valid JavaScript expression.
 			function isJsExpression(stmt) {
@@ -345,6 +372,8 @@ function getAst(code, sourceFileName) {
 				}
 			};
 
+			// Check whether N1QL query begins with delete and is parsable as a
+			// JavaScript expression.
 			var tokens = query.split(/\s/g);
 			if (tokens.length && tokens[0] === 'delete') {
 				return isJsExpression(query);
@@ -1864,6 +1893,7 @@ function getAst(code, sourceFileName) {
 			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
 				var query = node.arguments[0].value;
 				if (nodeUtils.isRevertReq(query)) {
+					// Revert the query back to JavaScript expression if necessary.
 					var ast = esprima.parse(query).body[0].expression;
 					nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQueryRevert);
 				} else {

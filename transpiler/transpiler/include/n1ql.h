@@ -58,6 +58,17 @@ struct Pos {
   unsigned long long index;
 };
 
+struct CompilationInfo {
+  CompilationInfo() : compile_success(false), index(0), line_no(0), col_no(0) {}
+  
+  std::string language;
+  bool compile_success;
+  int64_t index;
+  int64_t line_no;
+  int64_t col_no;
+  std::string description;
+};
+
 // Data type for managing iterators.
 struct IterQueryHandler {
   std::string metadata;
@@ -151,6 +162,7 @@ public:
   v8::Local<v8::Value> ExecTranspiler(const std::string &function,
                                       v8::Local<v8::Value> args[],
                                       const int &args_len);
+  CompilationInfo Compile(const std::string &plain_js);
   std::string Transpile(const std::string &handler_code,
                         const std::string &src_filename,
                         const std::string &src_map_name,
@@ -160,12 +172,18 @@ public:
   std::string GetSourceMap(const std::string &handler_code,
                            const std::string &src_filename);
   bool IsTimerCalled(const std::string &handler_code);
+  void LogCompilationInfo(const CompilationInfo &info);
   ~Transpiler() {}
+  
+private:
+  void RectifyCompilationInfo(CompilationInfo &info,
+                              const std::list<Pos> &n1ql_pos);
 };
 
 int Jsify(const char *, std::string *);
 int UniLineN1QL(const char *input, std::string *output);
-int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out);
+int CommentN1QL(const char *input, std::string *output,
+                std::list<Pos> *pos_out);
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);

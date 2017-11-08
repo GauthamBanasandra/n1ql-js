@@ -71,41 +71,23 @@ void LogProper(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 }
 
-std::string GetScriptToExecute(const std::string &js_src) {
-  std::string plain_js;
-  std::list<Pos> n1ql_pos;
-  auto code = CommentN1QL(js_src.c_str(), &plain_js, &n1ql_pos);
-  if (code != kOK) {
-    std::cout << "CommentN1QL failed with code: " << code << std::endl;
+std::string GetScriptToExecute(std::string &n1ql_js_src) {
+  auto transpiler_src = GetTranspilerSrc();
+  Transpiler transpiler(transpiler_src);
+  CompilationInfo info = transpiler.Compile(std::move(n1ql_js_src));
+  transpiler.LogCompilationInfo(info);
+  if (!info.compile_success) {
+    throw "Compilation failed";
   }
   
-  for (const auto &pos : n1ql_pos) {
-    std::string type;
-    switch (pos.type) {
-      case pos_type::kN1QLBegin:
-        type = "N1QL Begin";
-        break;
-      case pos_type::kN1QLEnd:
-        type = "N1QL End";
-        break;
-    }
-    
-    std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no
-    << "\tValue: " << plain_js[pos.index] << "\tType: " << type
-    << "\tLen: " << pos.type_len << '\n';
-  }
-  
-  plain_js.clear();
-  
-  code = Jsify(js_src.c_str(), &plain_js);
+  std::string js_src;
+  auto code = Jsify(n1ql_js_src.c_str(), &js_src);
   if (code != kOK) {
     std::cout << "Jsify failed with code: " << code << std::endl;
   }
   
-  auto transpiler_src = GetTranspilerSrc();
-  Transpiler transpiler(transpiler_src);
   auto transpiled_src = transpiler.Transpile(
-                                             plain_js, "input1.js", "input1.map.json", "127.0.0.1", "9090");
+                                             js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
   return transpiled_src + ReadFile(BUILTIN_JS_PATH);
 }
 
@@ -124,38 +106,42 @@ int main(int argc, char *argv[]) {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     
-    struct Data data;
-    isolate->SetData(DATA_SLOT, &data);
-    
-    auto global = v8::ObjectTemplate::New(isolate);
-    global->Set(v8Str(isolate, "log"),
-                v8::FunctionTemplate::New(isolate, LogProper));
-    global->Set(v8Str(isolate, "iter"),
-                v8::FunctionTemplate::New(isolate, IterFunction));
-    global->Set(v8Str(isolate, "stopIter"),
-                v8::FunctionTemplate::New(isolate, StopIterFunction));
-    global->Set(v8Str(isolate, "execQuery"),
-                v8::FunctionTemplate::New(isolate, ExecQueryFunction));
-    global->Set(v8Str(isolate, "getReturnValue"),
-                v8::FunctionTemplate::New(isolate, GetReturnValueFunction));
-    auto context = v8::Context::New(isolate, nullptr, global);
-    v8::Context::Scope context_scope(context);
-    
-    auto conn_pool = new ConnectionPool(15, "127.0.0.1:12000", "default",
-                                        "eventing", "asdasd");
-    data.n1ql_handle = new N1QL(conn_pool, isolate);
-    
-    auto js_src = ReadFile(SOURCE_PATH);
-    auto script_to_execute = GetScriptToExecute(js_src);
-    
-    auto source = v8Str(isolate, script_to_execute.c_str());
-    auto script = v8::Script::Compile(context, source).ToLocalChecked();
-    auto result = script->Run(context).ToLocalChecked();
-    v8::String::Utf8Value utf8(result);
-    printf("%s\n", *utf8);
-    
-    delete conn_pool;
-    delete data.n1ql_handle;
+    try {
+      struct Data data;
+      isolate->SetData(DATA_SLOT, &data);
+      
+      auto global = v8::ObjectTemplate::New(isolate);
+      global->Set(v8Str(isolate, "log"),
+                  v8::FunctionTemplate::New(isolate, LogProper));
+      global->Set(v8Str(isolate, "iter"),
+                  v8::FunctionTemplate::New(isolate, IterFunction));
+      global->Set(v8Str(isolate, "stopIter"),
+                  v8::FunctionTemplate::New(isolate, StopIterFunction));
+      global->Set(v8Str(isolate, "execQuery"),
+                  v8::FunctionTemplate::New(isolate, ExecQueryFunction));
+      global->Set(v8Str(isolate, "getReturnValue"),
+                  v8::FunctionTemplate::New(isolate, GetReturnValueFunction));
+      auto context = v8::Context::New(isolate, nullptr, global);
+      v8::Context::Scope context_scope(context);
+      
+      auto conn_pool = new ConnectionPool(15, "127.0.0.1:12000", "default",
+                                          "eventing", "asdasd");
+      data.n1ql_handle = new N1QL(conn_pool, isolate);
+      
+      auto js_src = ReadFile(SOURCE_PATH);
+      auto script_to_execute = GetScriptToExecute(js_src);
+      
+      auto source = v8Str(isolate, script_to_execute.c_str());
+      auto script = v8::Script::Compile(context, source).ToLocalChecked();
+      auto result = script->Run(context).ToLocalChecked();
+      v8::String::Utf8Value utf8(result);
+      printf("%s\n", *utf8);
+      
+      delete conn_pool;
+      delete data.n1ql_handle;
+    } catch (const char *e) {
+      std::cout << e << '\n';
+    }
   }
   
   // Dispose the isolate and tear down V8.
