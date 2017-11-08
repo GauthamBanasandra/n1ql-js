@@ -15,7 +15,7 @@
 
 	lex_op_code lex_op;
 	int pos_type_len[2];
-	std::list<Pos> *n1ql_pos;
+	std::list<InsertedCharsInfo> *n1ql_pos;
 	// Contains the output plain JavaScript code.
 	std::string js_code;
 	// Storing the state for resuming on switch.
@@ -95,7 +95,7 @@
 		} else if(lex_op == kUniLineN1QL) {
 			js_code += std::string(yytext);
 		} else if(lex_op == kCommentN1QL) {
-			UpdatePos(pos_type::kN1QLBegin);
+			UpdatePos(insert_type::kN1QLBegin);
 			js_code += "/*" + std::string(yytext);
 		}
 	}
@@ -109,7 +109,7 @@
 			js_code += "*/$;";
 			// TODO : Before updating n1ql_pos, need to mangle the multiline comment tokens '/* and '*/' that are present in
 			// the N1QL queries as comment matching in JavaScript follows greedy matching
-			UpdatePos(pos_type::kN1QLEnd);
+			UpdatePos(insert_type::kN1QLEnd);
 		}
 	}
 <N1QL>.	{
@@ -135,9 +135,9 @@ int TransformSource(const char* input, std::string *output) {
 	// Set the input stream.
 	yy_scan_string(input);
 
-	// pos_type_len represents the length that each pos_type will take
-	pos_type_len[static_cast<std::size_t>(pos_type::kN1QLBegin)] = 2;
-	pos_type_len[static_cast<std::size_t>(pos_type::kN1QLEnd)] = 3;
+	// pos_type_len represents the length that each insert_type will take
+	pos_type_len[static_cast<std::size_t>(insert_type::kN1QLBegin)] = 2;
+	pos_type_len[static_cast<std::size_t>(insert_type::kN1QLEnd)] = 3;
 
 	int code = yylex();
 
@@ -164,7 +164,7 @@ int UniLineN1QL(const char *input, std::string *output) {
 }
 
 // Comments out N1QL statements and substitutes $ in its place
-int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out) {
+int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out) {
 	lex_op = kCommentN1QL;
 	n1ql_pos = pos_out;
 
@@ -172,8 +172,8 @@ int CommentN1QL(const char *input, std::string *output, std::list<Pos> *pos_out)
 }
 
 // Adds an entry to keep track of N1QL queries in the js_code
-void UpdatePos(pos_type type) {
-	Pos pos(type);
+void UpdatePos(insert_type type) {
+	InsertedCharsInfo pos(type);
 	if(!n1ql_pos->empty()) {
 		pos = n1ql_pos->back();
 	}
@@ -181,16 +181,16 @@ void UpdatePos(pos_type type) {
 	// Count the number of newlines since the previously updated pos
 	pos.line_no = std::count(js_code.begin() + pos.line_no, js_code.end(), '\n') + 1;
 	switch(type) {
-		case pos_type::kN1QLBegin:
+		case insert_type::kN1QLBegin:
 			pos.index = js_code.length();
-			pos.type = pos_type::kN1QLBegin;
-			pos.type_len = pos_type_len[static_cast<std::size_t>(pos_type::kN1QLBegin)];
+			pos.type = insert_type::kN1QLBegin;
+			pos.type_len = pos_type_len[static_cast<std::size_t>(insert_type::kN1QLBegin)];
 		break;
 
-		case pos_type::kN1QLEnd:
+		case insert_type::kN1QLEnd:
 			pos.index = js_code.length() - 1;
-			pos.type = pos_type::kN1QLEnd;
-			pos.type_len = pos_type_len[static_cast<std::size_t>(pos_type::kN1QLEnd)];
+			pos.type = insert_type::kN1QLEnd;
+			pos.type_len = pos_type_len[static_cast<std::size_t>(insert_type::kN1QLEnd)];
 		break;
 	}
 
