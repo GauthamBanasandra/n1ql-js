@@ -81,13 +81,12 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
   }
   
   std::string js_src;
-  auto code = Jsify(n1ql_js_src.c_str(), &js_src);
+  auto code = Jsify(n1ql_js_src.c_str(), &js_src, nullptr);
   if (code != kOK) {
     std::cout << "Jsify failed with code: " << code << std::endl;
   }
   
-  auto transpiled_src = transpiler.Transpile(
-                                             js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
+  auto transpiled_src = transpiler.Transpile(js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
   return transpiled_src + ReadFile(BUILTIN_JS_PATH);
 }
 

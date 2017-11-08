@@ -131,7 +131,7 @@
 \n	{js_code += "\n";}
 %%
 // Parses the given input string.
-int TransformSource(const char* input, std::string *output) {
+int TransformSource(const char* input, std::string *output, Pos *last_pos) {
 	// Set the input stream.
 	yy_scan_string(input);
 
@@ -145,6 +145,9 @@ int TransformSource(const char* input, std::string *output) {
 	yy_delete_buffer(YY_CURRENT_BUFFER);
 
 	*output = js_code;
+	if(last_pos != nullptr) {
+		UpdatePos(last_pos);
+	}
 
 	// Clear the global variable for the next input.
 	js_code = "";
@@ -152,23 +155,36 @@ int TransformSource(const char* input, std::string *output) {
 }
 
 // Converts N1QL embedded JS to native JS.
-int Jsify(const char* input, std::string *output) {
+int Jsify(const char* input, std::string *output, Pos *last_pos_out) {
 	lex_op = kJsify;
-	return TransformSource(input, output);
+	return TransformSource(input, output, last_pos_out);
 }
 
 // Unilines Multiline N1QL embeddings.
-int UniLineN1QL(const char *input, std::string *output) {
+int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out) {
 	lex_op = kUniLineN1QL;
-	return TransformSource(input, output);
+	return TransformSource(input, output, last_pos_out);
 }
 
 // Comments out N1QL statements and substitutes $ in its place
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out) {
+int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out) {
 	lex_op = kCommentN1QL;
 	n1ql_pos = pos_out;
 
-	return TransformSource(input, output);
+	return TransformSource(input, output, last_pos_out);
+}
+
+void UpdatePos(Pos *pos) {
+	pos->line_no = std::count(js_code.begin(), js_code.end(), '\n') + 1;
+	for(auto i = js_code.rbegin(); i != js_code.rend(); ++i) {
+		if(js_code[*i] == '\n') {
+			break;
+		}
+
+		++pos->col_no;
+	}
+
+	pos->index = js_code.length();
 }
 
 // Adds an entry to keep track of N1QL queries in the js_code

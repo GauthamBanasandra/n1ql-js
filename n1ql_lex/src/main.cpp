@@ -8,13 +8,14 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input6.js");
+	ifstream file("inputs/input7.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	const char* input=source_code.c_str();
 	string plain_js_code;
+	Pos last_pos;
 	std::list<InsertedCharsInfo> n1ql_pos;
-	int ret_code = CommentN1QL(input, &plain_js_code, &n1ql_pos);
+	int ret_code = CommentN1QL(input, &plain_js_code, &n1ql_pos, &last_pos);
 
 	switch(ret_code)
 	{
@@ -22,7 +23,7 @@ int main()
 		cout << plain_js_code << endl << ret_code;
 		break;
 	case kKeywordSelect:
-		cout << "error: select is a reserved word"<<endl<<ret_code;;
+		cout << "error: select is a reserved word"<< endl << ret_code;
 		break;
 	case kKeywordCreate:
 		cout << "error: create is a reserved word"<<endl<<ret_code;;
@@ -46,6 +47,9 @@ int main()
 		cout << "error: using a reserved word"<<endl<<ret_code;
 	}
 
+	cout << endl;
+
+	cout << "Last pos: Line no: " << last_pos.line_no << " Col no: " << last_pos.col_no << " Index: " << last_pos.index << endl;
 	for(const auto &pos : n1ql_pos) {
 		std::string type;
 		switch(pos.type) {

@@ -35,12 +35,19 @@ struct InsertedCharsInfo {
   unsigned long long index;
 };
 
+// Represents position of each char in the source code
+struct Pos {
+	unsigned long long line_no;
+	unsigned long long col_no;
+	unsigned long long index;
+};
 
-int Jsify(const char* input, std::string *output);
-int UniLineN1ql(const char *input, std::string *output);
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out);
+int Jsify(const char* input, std::string *output, Pos *last_pos_out);
+int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out);
+int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out);
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);
 bool IsEsc();
 void UpdatePos(insert_type type);
+void UpdatePos(Pos *pos);

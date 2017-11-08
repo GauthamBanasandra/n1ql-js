@@ -45,8 +45,9 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(const std::string &function,
 
 CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
   std::string js_src;
-  std::list<Pos> n1ql_pos;
-  auto code = CommentN1QL(n1ql_js_src.c_str(), &js_src, &n1ql_pos);
+  Pos last_pos;
+  std::list<InsertedCharsInfo> n1ql_pos;
+  auto code = CommentN1QL(n1ql_js_src.c_str(), &js_src, &n1ql_pos, &last_pos);
   if (code != kOK) {
     std::cout << "CommentN1QL failed with code: " << code << std::endl;
   }
@@ -87,7 +88,7 @@ CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
 }
 
 void Transpiler::RectifyCompilationInfo(CompilationInfo &info,
-                                        const std::list<Pos> &n1ql_pos) {
+                                        const std::list<InsertedCharsInfo> &n1ql_pos) {
   for (const auto &pos : n1ql_pos) {
     info.index -= pos.type_len;
     if (pos.line_no == info.line_no) {
