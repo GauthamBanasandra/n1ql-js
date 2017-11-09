@@ -11,11 +11,12 @@
 // permissions and limitations under the License.
 
 	#include <list>
+	#include <algorithm>
   #include "n1ql.h"
 
 	lex_op_code lex_op;
 	int pos_type_len[2];
-	std::list<InsertedCharsInfo> *n1ql_pos;
+	std::list<InsertedCharsInfo> *insertions;
 	// Contains the output plain JavaScript code.
 	std::string js_code;
 	// Storing the state for resuming on switch.
@@ -107,7 +108,7 @@
 			js_code += ";";
 		} else if(lex_op == kCommentN1QL) {
 			js_code += "*/$;";
-			// TODO : Before updating n1ql_pos, need to mangle the multiline comment tokens '/* and '*/' that are present in
+			// TODO : Before updating insertions, need to mangle the multiline comment tokens '/* and '*/' that are present in
 			// the N1QL queries as comment matching in JavaScript follows greedy matching
 			UpdatePos(insert_type::kN1QLEnd);
 		}
@@ -167,31 +168,28 @@ int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out) {
 }
 
 // Comments out N1QL statements and substitutes $ in its place
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out) {
+int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *insertions_out, Pos *last_pos_out) {
 	lex_op = kCommentN1QL;
-	n1ql_pos = pos_out;
+	insertions = insertions_out;
 
 	return TransformSource(input, output, last_pos_out);
 }
 
 void UpdatePos(Pos *pos) {
 	pos->line_no = std::count(js_code.begin(), js_code.end(), '\n') + 1;
-	for(auto i = js_code.rbegin(); i != js_code.rend(); ++i) {
-		if(js_code[*i] == '\n') {
-			break;
-		}
-
+	for(auto c = js_code.crbegin(); (c != js_code.crend()) && (*c != '\n'); ++c) {
 		++pos->col_no;
 	}
 
-	pos->index = js_code.length();
+	++pos->col_no;
+	pos->index = std::max(static_cast<decltype(js_code.length())>(0), js_code.length() - 1);
 }
 
 // Adds an entry to keep track of N1QL queries in the js_code
 void UpdatePos(insert_type type) {
 	InsertedCharsInfo pos(type);
-	if(!n1ql_pos->empty()) {
-		pos = n1ql_pos->back();
+	if(!insertions->empty()) {
+		pos = insertions->back();
 	}
 
 	// Count the number of newlines since the previously updated pos
@@ -210,7 +208,7 @@ void UpdatePos(insert_type type) {
 		break;
 	}
 
-	n1ql_pos->push_back(pos);
+	insertions->push_back(pos);
 }
 
 // Handles the concatenation of different types of strings.

@@ -50,19 +50,22 @@ enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 enum class insert_type { kN1QLBegin, kN1QLEnd };
 // Keeps track of the type of literal inserted during CommentN1QL
 struct InsertedCharsInfo {
-  InsertedCharsInfo(insert_type type) : type(type), type_len(0), line_no(0), index(0) {}
+  InsertedCharsInfo(insert_type type)
+  : type(type), type_len(0), line_no(0), index(0) {}
   
   insert_type type;
   int type_len;
-  unsigned long long line_no;
-  unsigned long long index;
+  int64_t line_no;
+  int64_t index;
 };
 
 // Represents position of each char in the source code
 struct Pos {
-  unsigned long long line_no;
-  unsigned long long col_no;
-  unsigned long long index;
+  Pos() : line_no(0), col_no(0), index(0) {}
+  
+  int64_t line_no;
+  int64_t col_no;
+  int64_t index;
 };
 
 struct CompilationInfo {
@@ -179,17 +182,25 @@ public:
   std::string GetSourceMap(const std::string &handler_code,
                            const std::string &src_filename);
   bool IsTimerCalled(const std::string &handler_code);
-  void LogCompilationInfo(const CompilationInfo &info);
+  static void LogCompilationInfo(const CompilationInfo &info);
   ~Transpiler() {}
   
 private:
   void RectifyCompilationInfo(CompilationInfo &info,
                               const std::list<InsertedCharsInfo> &n1ql_pos);
+  CompilationInfo
+  ComposeErrorInfo(int code, const Pos &last_pos,
+                   const std::list<InsertedCharsInfo> &ins_list);
+  CompilationInfo
+  ComposeCompilationInfo(v8::Local<v8::Value> &compiler_result,
+                         const std::list<InsertedCharsInfo> &ins_list);
+  std::string ComposeDescription(int code);
 };
 
-int Jsify(const char* input, std::string *output, Pos *last_pos_out);
+int Jsify(const char *input, std::string *output, Pos *last_pos_out);
 int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out);
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out);
+int CommentN1QL(const char *input, std::string *output,
+                std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out);
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);

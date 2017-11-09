@@ -46,50 +46,22 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(const std::string &function,
 CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
   std::string js_src;
   Pos last_pos;
-  std::list<InsertedCharsInfo> n1ql_pos;
-  auto code = CommentN1QL(n1ql_js_src.c_str(), &js_src, &n1ql_pos, &last_pos);
+  std::list<InsertedCharsInfo> insertions;
+  auto code = CommentN1QL(n1ql_js_src.c_str(), &js_src, &insertions, &last_pos);
   if (code != kOK) {
-    std::cout << "CommentN1QL failed with code: " << code << std::endl;
+    return ComposeErrorInfo(code, last_pos, insertions);
   }
   
-  CompilationInfo info;
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Value> args[1];
   args[0] = v8Str(isolate, js_src.c_str());
   auto result = ExecTranspiler("compile", args, 1);
-  if (!result.IsEmpty()) {
-    auto res_obj = result->ToObject();
-    auto language = res_obj->Get(v8Str(isolate, "language"))->ToString();
-    auto compile_status =
-    res_obj->Get(v8Str(isolate, "compileSuccess"))->ToBoolean();
-    auto index = res_obj->Get(v8Str(isolate, "index"))->ToInteger();
-    auto line_no = res_obj->Get(v8Str(isolate, "lineNumber"))->ToInteger();
-    auto col_no = res_obj->Get(v8Str(isolate, "columnNumber"))->ToInteger();
-    auto description = res_obj->Get(v8Str(isolate, "description"))->ToString();
-    
-    info.compile_success = compile_status->Value();
-    v8::String::Utf8Value lang_str(language);
-    info.language = *lang_str;
-    if (!info.compile_success) {
-      v8::String::Utf8Value desc_str(description);
-      info.description = *desc_str;
-      info.index = index->Value();
-      info.line_no = line_no->Value();
-      info.col_no = col_no->Value();
-      
-      RectifyCompilationInfo(info, n1ql_pos);
-      return info;
-    }
-  } else {
-    throw "Result of ExecTranspiler is empty";
-  }
-  
-  return info;
+  return ComposeCompilationInfo(result, insertions);
 }
 
-void Transpiler::RectifyCompilationInfo(CompilationInfo &info,
-                                        const std::list<InsertedCharsInfo> &n1ql_pos) {
-  for (const auto &pos : n1ql_pos) {
+void Transpiler::RectifyCompilationInfo(
+                                        CompilationInfo &info, const std::list<InsertedCharsInfo> &insertions) {
+  for (const auto &pos : insertions) {
     info.index -= pos.type_len;
     if (pos.line_no == info.line_no) {
       info.col_no -= pos.type_len;
@@ -150,13 +122,138 @@ bool Transpiler::IsTimerCalled(const std::string &handler_code) {
 
 void Transpiler::LogCompilationInfo(const CompilationInfo &info) {
   if (info.compile_success) {
-    std::cout << "Language: " << info.language << " Compilation successful"
-    << '\n';
+    std::cout << "Compilation successful."
+    << " Language: " << info.language << '\n';
   } else {
-    std::cout << "Language: " << info.language
-    << " Syntax error Index: " << info.index
-    << " Line number: " << info.line_no
+    std::cout << "Syntax error. Language: " << info.language
+    << " Index: " << info.index << " Line number: " << info.line_no
     << " Column number: " << info.col_no
     << " Description: " << info.description << '\n';
   }
 }
+
+CompilationInfo
+Transpiler::ComposeErrorInfo(int code, const Pos &last_pos,
+                             const std::list<InsertedCharsInfo> &ins_list) {
+  CompilationInfo info;
+  info.compile_success = false;
+  info.language = "JavaScript";
+  info.line_no = last_pos.line_no;
+  info.col_no = last_pos.col_no;
+  info.index = last_pos.index;
+  info.description = ComposeDescription(code);
+  RectifyCompilationInfo(info, ins_list);
+  return info;
+}
+
+CompilationInfo Transpiler::ComposeCompilationInfo(
+                                                   v8::Local<v8::Value> &compiler_result,
+                                                   const std::list<InsertedCharsInfo> &insertions) {
+  if (compiler_result.IsEmpty()) {
+    throw "Result of ExecTranspiler is empty";
+  }
+  
+  auto res_obj = compiler_result->ToObject();
+  auto language = res_obj->Get(v8Str(isolate, "language"))->ToString();
+  auto compilation_status =
+  res_obj->Get(v8Str(isolate, "compileSuccess"))->ToBoolean();
+  auto index = res_obj->Get(v8Str(isolate, "index"))->ToInteger();
+  auto line_no = res_obj->Get(v8Str(isolate, "lineNumber"))->ToInteger();
+  auto col_no = res_obj->Get(v8Str(isolate, "columnNumber"))->ToInteger();
+  auto description = res_obj->Get(v8Str(isolate, "description"))->ToString();
+  
+  CompilationInfo info;
+  info.compile_success = compilation_status->Value();
+  v8::String::Utf8Value lang_str(language);
+  info.language = *lang_str;
+  if (!info.compile_success) {
+    v8::String::Utf8Value desc_str(description);
+    info.description = *desc_str;
+    info.index = index->Value();
+    info.line_no = line_no->Value();
+    info.col_no = col_no->Value();
+    RectifyCompilationInfo(info, insertions);
+  }
+  
+  return info;
+}
+
+std::string Transpiler::ComposeDescription(int code) {
+  std::string keyword;
+  switch (code) {
+    case kKeywordAlter:
+      keyword = "alter";
+      break;
+      
+    case kKeywordBuild:
+      keyword = "build";
+      break;
+      
+    case kKeywordCreate:
+      keyword = "create";
+      break;
+      
+    case kKeywordDelete:
+      keyword = "delete";
+      break;
+      
+    case kKeywordDrop:
+      keyword = "drop";
+      break;
+      
+    case kKeywordExecute:
+      keyword = "execute";
+      break;
+      
+    case kKeywordExplain:
+      keyword = "explain";
+      break;
+      
+    case kKeywordGrant:
+      keyword = "grant";
+      break;
+      
+    case kKeywordInfer:
+      keyword = "infer";
+      break;
+      
+    case kKeywordInsert:
+      keyword = "insert";
+      break;
+      
+    case kKeywordMerge:
+      keyword = "merge";
+      break;
+      
+    case kKeywordPrepare:
+      keyword = "prepare";
+      break;
+      
+    case kKeywordRename:
+      keyword = "rename";
+      break;
+      
+    case kKeywordRevoke:
+      keyword = "revoke";
+      break;
+      
+    case kKeywordSelect:
+      keyword = "select";
+      break;
+      
+    case kKeywordUpdate:
+      keyword = "update";
+      break;
+      
+    case kKeywordUpsert:
+      keyword = "upsert";
+      break;
+      
+    default:
+      std::string msg = "No keyword exists for code " + std::to_string(code);
+      throw msg;
+  }
+  
+  std::string description = keyword + " is a reserved name in N1QLJs";
+  return description;
+}  

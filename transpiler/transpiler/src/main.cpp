@@ -16,7 +16,7 @@
 #include "include/v8.h"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input5.js"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input6.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
@@ -75,7 +75,7 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
   auto transpiler_src = GetTranspilerSrc();
   Transpiler transpiler(transpiler_src);
   CompilationInfo info = transpiler.Compile(std::move(n1ql_js_src));
-  transpiler.LogCompilationInfo(info);
+  Transpiler::LogCompilationInfo(info);
   if (!info.compile_success) {
     throw "Compilation failed";
   }
