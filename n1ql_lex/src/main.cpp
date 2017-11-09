@@ -48,8 +48,12 @@ int main()
 	}
 
 	cout << endl;
+	cout << plain_js_code << endl << endl;
+	for(auto i = 0; i < plain_js_code.length(); ++i) {
+		cout << i << " " << plain_js_code[i] << endl;
+	}
 
-	cout << "Last pos: Line no: " << last_pos.line_no << " Col no: " << last_pos.col_no << " Index: " << last_pos.index << endl;
+	cout << endl << "Last pos: Line no: " << last_pos.line_no << " Col no: " << last_pos.col_no << " Index: " << last_pos.index << " Value: " << plain_js_code[last_pos.index] << endl;
 	for(const auto &pos : n1ql_pos) {
 		std::string type;
 		switch(pos.type) {

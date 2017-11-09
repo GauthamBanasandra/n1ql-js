@@ -11,6 +11,7 @@
 // permissions and limitations under the License.
 
 	#include <list>
+	#include <algorithm>
   #include "n1ql.h"
 
 	lex_op_code lex_op;
@@ -176,15 +177,15 @@ int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsI
 
 void UpdatePos(Pos *pos) {
 	pos->line_no = std::count(js_code.begin(), js_code.end(), '\n') + 1;
-	for(auto i = js_code.rbegin(); i != js_code.rend(); ++i) {
-		if(js_code[*i] == '\n') {
+	for(auto c = js_code.crbegin(); c != js_code.crend(); ++c) {
+		if(*c == '\n') {
 			break;
 		}
 
 		++pos->col_no;
 	}
 
-	pos->index = js_code.length();
+	pos->index = std::max(static_cast<decltype(js_code.length())>(0), js_code.length() - 1);
 }
 
 // Adds an entry to keep track of N1QL queries in the js_code

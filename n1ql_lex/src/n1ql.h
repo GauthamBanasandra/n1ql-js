@@ -37,6 +37,8 @@ struct InsertedCharsInfo {
 
 // Represents position of each char in the source code
 struct Pos {
+	Pos() : line_no(0), col_no(0), index(0) {}
+
 	unsigned long long line_no;
 	unsigned long long col_no;
 	unsigned long long index;
