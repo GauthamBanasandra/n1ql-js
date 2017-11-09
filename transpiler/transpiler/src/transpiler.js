@@ -26,13 +26,12 @@ function compile(code) {
 		var ast = esprima.parse(code, {
 				range: true,
 				tokens: true,
-				comment: true,
 				sourceType: 'script',
 				loc: true
 			}),
 			nodeUtils = new NodeUtils();
 
-		nodeUtils.checkGlobals(ast);
+//    nodeUtils.checkGlobals(ast);
 		return {
 			language: 'JavaScript',
 			compileSuccess: true

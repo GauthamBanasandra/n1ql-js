@@ -62,9 +62,11 @@ CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
 void Transpiler::RectifyCompilationInfo(
                                         CompilationInfo &info, const std::list<InsertedCharsInfo> &insertions) {
   for (const auto &pos : insertions) {
-    info.index -= pos.type_len;
-    if (pos.line_no == info.line_no) {
-      info.col_no -= pos.type_len;
+    if (pos.index < info.index) {
+      info.index -= pos.type_len;
+      if (pos.line_no == info.line_no) {
+        info.col_no -= pos.type_len;
+      }
     }
   }
 }
