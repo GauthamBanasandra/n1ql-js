@@ -47,11 +47,13 @@ CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
   std::string js_src;
   Pos last_pos;
   std::list<InsertedCharsInfo> insertions;
+  // Comment-out N1QL queries and obtain the list of insertions that was made
   auto code = CommentN1QL(n1ql_js_src.c_str(), &js_src, &insertions, &last_pos);
   if (code != kOK) {
     return ComposeErrorInfo(code, last_pos, insertions);
   }
   
+  // CommentN1QL went through fine, move ahead to check JavaScript errors
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Value> args[1];
   args[0] = v8Str(isolate, js_src.c_str());
@@ -59,11 +61,15 @@ CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
   return ComposeCompilationInfo(result, insertions);
 }
 
+// Rectify line and column offset by discounting the insertions
 void Transpiler::RectifyCompilationInfo(
                                         CompilationInfo &info, const std::list<InsertedCharsInfo> &insertions) {
   for (const auto &pos : insertions) {
+    // Discount the index from info only if it's after the insertion
     if (pos.index < info.index) {
       info.index -= pos.type_len;
+      // Discount the column number only if it's in the same line as the
+      // insertion and is after the insertion (checked by the enclosing if)
       if (pos.line_no == info.line_no) {
         info.col_no -= pos.type_len;
       }
@@ -134,6 +140,8 @@ void Transpiler::LogCompilationInfo(const CompilationInfo &info) {
   }
 }
 
+// Composes error info based on the code and recent position returned by
+// CommentN1QL
 CompilationInfo
 Transpiler::ComposeErrorInfo(int code, const Pos &last_pos,
                              const std::list<InsertedCharsInfo> &ins_list) {
@@ -144,10 +152,13 @@ Transpiler::ComposeErrorInfo(int code, const Pos &last_pos,
   info.col_no = last_pos.col_no;
   info.index = last_pos.index;
   info.description = ComposeDescription(code);
+  
+  // Rectify position info
   RectifyCompilationInfo(info, ins_list);
   return info;
 }
 
+// Composes compilation info returned by transpiler.js
 CompilationInfo Transpiler::ComposeCompilationInfo(
                                                    v8::Local<v8::Value> &compiler_result,
                                                    const std::list<InsertedCharsInfo> &insertions) {
@@ -156,6 +167,7 @@ CompilationInfo Transpiler::ComposeCompilationInfo(
   }
   
   auto res_obj = compiler_result->ToObject();
+  // Extract info returned from JavaScript compilation
   auto language = res_obj->Get(v8Str(isolate, "language"))->ToString();
   auto compilation_status =
   res_obj->Get(v8Str(isolate, "compileSuccess"))->ToBoolean();
@@ -169,11 +181,14 @@ CompilationInfo Transpiler::ComposeCompilationInfo(
   v8::String::Utf8Value lang_str(language);
   info.language = *lang_str;
   if (!info.compile_success) {
+    // Compilation failed, attach more info
     v8::String::Utf8Value desc_str(description);
     info.description = *desc_str;
     info.index = index->Value();
     info.line_no = line_no->Value();
     info.col_no = col_no->Value();
+    
+    // Rectify position info
     RectifyCompilationInfo(info, insertions);
   }
   

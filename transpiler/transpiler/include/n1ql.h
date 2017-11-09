@@ -48,6 +48,7 @@ enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 
 // Insertion types for CommentN1QL
 enum class insert_type { kN1QLBegin, kN1QLEnd };
+
 // Keeps track of the type of literal inserted during CommentN1QL
 struct InsertedCharsInfo {
   InsertedCharsInfo(insert_type type)
@@ -68,6 +69,7 @@ struct Pos {
   int64_t index;
 };
 
+// Represents compilation status
 struct CompilationInfo {
   CompilationInfo() : compile_success(false), index(0), line_no(0), col_no(0) {}
   
