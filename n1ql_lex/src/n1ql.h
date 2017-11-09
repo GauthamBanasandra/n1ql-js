@@ -27,21 +27,22 @@ enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
 enum class insert_type { kN1QLBegin, kN1QLEnd };
 // Keeps track of the type of literal inserted during CommentN1QL
 struct InsertedCharsInfo {
-  InsertedCharsInfo(insert_type type) : type(type), type_len(0), line_no(0), index(0) {}
+  InsertedCharsInfo(insert_type type)
+  : type(type), type_len(0), line_no(0), index(0) {}
 
   insert_type type;
   int type_len;
-  unsigned long long line_no;
-  unsigned long long index;
+  int64_t line_no;
+  int64_t index;
 };
 
 // Represents position of each char in the source code
 struct Pos {
-	Pos() : line_no(0), col_no(0), index(0) {}
+  Pos() : line_no(0), col_no(0), index(0) {}
 
-	unsigned long long line_no;
-	unsigned long long col_no;
-	unsigned long long index;
+  int64_t line_no;
+  int64_t col_no;
+  int64_t index;
 };
 
 int Jsify(const char* input, std::string *output, Pos *last_pos_out);
