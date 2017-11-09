@@ -33,6 +33,8 @@ var filename = process.argv[2],
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
+console.log(compile(code));
+
 function saveTranspiledCode() {
 	var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
 	fs.writeFileSync(tCodePath, transpiledCode.code);
@@ -45,7 +47,16 @@ function saveTranspiledCode() {
 
 function compile(code) {
 	try {
-		var ast = esprima.parse(code);
+		var ast = esprima.parse(code, {
+				range: true,
+				tokens: true,
+				comment: true,
+				sourceType: 'script',
+				loc: true
+			}),
+			nodeUtils = new NodeUtils();
+
+		nodeUtils.checkGlobals(ast);
 		return {
 			language: 'JavaScript',
 			compileSuccess: true
@@ -410,7 +421,16 @@ function NodeUtils() {
 	this.checkGlobals = function (ast) {
 		for (var node of ast.body) {
 			if (!/FunctionDeclaration/.test(node.type)) {
-				throw 'Only function declaration are allowed in global scope';
+				if (typeof node.loc === 'undefined' || typeof node.range === 'undefined') {
+					throw 'The AST is missing loc and range nodes';
+				}
+				
+				throw {
+					index: node.range[0],
+					lineNumber: node.loc.start.line,
+					column: node.loc.start.column,
+					description: 'Only function declaration are allowed in global scope'
+				};
 			}
 		}
 	};
