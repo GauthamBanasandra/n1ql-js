@@ -24,7 +24,6 @@ Transpiler::Transpiler(const std::string &transpiler_src) {
   v8::Context::Scope context_scope(context);
   auto source = v8Str(isolate, transpiler_src.c_str());
   auto script = v8::Script::Compile(context, source).ToLocalChecked();
-  
   script->Run(context).ToLocalChecked();
   
   this->context = handle_scope.Escape(context);
@@ -199,78 +198,78 @@ std::string Transpiler::ComposeDescription(int code) {
   std::string keyword;
   switch (code) {
     case kKeywordAlter:
-      keyword = "alter";
-      break;
-      
+    keyword = "alter";
+    break;
+    
     case kKeywordBuild:
-      keyword = "build";
-      break;
-      
+    keyword = "build";
+    break;
+    
     case kKeywordCreate:
-      keyword = "create";
-      break;
-      
+    keyword = "create";
+    break;
+    
     case kKeywordDelete:
-      keyword = "delete";
-      break;
-      
+    keyword = "delete";
+    break;
+    
     case kKeywordDrop:
-      keyword = "drop";
-      break;
-      
+    keyword = "drop";
+    break;
+    
     case kKeywordExecute:
-      keyword = "execute";
-      break;
-      
+    keyword = "execute";
+    break;
+    
     case kKeywordExplain:
-      keyword = "explain";
-      break;
-      
+    keyword = "explain";
+    break;
+    
     case kKeywordGrant:
-      keyword = "grant";
-      break;
-      
+    keyword = "grant";
+    break;
+    
     case kKeywordInfer:
-      keyword = "infer";
-      break;
-      
+    keyword = "infer";
+    break;
+    
     case kKeywordInsert:
-      keyword = "insert";
-      break;
-      
+    keyword = "insert";
+    break;
+    
     case kKeywordMerge:
-      keyword = "merge";
-      break;
-      
+    keyword = "merge";
+    break;
+    
     case kKeywordPrepare:
-      keyword = "prepare";
-      break;
-      
+    keyword = "prepare";
+    break;
+    
     case kKeywordRename:
-      keyword = "rename";
-      break;
-      
+    keyword = "rename";
+    break;
+    
     case kKeywordRevoke:
-      keyword = "revoke";
-      break;
-      
+    keyword = "revoke";
+    break;
+    
     case kKeywordSelect:
-      keyword = "select";
-      break;
-      
+    keyword = "select";
+    break;
+    
     case kKeywordUpdate:
-      keyword = "update";
-      break;
-      
+    keyword = "update";
+    break;
+    
     case kKeywordUpsert:
-      keyword = "upsert";
-      break;
-      
+    keyword = "upsert";
+    break;
+    
     default:
-      std::string msg = "No keyword exists for code " + std::to_string(code);
-      throw msg;
+    std::string msg = "No keyword exists for code " + std::to_string(code);
+    throw msg;
   }
   
   std::string description = keyword + " is a reserved name in N1QLJs";
   return description;
-}  
+}

@@ -175,12 +175,14 @@ int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsI
 	return TransformSource(input, output, last_pos_out);
 }
 
+// Update line number, column number and index based on the current value of js_code
 void UpdatePos(Pos *pos) {
 	pos->line_no = std::count(js_code.begin(), js_code.end(), '\n') + 1;
 	for(auto c = js_code.crbegin(); (c != js_code.crend()) && (*c != '\n'); ++c) {
 		++pos->col_no;
 	}
 
+ // To make col_no atleast 1
 	++pos->col_no;
 	pos->index = std::max(static_cast<decltype(js_code.length())>(0), js_code.length() - 1);
 }

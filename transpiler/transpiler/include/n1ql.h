@@ -129,7 +129,8 @@ public:
 };
 
 // Data structure for maintaining the operations.
-// Each stack element is hashed, providing a two-way access.
+// Each stack element is hashed, providing access through both the ADTs - Stack
+// and HashMap.
 class HashedStack {
   std::stack<QueryHandler> qstack;
   std::map<std::string, QueryHandler *> qmap;
@@ -156,10 +157,9 @@ private:
   
 public:
   N1QL(ConnectionPool *inst_pool, v8::Isolate *isolate)
-  : inst_pool(inst_pool), isolate(isolate) {}
+  : isolate(isolate), inst_pool(inst_pool) {}
   HashedStack qhandler_stack;
-  std::vector<std::string> ExtractErrorMsg(const char *metadata,
-                                           v8::Isolate *isolate);
+  std::vector<std::string> ExtractErrorMsg(const char *metadata);
   // Schedules operations for execution.
   template <typename> void ExecQuery(QueryHandler &q_handler);
   ~N1QL() {}
