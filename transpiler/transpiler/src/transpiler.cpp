@@ -183,9 +183,9 @@ CompilationInfo Transpiler::ComposeCompilationInfo(
     // Compilation failed, attach more info
     v8::String::Utf8Value desc_str(description);
     info.description = *desc_str;
-    info.index = index->Value();
-    info.line_no = line_no->Value();
-    info.col_no = col_no->Value();
+    info.index = static_cast<int32_t>(index->Value());
+    info.line_no = static_cast<int32_t>(line_no->Value());
+    info.col_no = static_cast<int32_t>(col_no->Value());
     
     // Rectify position info
     RectifyCompilationInfo(info, insertions);

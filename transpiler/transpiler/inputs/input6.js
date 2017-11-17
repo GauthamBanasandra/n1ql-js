@@ -5,4 +5,5 @@ var res = SELECT *
 LIMIT :lim;
 for(var row of res) {
   log(row);
+  break;
 }

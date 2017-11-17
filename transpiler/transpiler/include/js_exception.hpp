@@ -26,7 +26,7 @@ private:
   v8::Persistent<v8::String> name;
   v8::Persistent<v8::String> desc;
   
-  std::string ExtractErrorName(std::string error);
+  std::string ExtractErrorName(const std::string &error);
   void CopyMembers(JsException &&exc_obj);
   
 public:
@@ -40,9 +40,9 @@ public:
   void Throw(lcb_t instance, lcb_error_t error);
   void Throw(lcb_t instance, lcb_error_t error,
              std::vector<std::string> error_msgs);
+  void Throw(const std::string &message);
   
   ~JsException();
 };
 
 #endif
-

@@ -35,7 +35,11 @@ v8::Local<v8::String> v8Str(v8::Isolate *isolate, const char *str) {
   return v8::String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal).ToLocalChecked();
 }
 
-const char *JSONStringify(v8::Isolate *isolate, v8::Handle<v8::Value> object) {
+v8::Local<v8::String> v8Str(v8::Isolate *isolate, const std::string &str) {
+  return v8::String::NewFromUtf8(isolate, str.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
+}
+
+std::string JSONStringify(v8::Isolate *isolate, const v8::Local<v8::Value> &object) {
   v8::HandleScope handle_scope(isolate);
   
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
@@ -48,8 +52,7 @@ const char *JSONStringify(v8::Isolate *isolate, v8::Handle<v8::Value> object) {
   v8::Local<v8::Value> args[1];
   args[0] = object;
   result = JSON_stringify->Call(global, 1, args);
-  v8::String::Utf8Value str(result->ToString());
-  
-//  return ToCString(str);
-  return *str;
+  v8::String::Utf8Value utf8_value(result->ToString());
+  std::string json_str = *utf8_value;
+  return json_str;
 }

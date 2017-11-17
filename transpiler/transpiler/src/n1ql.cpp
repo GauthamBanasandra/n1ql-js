@@ -322,7 +322,7 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     
     auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
     // Cancel the query corresponding to the unique hash.
-    QueryHandler *q_handler = n1ql_handle->qhandler_stack.Get(hash);
+    auto q_handler = n1ql_handle->qhandler_stack.Get(hash);
     auto instance = q_handler->instance;
     auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
     lcb_n1ql_cancel(instance, cookie->handle);

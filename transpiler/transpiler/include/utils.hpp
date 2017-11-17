@@ -14,8 +14,10 @@
 #define DATA_SLOT 0
 
 class N1QL;
+class JsException;
 struct Data {
   N1QL *n1ql_handle;
+  JsException *js_exception;
 };
 
 inline const Data *UnwrapData(v8::Isolate *isolate) {
@@ -25,6 +27,7 @@ inline const Data *UnwrapData(v8::Isolate *isolate) {
 const char *ToCString(const v8::String::Utf8Value &value);
 bool ToCBool(const v8::Local<v8::Boolean> &value);
 v8::Local<v8::String> v8Str(v8::Isolate *isolate, const char *str);
-const char *JSONStringify(v8::Isolate *isolate, v8::Handle<v8::Value> object);
+v8::Local<v8::String> v8Str(v8::Isolate *isolate, const std::string &str);
+std::string JSONStringify(v8::Isolate *isolate, const v8::Local<v8::Value> &object);
 
 #endif /* utils_hpp */
