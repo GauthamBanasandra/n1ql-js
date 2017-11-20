@@ -48,6 +48,7 @@
 /* Begin PBXFileReference section */
 		AC1C8A671FAC489100740154 /* js_exception.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = js_exception.cpp; sourceTree = "<group>"; };
 		AC1C8A681FAC489100740154 /* js_exception.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = js_exception.hpp; sourceTree = "<group>"; };
+		AC1CC53A1FC05A990077B8BB /* input9.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input9.js; sourceTree = "<group>"; };
 		AC1FA5BC1F78C3F5004CF8CA /* transpiler */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = transpiler; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC1FA5BF1F78C3F5004CF8CA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC1FA5C91F78C83A004CF8CA /* n1ql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = n1ql.h; sourceTree = "<group>"; };
@@ -295,6 +296,7 @@
 				AC41B3011FB312DE005A76F9 /* input6.js */,
 				AC29DA4D1FB9603C00B65801 /* input7.js */,
 				AC37C5BE1FBD5FF90086F9FD /* input8.js */,
+				AC1CC53A1FC05A990077B8BB /* input9.js */,
 			);
 			path = inputs;
 			sourceTree = "<group>";
