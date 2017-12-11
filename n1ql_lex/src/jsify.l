@@ -63,6 +63,7 @@
 (var|function)[ \t\n]+[dD][rR][oO][pP][ \t\n;=(]|[dD][rR][oO][pP][ \t\n]*:[ \t\n]*\{	{return kKeywordDrop;}
 (var|function)[ \t\n]+[eE][xX][eE][cC][uU][tT][eE][ \t\n;=(]|[eE][xX][eE][cC][uU][tT][eE][ \t\n]*:[ \t\n]*\{	{return kKeywordExecute;}
 (var|function)[ \t\n]+[eE][xX][pP][lL][aA][iI][nN][ \t\n;=(]|[eE][xX][pP][lL][aA][iI][nN][ \t\n]*:[ \t\n]*\{	{return kKeywordExplain;}
+(var|function)[ \t\n]+[fF][rR][oO][mM][ \t\n;=(]|[fF][rR][oO][mM][ \t\n]*:[ \t\n]*\{	{return kKeywordFrom;}
 (var|function)[ \t\n]+[gG][rR][aA][nN][tT][ \t\n;=(]|[gG][rR][aA][nN][tT][ \t\n]*:[ \t\n]*\{	{return kKeywordGrant;}
 (var|function)[ \t\n]+[iI][nN][fF][eE][rR][ \t\n;=(]|[iI][nN][fF][eE][rR][ \t\n]*:[ \t\n]*\{	{return kKeywordInfer;}
 (var|function)[ \t\n]+[iI][nN][sS][eE][rR][tT][ \t\n;=(]|[iI][nN][sS][eE][rR][tT][ \t\n]*:[ \t\n]*\{	{return kKeywordInsert;}
@@ -123,7 +124,7 @@
 			// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
 			js_code += "*";
 		} else {
-					js_code += std::string(yytext);
+			js_code += std::string(yytext);
 		}
 	}
 <N1QL>\n {
@@ -188,7 +189,7 @@ void UpdatePos(Pos *pos) {
 
  // To make col_no atleast 1
 	++pos->col_no;
-	pos->index = std::max(static_cast<decltype(js_code.length())>(0), js_code.length() - 1);
+	pos->index = js_code.length() == 0 ? 0 : js_code.length() - 1;
 }
 
 // Adds an entry to keep track of N1QL queries in the js_code

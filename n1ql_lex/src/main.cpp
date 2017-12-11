@@ -8,10 +8,10 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input7.js");
+	ifstream file("inputs/input8.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
-	const char* input=source_code.c_str();
+	const char* input = source_code.c_str();
 	string plain_js_code;
 	Pos last_pos;
 	std::list<InsertedCharsInfo> n1ql_pos;

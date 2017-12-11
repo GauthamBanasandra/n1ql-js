@@ -9,6 +9,7 @@ enum op_code {
   kKeywordDrop,
   kKeywordExecute,
   kKeywordExplain,
+  kKeywordFrom,
   kKeywordGrant,
   kKeywordInfer,
   kKeywordInsert,
