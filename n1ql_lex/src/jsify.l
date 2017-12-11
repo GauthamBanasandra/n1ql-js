@@ -12,7 +12,7 @@
 
 	#include <list>
 	#include <algorithm>
-  #include "n1ql.h"
+ #include "n1ql.h"
 
 	lex_op_code lex_op;
 	int pos_type_len[2];
@@ -108,8 +108,6 @@
 			js_code += ";";
 		} else if(lex_op == kCommentN1QL) {
 			js_code += "*/$;";
-			// TODO : Before updating insertions, need to mangle the multiline comment tokens '/* and '*/' that are present in
-			// the N1QL queries as comment matching in JavaScript follows greedy matching
 			UpdatePos(insert_type::kN1QLEnd);
 		}
 	}
@@ -120,7 +118,13 @@
 			js_code += "\\";
 		}
 
-		js_code += std::string(yytext);
+		if(lex_op == kCommentN1QL) {
+			// For kCommentN1QL, instead of appending the character read, we substitute a '*'
+			// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
+			js_code += "*";
+		} else {
+					js_code += std::string(yytext);
+		}
 	}
 <N1QL>\n {
 		if(lex_op == kCommentN1QL) {
