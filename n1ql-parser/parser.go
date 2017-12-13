@@ -16,56 +16,136 @@ func (q queryStmt) VisitSelect(stmt *algebra.Select) (interface{}, error) {
 		qv := queryExpr{}
 		expr.Accept(qv)
 	}
-
-	return nil, nil
+	
+	return stmt, nil
 }
 func (q queryStmt) VisitInsert(stmt *algebra.Insert) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitUpsert(stmt *algebra.Upsert) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitDelete(stmt *algebra.Delete) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitUpdate(stmt *algebra.Update) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitMerge(stmt *algebra.Merge) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitCreatePrimaryIndex(stmt *algebra.CreatePrimaryIndex) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitCreateIndex(stmt *algebra.CreateIndex) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitDropIndex(stmt *algebra.DropIndex) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitAlterIndex(stmt *algebra.AlterIndex) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitBuildIndexes(stmt *algebra.BuildIndexes) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitGrantRole(stmt *algebra.GrantRole) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitRevokeRole(stmt *algebra.RevokeRole) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitExplain(stmt *algebra.Explain) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitPrepare(stmt *algebra.Prepare) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitExecute(stmt *algebra.Execute) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 func (q queryStmt) VisitInferKeyspace(stmt *algebra.InferKeyspace) (interface{}, error) {
-	return nil, nil
+	for _, expr := range stmt.Expressions() {
+		fmt.Println("stmt:", expr)
+		qv := queryExpr{}
+		expr.Accept(qv)
+	}
+	return stmt, nil
 }
 
 type queryExpr struct {
@@ -405,7 +485,8 @@ func (q queryExpr) VisitElement(expr *expression.Element) (interface{}, error) {
 	return expr, nil
 }
 func (q queryExpr) VisitField(expr *expression.Field) (interface{}, error) {
-	fmt.Printf("field expr: %v\tchildren len:%v\n", expr, len(expr.Children()))
+	//fmt.Printf("field expr: %v\tchildren len:%v\n", expr, len(expr.Children()))
+	fmt.Println("field expr:", expr)
 	for _, expr := range expr.Children() {
 		qv := queryExpr{}
 		expr.Accept(qv)
@@ -497,7 +578,7 @@ func (q queryExpr) VisitAll(expr *expression.All) (interface{}, error) {
 }
 
 func main() {
-	q := "select * from `beer-sample` where name == $name.a.b.c.d"
+	q := "select * from `beer-sample` where name == $name"
 	ast, err := n1ql.ParseStatement(q)
 	if err != nil {
 		fmt.Println(err)
