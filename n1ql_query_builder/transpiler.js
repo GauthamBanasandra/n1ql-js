@@ -33,7 +33,8 @@ var filename = process.argv[2],
 console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-console.log(compile(code));
+console.log(JSON.stringify(compile(code)));
+
 
 function saveTranspiledCode() {
 	var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
@@ -57,6 +58,7 @@ function compile(code) {
 			nodeUtils = new NodeUtils();
 
 		nodeUtils.checkGlobals(ast);
+		nodeUtils.checkForOfNodeRight(ast);
 		return {
 			language: 'JavaScript',
 			compileSuccess: true
@@ -424,7 +426,7 @@ function NodeUtils() {
 				if (typeof node.loc === 'undefined' || typeof node.range === 'undefined') {
 					throw 'The AST is missing loc and range nodes';
 				}
-				
+
 				throw {
 					index: node.range[0],
 					lineNumber: node.loc.start.line,
@@ -433,6 +435,23 @@ function NodeUtils() {
 				};
 			}
 		}
+	};
+
+	this.checkForOfNodeRight = function (ast) {
+		estraverse.traverse(ast, {
+			leave: function (node) {
+				if (/ForOfStatement/.test(node.type)) {
+					if (!/MemberExpression/.test(node.right.type) && !/Identifier/.test(node.right.type)) {
+						throw {
+							index: node.range[0],
+							lineNumber: node.loc.start.line,
+							column: node.loc.start.column,
+							description: `Only identifier or member expression is allowed for for-of loop. ${node.right.type} is not allowed`
+						};
+					}
+				}
+			}
+		});
 	};
 
 	// Checks if the N1QL query must be reverted back to JavaScript expression.
@@ -1953,8 +1972,6 @@ function getAst(code, sourceFileName) {
 	// Attaching comments is a separate step.
 	ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
-	// nodeUtils.checkGlobals(ast);
-
 	estraverse.traverse(ast, {
 		enter: function (node, parent) {
 			globalAncestorStack.push(node);
@@ -1998,12 +2015,16 @@ function getAst(code, sourceFileName) {
 				}
 			}
 
-			// TODO : Handle the case when the source of for-of loop is of type x.y
 			// Modifies all the for-of statements to support iteration.
 			// Takes care to see to it that it visits the node only once.
 			if (/ForOfStatement/.test(node.type) && !node.isVisited) {
 				if (!/BlockStatement/.test(node.body.type)) {
 					nodeUtils.convertToBlockStmt(node);
+				}
+
+				// for-of node's right.name will be null when the right is anything other than IDENTIFIER
+				if (!node.right.name) {
+					node.right.name = escodegen.generate(node.right);
 				}
 
 				var iterator = new IterCompatible(node, globalAncestorStack);
