@@ -17,7 +17,7 @@
 #include "include/v8.h"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input9.js"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input10.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
@@ -87,7 +87,9 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
     std::cout << "Jsify failed with code: " << code << std::endl;
   }
   
+  std::cout << "After jsify:" << std::endl << js_src << std::endl << std::endl;
   auto transpiled_src = transpiler.Transpile(js_src, "input1.js", "input1.map.json", "127.0.0.1", "9090");
+  std::cout << "After transpilation:" << std::endl << transpiled_src << std::endl << std::endl;
   return transpiled_src + ReadFile(BUILTIN_JS_PATH);
 }
 

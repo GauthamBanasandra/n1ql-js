@@ -1,4 +1,4 @@
-if (res.isInstance) {
+if (res instanceof N1qlQuery) {
     res.iter(function (r) {
         return;
     });

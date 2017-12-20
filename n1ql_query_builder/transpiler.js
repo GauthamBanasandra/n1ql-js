@@ -119,7 +119,6 @@ function isFuncCalled(methodName, code) {
 	return methodExists;
 }
 
-
 // A utility class for handling nodes of an AST.
 function NodeUtils() {
 	var self = this;
@@ -191,8 +190,8 @@ function NodeUtils() {
 				source.loc = self.deepCopy(sourceCopy.loc);
 				source.consequent.loc = self.deepCopy(sourceCopy.body.loc);
 				source.test.loc = self.deepCopy(sourceCopy.right.loc);
-				source.test.object.loc = self.deepCopy(sourceCopy.right.loc);
-				source.test.property.loc = self.deepCopy(sourceCopy.right.loc);
+				self.setLocForAllNodes(sourceCopy.right.loc, source.test.left);
+				source.test.right.loc = self.deepCopy(sourceCopy.right.loc);
 
 				// TODO: Currently, after breaking out from labeled break statement, it goes to the beginning of the for-of loop.
 				//		Ideally, it should go to the end of the labeled block. This looks quite ideal to show the iteration behaviour -
@@ -464,7 +463,7 @@ function NodeUtils() {
 			} catch (e) {
 				return false;
 			}
-		};
+		}
 
 		// Check whether N1QL query begins with delete and is parsable as a
 		// JavaScript expression.
@@ -1009,22 +1008,19 @@ function StopIterAst(inst) {
 	this.arguments = [];
 }
 
-function MemExprAst(objName) {
-	Ast.call(this, 'MemberExpression');
-	this.computed = false;
-	this.object = {
+function IterTypeCheckAst(objAst) {
+	Ast.call(this, 'BinaryExpression');
+	this.operator = 'instanceof';
+	this.right = {
 		"type": "Identifier",
-		"name": objName
+		"name": "N1qlQuery"
 	};
-	this.property = {
-		"type": "Identifier",
-		"name": "isInstance"
-	};
+	this.left = objAst;
 }
 
-function IfElseAst(memExprAst) {
+function IfElseAst(IterTypeCheckAst) {
 	Ast.call(this, 'IfStatement');
-	this.test = memExprAst;
+	this.test = IterTypeCheckAst;
 	this.consequent = {
 		"type": "BlockStatement",
 		"body": []
@@ -1926,7 +1922,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
 
 	this.getAst = function () {
 		// if-else block which perform dynamic type checking.
-		var ifElseAst = new IfElseAst(new MemExprAst(forOfNode.right.name));
+		var ifElseAst = new IfElseAst(new IterTypeCheckAst(esprima.parse(forOfNode.right.name).body[0].expression));
 
 		// Iterator AST.
 		var iterConsequentAst = this.getIterConsequentAst();

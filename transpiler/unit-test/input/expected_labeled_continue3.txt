@@ -1,6 +1,6 @@
-if (res1.isInstance) {
+if (res1 instanceof N1qlQuery) {
     res1.iter(function (r) {
-        if (res2.isInstance) {
+        if (res2 instanceof N1qlQuery) {
             res2.iter(function (r) {
                 return;
             });
@@ -13,7 +13,7 @@ if (res1.isInstance) {
     });
 } else {
     for (var r of res1) {
-        if (res2.isInstance) {
+        if (res2 instanceof N1qlQuery) {
             res2.iter(function (r) {
                 return;
             });

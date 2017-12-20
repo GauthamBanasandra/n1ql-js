@@ -54,6 +54,7 @@
 		AC1FA5C91F78C83A004CF8CA /* n1ql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = n1ql.h; sourceTree = "<group>"; };
 		AC1FA5CA1F78C8B1004CF8CA /* transpiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transpiler.cpp; sourceTree = "<group>"; };
 		AC1FA5CD1F78CEFD004CF8CA /* transpiler.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = transpiler.js; sourceTree = "<group>"; };
+		AC22D34A1FCBCA3400BDA890 /* input10.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input10.js; sourceTree = "<group>"; };
 		AC23CE2D1F874EAA00DD7069 /* source-map.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "source-map.js"; sourceTree = "<group>"; };
 		AC23CE2E1F874EAA00DD7069 /* esprima.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = esprima.js; sourceTree = "<group>"; };
 		AC23CE2F1F874EAA00DD7069 /* estraverse.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = estraverse.js; sourceTree = "<group>"; };
@@ -297,6 +298,7 @@
 				AC29DA4D1FB9603C00B65801 /* input7.js */,
 				AC37C5BE1FBD5FF90086F9FD /* input8.js */,
 				AC1CC53A1FC05A990077B8BB /* input9.js */,
+				AC22D34A1FCBCA3400BDA890 /* input10.js */,
 			);
 			path = inputs;
 			sourceTree = "<group>";

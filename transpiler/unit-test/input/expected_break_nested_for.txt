@@ -1,4 +1,4 @@
-if (res.isInstance) {
+if (res instanceof N1qlQuery) {
     res.iter(function (i) {
         for (var j = 0; j < 10; ++j)
             break;

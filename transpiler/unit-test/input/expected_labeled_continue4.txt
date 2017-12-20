@@ -1,4 +1,4 @@
-if (row.isInstance) {
+if (row instanceof N1qlQuery) {
     row.iter(function (r) {
         x:
             while (true)

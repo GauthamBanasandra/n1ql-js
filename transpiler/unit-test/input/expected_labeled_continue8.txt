@@ -1,10 +1,10 @@
 x:
     while (true) {
-        if (res1.isInstance) {
+        if (res1 instanceof N1qlQuery) {
             res1.iter(function (r) {
-                if (res2.isInstance) {
+                if (res2 instanceof N1qlQuery) {
                     res2.iter(function (r) {
-                        if (res3.isInstance) {
+                        if (res3 instanceof N1qlQuery) {
                             res3.iter(function (r) {
                                 return res3.stopIter({
                                     'code': 'labeled_continue',
@@ -36,7 +36,7 @@ x:
                     }
                 } else {
                     for (var r of res2) {
-                        if (res3.isInstance) {
+                        if (res3 instanceof N1qlQuery) {
                             res3.iter(function (r) {
                                 return res3.stopIter({
                                     'code': 'labeled_continue',
@@ -67,9 +67,9 @@ x:
             }
         } else {
             for (var r of res1) {
-                if (res2.isInstance) {
+                if (res2 instanceof N1qlQuery) {
                     res2.iter(function (r) {
-                        if (res3.isInstance) {
+                        if (res3 instanceof N1qlQuery) {
                             res3.iter(function (r) {
                                 return res3.stopIter({
                                     'code': 'labeled_continue',
@@ -98,7 +98,7 @@ x:
                     }
                 } else {
                     for (var r of res2) {
-                        if (res3.isInstance) {
+                        if (res3 instanceof N1qlQuery) {
                             res3.iter(function (r) {
                                 return res3.stopIter({
                                     'code': 'labeled_continue',

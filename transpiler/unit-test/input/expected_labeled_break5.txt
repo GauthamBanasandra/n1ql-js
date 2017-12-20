@@ -1,6 +1,6 @@
-if (res1.isInstance) {
+if (res1 instanceof N1qlQuery) {
     res1.iter(function (r) {
-        if (res2.isInstance) {
+        if (res2 instanceof N1qlQuery) {
             res2.iter(function (r) {
                 return res2.stopIter({
                     'code': 'labeled_break',
@@ -26,7 +26,7 @@ if (res1.isInstance) {
 } else {
     x:
         for (var r of res1) {
-            if (res2.isInstance) {
+            if (res2 instanceof N1qlQuery) {
                 res2.iter(function (r) {
                     return res2.stopIter({
                         'code': 'labeled_break',

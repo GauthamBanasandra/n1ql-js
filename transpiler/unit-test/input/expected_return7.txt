@@ -1,8 +1,8 @@
 function query() {
-    if (res1.isInstance) {
+    if (res1 instanceof N1qlQuery) {
         res1.iter(function (row) {
             (function () {
-                if (res2.isInstance) {
+                if (res2 instanceof N1qlQuery) {
                     res2.iter(function (row) {
                         return res2.stopIter({
                             'code': 'return',
@@ -24,7 +24,7 @@ function query() {
     } else {
         for (var row of res1) {
             (function () {
-                if (res2.isInstance) {
+                if (res2 instanceof N1qlQuery) {
                     res2.iter(function (row) {
                         return res2.stopIter({
                             'code': 'return',

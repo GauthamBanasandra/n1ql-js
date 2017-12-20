@@ -1,8 +1,8 @@
-if (res.isInstance) {
+if (res instanceof N1qlQuery) {
     res.iter(function (i) {
         switch (i) {
         case '1':
-            if (res2.isInstance) {
+            if (res2 instanceof N1qlQuery) {
                 res2.iter(function (row) {
                     return res2.stopIter({ 'code': 'break' });
                 });
@@ -20,7 +20,7 @@ if (res.isInstance) {
     for (var i of res) {
         switch (i) {
         case '1':
-            if (res2.isInstance) {
+            if (res2 instanceof N1qlQuery) {
                 res2.iter(function (row) {
                     return res2.stopIter({ 'code': 'break' });
                 });

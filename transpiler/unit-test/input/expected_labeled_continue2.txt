@@ -1,6 +1,6 @@
 y:
     while (true) {
-        if (res.isInstance) {
+        if (res instanceof N1qlQuery) {
             res.iter(function (r) {
                 return res.stopIter({
                     'code': 'labeled_continue',

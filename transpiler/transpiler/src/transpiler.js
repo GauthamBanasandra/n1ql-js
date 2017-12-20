@@ -26,12 +26,14 @@ function compile(code) {
         var ast = esprima.parse(code, {
                 range: true,
                 tokens: true,
+                comment: true,
                 sourceType: 'script',
                 loc: true
             }),
             nodeUtils = new NodeUtils();
 
-        //    nodeUtils.checkGlobals(ast);
+        nodeUtils.checkGlobals(ast);
+        nodeUtils.checkForOfNodeRight(ast);
         return {
             language: 'JavaScript',
             compileSuccess: true
@@ -82,7 +84,7 @@ function isFuncCalled(methodName, code) {
 
     var methodExists = false;
     estraverse.traverse(ast, {
-        enter: function(node) {
+        enter: function (node) {
             if (!methodExists && /CallExpression/.test(node.type)) {
                 methodExists = node.callee.name === methodName;
             }
@@ -92,29 +94,31 @@ function isFuncCalled(methodName, code) {
     return methodExists;
 }
 
-
 // A utility class for handling nodes of an AST.
 function NodeUtils() {
     var self = this;
     // Performs deep copy of the given node.
-    this.deepCopy = function(node) {
+    this.deepCopy = function (node) {
         return JSON.parse(JSON.stringify(node));
     };
 
     // Deletes a node from the body.
-    this.deleteNode = function(parentBody, nodeToDel) {
+    this.deleteNode = function (parentBody, nodeToDel) {
+        
+        
+
         var deleteIndex = parentBody.indexOf(nodeToDel);
         parentBody.splice(deleteIndex, 1);
     };
 
     // Replaces source node with the target node and returns a reference to the new node.
-    this.replaceNode = function(source, target, context) {
+    this.replaceNode = function (source, target, context) {
         var sourceCopy = self.deepCopy(source);
 
-        Object.keys(source).forEach(function(key) {
+        Object.keys(source).forEach(function (key) {
             delete source[key];
         });
-        Object.keys(target).forEach(function(key) {
+        Object.keys(target).forEach(function (key) {
             source[key] = target[key];
         });
 
@@ -127,10 +131,10 @@ function NodeUtils() {
         switch (context) {
             // Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
             /*
-            	Before:
-            	var res1 = new N1qlQuery('select * from :bucket LIMIT 10;');
-            	After:
-            	var res1 = new N1qlQuery('select * from $1 LIMIT 10;', {posParams : [bucket]});
+                Before:
+                var res1 = new N1qlQuery('select * from :bucket LIMIT 10;');
+                After:
+                var res1 = new N1qlQuery('select * from $1 LIMIT 10;', {posParams : [bucket]});
             */
             case Context.N1qlQuery:
                 source.loc = self.deepCopy(sourceCopy.loc);
@@ -138,31 +142,31 @@ function NodeUtils() {
                 source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
                 break;
 
-                // Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
-                /*
-                	Before:
-                	new N1qlQuery('delete bucket["key"]');
-                	After:
-                	delete bucket["key"];
-                */
+            // Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
+            /*
+                Before:
+                new N1qlQuery('delete bucket["key"]');
+                After:
+                delete bucket["key"];
+            */
             case Context.N1qlQueryRevert:
                 self.setLocForAllNodes(sourceCopy.loc, source);
                 break;
-                // Mapping of if-else block to for-of loop.
-                /*
-                	Before:
-                	for (var r of res1){...}
-                	After:
-                	if (res1.isInstance) {
-                		res1.iter(function (r) {...}
-                	} else {...}
-                */
+            // Mapping of if-else block to for-of loop.
+            /*
+                Before:
+                for (var r of res1){...}
+                After:
+                if (res1.isInstance) {
+                    res1.iter(function (r) {...}
+                } else {...}
+            */
             case Context.IterTypeCheck:
                 source.loc = self.deepCopy(sourceCopy.loc);
                 source.consequent.loc = self.deepCopy(sourceCopy.body.loc);
                 source.test.loc = self.deepCopy(sourceCopy.right.loc);
-                source.test.object.loc = self.deepCopy(sourceCopy.right.loc);
-                source.test.property.loc = self.deepCopy(sourceCopy.right.loc);
+                self.setLocForAllNodes(sourceCopy.right.loc, source.test.left);
+                source.test.right.loc = self.deepCopy(sourceCopy.right.loc);
 
                 // TODO: Currently, after breaking out from labeled break statement, it goes to the beginning of the for-of loop.
                 //		Ideally, it should go to the end of the labeled block. This looks quite ideal to show the iteration behaviour -
@@ -173,19 +177,21 @@ function NodeUtils() {
                 }
                 break;
 
-                // The following case handles two-way mapping of loc nodes between continue and return statements.
+            // The following case handles two-way mapping of loc nodes between continue and return statements.
             case Context.ContinueStatement:
                 source.loc = self.deepCopy(sourceCopy.loc);
                 switch (source.type) {
                     // Return to continue statement mapping - source: return, target: continue
                     case 'ContinueStatement':
+                        
                         if (source.label) {
                             source.label.loc = self.deepCopy(sourceCopy.loc);
                         }
                         break;
 
-                        // Continue to return statement mapping - source: continue, target: return
+                    // Continue to return statement mapping - source: continue, target: return
                     case 'ReturnStatement':
+                        
                         if (source.argument && sourceCopy.label.loc) {
                             source.argument = self.setLocForAllNodes(sourceCopy.label.loc, source.argument);
                         }
@@ -196,17 +202,19 @@ function NodeUtils() {
                 }
                 break;
 
-                // The following case handles two-way mapping of loc nodes between break and return statements.
+            // The following case handles two-way mapping of loc nodes between break and return statements.
             case Context.BreakStatement:
                 source.loc = self.deepCopy(sourceCopy.loc);
                 switch (source.type) {
                     // Return to break statement mapping - source: return, target: break
                     case 'BreakStatement':
+                        
                         source.label.loc = self.deepCopy(sourceCopy.argument.loc);
                         break;
 
-                        // Break to return statement mapping - source: break, target: return
+                    // Break to return statement mapping - source: break, target: return
                     case 'ReturnStatement':
+                        
                         source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
                         break;
 
@@ -215,36 +223,38 @@ function NodeUtils() {
                 }
                 break;
 
-                // The following case handles mapping of loc nodes between two different 'stopIter' calls.
-                /*
-                	Before:
-                	return res2.stopIter({
-                		'code': 'labeled_break',
-                		'args': 'x'
-                	});
-                	After:
-                	return res1.stopIter({
-                		'code': 'labeled_break',
-                		'args': 'x'
-                	});
-                */
+            // The following case handles mapping of loc nodes between two different 'stopIter' calls.
+            /*
+                Before:
+                return res2.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'x'
+                });
+                After:
+                return res1.stopIter({
+                    'code': 'labeled_break',
+                    'args': 'x'
+                });
+            */
             case Context.BreakAltInterrupt:
+                
                 self.setLocMatchingNodes(sourceCopy, source);
                 break;
 
-                // The following case handles the mapping of loc nodes between stopIter and
-                // return statement or between two stopIter statements as the above case.
-                /*
-                	Before:
-                	return res2.stopIter({
-                			'code': 'labeled_continue',
-                			'args': 'x'
-                		});
-                	After:
-                	return;
-                 */
+            // The following case handles the mapping of loc nodes between stopIter and
+            // return statement or between two stopIter statements as the above case.
+            /*
+                Before:
+                return res2.stopIter({
+                        'code': 'labeled_continue',
+                        'args': 'x'
+                    });
+                After:
+                return;
+             */
             case Context.ContinueAltInterrupt:
                 if (source.argument) {
+                    
                     self.setLocMatchingNodes(sourceCopy, source);
                 } else {
                     source.loc = sourceCopy.loc;
@@ -256,10 +266,10 @@ function NodeUtils() {
     };
 
     // Checks if atleast one loc node is present in the AST.
-    this.hasLocNode = function(ast) {
+    this.hasLocNode = function (ast) {
         var hasLoc = false;
         estraverse.traverse(ast, {
-            enter: function(node) {
+            enter: function (node) {
                 if (hasLoc) {
                     return;
                 }
@@ -274,9 +284,9 @@ function NodeUtils() {
     // Adds loc node for all the nodes in the AST.
     // Thus, all the nodes of AST might end up having unnecessary loc nodes.
     // Though this method wouldn't modify the parsing behaviour, it must be used as a last resort.
-    this.forceSetLocForAllNodes = function(loc, ast) {
+    this.forceSetLocForAllNodes = function (loc, ast) {
         estraverse.traverse(ast, {
-            enter: function(node) {
+            enter: function (node) {
                 if (!node.loc) {
                     node.loc = self.deepCopy(loc);
                 }
@@ -286,7 +296,7 @@ function NodeUtils() {
 
     // This is a safe method for adding loc nodes for a given AST.
     // The disadvantage is that it can not be used with all the AST.
-    this.setLocForAllNodes = function(loc, ast) {
+    this.setLocForAllNodes = function (loc, ast) {
         // Generate the code snippet for the given AST.
         var codeSnippet = escodegen.generate(ast);
         // Parse with loc enabled to determine the nodes to which we can attach loc node.
@@ -296,7 +306,7 @@ function NodeUtils() {
 
         // We now traverse astWithLoc and replace all the loc nodes.
         estraverse.traverse(astWithLoc, {
-            enter: function(node) {
+            enter: function (node) {
                 node.loc = node.loc ? self.deepCopy(loc) : null;
             }
         });
@@ -306,14 +316,14 @@ function NodeUtils() {
 
     // This is a safe method for performing a one-to-one copy of the loc nodes from AST1 to AST2.
     // The two ASTs must have the same structure.
-    this.setLocMatchingNodes = function(source, target) {
+    this.setLocMatchingNodes = function (source, target) {
         var sourceNodeStack = new Stack(),
             targetNodeStack = new Stack();
 
         // Linearizes the given AST into a stack.
         function convertTreeToStack(ast, stack) {
             estraverse.traverse(ast, {
-                enter: function(node) {
+                enter: function (node) {
                     stack.push(node);
                 }
             });
@@ -322,6 +332,7 @@ function NodeUtils() {
         convertTreeToStack(source, sourceNodeStack);
         convertTreeToStack(target, targetNodeStack);
 
+        
         // Pop all nodes from the sourceNodeStack and if an element contains loc node,
         // copy it to the corresponding element in the targetNodeStack.
         while (!sourceNodeStack.isEmpty()) {
@@ -334,17 +345,19 @@ function NodeUtils() {
     };
 
     // Inserts the given node to the given parentBody at the specified index.
-    this.insertNode = function(parentBody, refNode, nodeToInsert, insertAfter) {
+    this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
+        
+        
         var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
         parentBody.splice(insertIndex, 0, nodeToInsert);
     };
 
     // A N1QL node is a statement of the form new N1qlQuery('...');
-    this.isN1qlNode = function(node) {
+    this.isN1qlNode = function (node) {
         return /NewExpression/.test(node.type) && /N1qlQuery/.test(node.callee.name);
     };
 
-    this.convertToBlockStmt = function(node) {
+    this.convertToBlockStmt = function (node) {
         switch (node.type) {
             case 'ForOfStatement':
                 // Transform the previous single-line statement into a block.
@@ -366,20 +379,22 @@ function NodeUtils() {
     };
 
     // Inserts an array of AST nodes into parentBody at the specified index.
-    this.insertNodeArray = function(parentBody, insAfterNode, arrayToInsert) {
+    this.insertNodeArray = function (parentBody, insAfterNode, arrayToInsert) {
+        
+        
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
     };
 
     // Build an ast node for N1QL function call from the query.
-    this.getQueryAst = function(query) {
+    this.getQueryAst = function (query) {
         var qParser = new QueryParser(),
             subs = qParser.parse(query);
         return new N1QLQueryAst(subs.query, subs.placeholders);
     };
 
     // Checks if the global scope contains only function declarations.
-    this.checkGlobals = function(ast) {
+    this.checkGlobals = function (ast) {
         for (var node of ast.body) {
             if (!/FunctionDeclaration/.test(node.type)) {
                 if (typeof node.loc === 'undefined' || typeof node.range === 'undefined') {
@@ -396,8 +411,25 @@ function NodeUtils() {
         }
     };
 
+    this.checkForOfNodeRight = function (ast) {
+        estraverse.traverse(ast, {
+            leave: function (node) {
+                if (/ForOfStatement/.test(node.type)) {
+                    if (!/MemberExpression/.test(node.right.type) && !/Identifier/.test(node.right.type)) {
+                        throw {
+                            index: node.range[0],
+                            lineNumber: node.loc.start.line,
+                            column: node.loc.start.column,
+                            description: `Only identifier or member expression is allowed for for-of loop. ${node.right.type} is not allowed`
+                        };
+                    }
+                }
+            }
+        });
+    };
+
     // Checks if the N1QL query must be reverted back to JavaScript expression.
-    this.isRevertReq = function(query) {
+    this.isRevertReq = function (query) {
         // Checks if the given statement is a valid JavaScript expression.
         function isJsExpression(stmt) {
             try {
@@ -406,7 +438,7 @@ function NodeUtils() {
             } catch (e) {
                 return false;
             }
-        };
+        }
 
         // Check whether N1QL query begins with delete and is parsable as a
         // JavaScript expression.
@@ -472,7 +504,7 @@ function QueryParser() {
         }
     }
 
-    this.parse = function(query) {
+    this.parse = function (query) {
         var quoteStack = new Stack(),
             substitutedQuery = '',
             placeholders = [];
@@ -497,6 +529,7 @@ function QueryParser() {
         }
 
         // Quote stack must be empty.
+        
         return {
             query: substitutedQuery,
             placeholders: placeholders
@@ -511,29 +544,29 @@ function Stack() {
 
     this.stackCopy = stack;
 
-    this.push = function(item) {
+    this.push = function (item) {
         stack.push(item);
     };
 
-    this.pop = function() {
+    this.pop = function () {
         if (stack.length === 0) {
             throw 'Stack underflow exception';
         }
         return stack.pop();
     };
 
-    this.peek = function() {
+    this.peek = function () {
         var size = this.getSize();
         if (size >= 0) {
             return stack[size - 1];
         }
     };
 
-    this.getSize = function() {
+    this.getSize = function () {
         return stack.length;
     };
 
-    this.cloneStack = function() {
+    this.cloneStack = function () {
         var clone = new Stack();
 
         for (var item of stack) {
@@ -543,16 +576,16 @@ function Stack() {
         return clone;
     };
 
-    this.reverseElements = function() {
+    this.reverseElements = function () {
         stack.reverse();
     };
 
-    this.isEmpty = function() {
+    this.isEmpty = function () {
         return stack.length === 0;
     };
 
     // debug.
-    this.printAll = function() {
+    this.printAll = function () {
         for (var item of stack) {
             console.log(item);
             console.log();
@@ -590,28 +623,28 @@ function AncestorStack() {
         return found ? node : null;
     }
 
-    this.getAncestor = function(comparator) {
+    this.getAncestor = function (comparator) {
         return getOrPopAncestor(this, comparator, false);
     };
 
-    this.popNode = function(comparator) {
+    this.popNode = function (comparator) {
         return getOrPopAncestor(this, comparator, true);
     };
 
     // Returns the topmost node of the given type. Need not necessarily be the top of stack.
-    this.getTopNodeOfType = function(nodeType) {
-        return this.getAncestor(function(node) {
+    this.getTopNodeOfType = function (nodeType) {
+        return this.getAncestor(function (node) {
             return nodeType === node.type;
         });
     };
 
-    this.popTopNodeOfType = function(nodeType) {
-        return this.popNode(function(node) {
+    this.popTopNodeOfType = function (nodeType) {
+        return this.popNode(function (node) {
             return nodeType === node.type;
         });
     };
 
-    this.cloneAncestorStack = function() {
+    this.cloneAncestorStack = function () {
         var clone = new AncestorStack();
         // Clone the stack.
         var stackClone = this.cloneStack();
@@ -673,12 +706,12 @@ function LoopModifier(modifier) {
             throw 'Invalid modifier';
     }
 
-    this.checkAssoc = function(nodeType) {
+    this.checkAssoc = function (nodeType) {
         return associations.has(nodeType);
     };
 
     // Push the node if it associates with the loop modifier instance.
-    this.pushIfAssoc = function(node) {
+    this.pushIfAssoc = function (node) {
         if (this.checkAssoc(node.type)) {
             switch (this.modType) {
                 case LoopModifier.CONST.BREAK:
@@ -690,6 +723,7 @@ function LoopModifier(modifier) {
                     break;
 
                 case LoopModifier.CONST.LABELED_BREAK:
+                    
                     node.lblBreakStackIndex = this.stackIndex;
                     break;
 
@@ -698,6 +732,7 @@ function LoopModifier(modifier) {
                     break;
 
                 case LoopModifier.CONST.LABELED_CONTINUE:
+                    
                     node.lblContinueStackIndex = this.stackIndex;
                     break;
 
@@ -709,7 +744,7 @@ function LoopModifier(modifier) {
         }
     };
 
-    this.popIfAssoc = function() {
+    this.popIfAssoc = function () {
         if (ancestorStack.getSize() > 0) {
             switch (this.modType) {
                 case LoopModifier.CONST.BREAK:
@@ -749,12 +784,13 @@ function LoopModifier(modifier) {
     };
 
 
-    this.getSize = function() {
+    this.getSize = function () {
         return ancestorStack.getSize();
     };
 
     // Returns a boolean suggesting whether the loop modifier needs to be replaced.
-    this.isReplaceReq = function(args) {
+    this.isReplaceReq = function (args) {
+        
         switch (this.modType) {
             // For break and continue, the replacement criteria is the for-of node being the parent on TOS.
             case LoopModifier.CONST.CONTINUE:
@@ -762,16 +798,16 @@ function LoopModifier(modifier) {
                 return ancestorStack.getSize() > 0 && /ForOfStatement/.test(ancestorStack.peek().type);
 
             case LoopModifier.CONST.LABELED_CONTINUE:
-                // For labelled break, the replacement criteria is the absence of the label which the break is
-                // associated with.
+            // For labelled break, the replacement criteria is the absence of the label which the break is
+            // associated with.
             case LoopModifier.CONST.LABELED_BREAK:
-                return !ancestorStack.getAncestor(function(node) {
+                return !ancestorStack.getAncestor(function (node) {
                     if (/LabeledStatement/.test(node.type)) {
                         return args === node.label.name;
                     }
                 });
 
-                // For return statement, the replacement criteria is the absence of a function on TOS.
+            // For return statement, the replacement criteria is the absence of a function on TOS.
             case LoopModifier.CONST.RETURN:
                 if (ancestorStack.getSize() === 0) {
                     return true;
@@ -785,7 +821,7 @@ function LoopModifier(modifier) {
     };
 
     // debug.
-    this.printAll = function() {
+    this.printAll = function () {
         ancestorStack.printAll();
     }
 }
@@ -795,11 +831,11 @@ function StackHelper(ancestorStack) {
     var nodeUtils = new NodeUtils();
     this.ancestorStack = ancestorStack.cloneAncestorStack();
 
-    this.getTopForOfNode = function() {
+    this.getTopForOfNode = function () {
         return this.ancestorStack.getTopNodeOfType('ForOfStatement');
     };
 
-    this.popTopForOfNode = function() {
+    this.popTopForOfNode = function () {
         return this.ancestorStack.popTopNodeOfType('ForOfStatement');
     };
 
@@ -846,7 +882,7 @@ function StackHelper(ancestorStack) {
         // A check to validate that targetFound and searchInterrupted are mutually exclusive.
         if (returnArgs.targetFound && returnArgs.searchInterrupted) {
             throw 'Invalid case: targetFound=' + returnArgs.targetFound +
-                '\tsearchInterrupted=' + returnArgs.searchInterrupted;
+            '\tsearchInterrupted=' + returnArgs.searchInterrupted;
         }
 
         if (searchAll && stopNodes.length > 0) {
@@ -860,11 +896,11 @@ function StackHelper(ancestorStack) {
         return returnArgs;
     }
 
-    this.searchStack = function(comparator) {
+    this.searchStack = function (comparator) {
         return search(this, comparator);
     };
 
-    this.searchAllStopNodes = function(comparator) {
+    this.searchAllStopNodes = function (comparator) {
         return search(this, comparator, true);
     }
 }
@@ -947,22 +983,19 @@ function StopIterAst(inst) {
     this.arguments = [];
 }
 
-function MemExprAst(objName) {
-    Ast.call(this, 'MemberExpression');
-    this.computed = false;
-    this.object = {
+function IterTypeCheckAst(objAst) {
+    Ast.call(this, 'BinaryExpression');
+    this.operator = 'instanceof';
+    this.right = {
         "type": "Identifier",
-        "name": objName
+        "name": "N1qlQuery"
     };
-    this.property = {
-        "type": "Identifier",
-        "name": "isInstance"
-    };
+    this.left = objAst;
 }
 
-function IfElseAst(memExprAst) {
+function IfElseAst(IterTypeCheckAst) {
     Ast.call(this, 'IfStatement');
-    this.test = memExprAst;
+    this.test = IterTypeCheckAst;
     this.consequent = {
         "type": "BlockStatement",
         "body": []
@@ -1054,24 +1087,26 @@ function N1QLQueryAst(query, posParams) {
     this.arguments = [{
         "type": "Literal",
         "value": query
-    }, {
-        "type": "ObjectExpression",
-        "properties": [{
-            "type": "Property",
-            "key": {
-                "type": "Identifier",
-                "name": "posParams"
-            },
-            "computed": false,
-            "value": {
-                "type": "ArrayExpression",
-                "elements": []
-            },
-            "kind": "init",
-            "method": false,
-            "shorthand": false
-        }]
-    }];
+    },
+        {
+            "type": "ObjectExpression",
+            "properties": [{
+                "type": "Property",
+                "key": {
+                    "type": "Identifier",
+                    "name": "posParams"
+                },
+                "computed": false,
+                "value": {
+                    "type": "ArrayExpression",
+                    "elements": []
+                },
+                "kind": "init",
+                "method": false,
+                "shorthand": false
+            }]
+        }
+    ];
 
     for (var param of posParams) {
         this.arguments[1].properties[0].value.elements.push({
@@ -1086,7 +1121,7 @@ function Arg(arg) {
     this.code = arg.code;
     this.args = arg.args;
 
-    this.getAst = function() {
+    this.getAst = function () {
         // Need to wrap 'arg' inside '()' to turn it into a statement - it becomes a JSON object otherwise.
         var argsAst = esprima.parse('(' + this.toString() + ')').body[0].expression;
 
@@ -1113,7 +1148,7 @@ function Arg(arg) {
     };
 
     // Returns the AST for 'args'.
-    this.getDataAst = function() {
+    this.getDataAst = function () {
         if (!this.args) {
             throw '"args" field is needed to add "data" field';
         }
@@ -1122,7 +1157,7 @@ function Arg(arg) {
     };
 
     // Stringify only the attributes of this class.
-    this.toString = function() {
+    this.toString = function () {
         var obj = {};
         for (var key of Object.keys(this)) {
             if (this.hasOwnProperty(key)) {
@@ -1141,7 +1176,7 @@ function PostIter(iterProp, returnBubbleFunc) {
     this.iterProp = iterProp;
     this.returnBubbleFunc = returnBubbleFunc;
 
-    this.push = function(arg) {
+    this.push = function (arg) {
         // Avoid duplicates while insertion.
         // TODO :   replace the list with a set in the final version - for faster lookup.
         if (stmts.indexOf(arg) === -1) {
@@ -1150,7 +1185,7 @@ function PostIter(iterProp, returnBubbleFunc) {
     };
 
     // Returns a switch-case block to perform post-iteration steps.
-    this.getAst = function(iterVar, stackHelper) {
+    this.getAst = function (iterVar, stackHelper) {
         var discriminantAst = esprima.parse(iterVar + '.' + this.iterProp).body[0].expression,
             switchAst = new SwitchAst(discriminantAst),
             postIter, caseAst, lookup, stopIterAst, arg, returnStmtAst, pushCase;
@@ -1169,15 +1204,17 @@ function PostIter(iterProp, returnBubbleFunc) {
                 case LoopModifier.CONST.LABELED_BREAK:
                     // Search the ancestor stack for the label. Interrupt the search if a for-of node is found.
                     lookup = stackHelper.searchStack({
-                        targetComparator: function(node) {
+                        targetComparator: function (node) {
                             return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
                         },
-                        stopComparator: function(node) {
+                        stopComparator: function (node) {
                             return /ForOfStatement/.test(node.type);
                         }
                     });
                     // If the label is found and doesn't point to the for-of node, then add a break <label>.
                     if (lookup.targetFound) {
+                        
+
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
                         } else {
@@ -1187,6 +1224,8 @@ function PostIter(iterProp, returnBubbleFunc) {
                     // If the search was interrupted, then it means that it encountered a for-of node. So, add a
                     // 'return stopIter' node.
                     if (lookup.searchInterrupted) {
+                        
+
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({
                             code: LoopModifier.CONST.LABELED_BREAK,
@@ -1205,14 +1244,16 @@ function PostIter(iterProp, returnBubbleFunc) {
                 case LoopModifier.CONST.LABELED_CONTINUE:
                     // This is very similar to Labeled break case.
                     lookup = stackHelper.searchStack({
-                        targetComparator: function(node) {
+                        targetComparator: function (node) {
                             return /LabeledStatement/.test(node.type) && node.label.name === postIter.args;
                         },
-                        stopComparator: function(node) {
+                        stopComparator: function (node) {
                             return /ForOfStatement/.test(node.type);
                         }
                     });
                     if (lookup.targetFound) {
+                        
+
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
                         } else {
@@ -1220,6 +1261,8 @@ function PostIter(iterProp, returnBubbleFunc) {
                         }
                     }
                     if (lookup.searchInterrupted) {
+                        
+
                         if (lookup.stopNode.parentLabel === postIter.args) {
                             returnStmtAst = new ReturnAst(null);
                         } else {
@@ -1242,18 +1285,22 @@ function PostIter(iterProp, returnBubbleFunc) {
                     // Target is to find the function name that binds to the 'return' node. Search is interrupted by
                     // a for-of node.
                     lookup = stackHelper.searchStack({
-                        targetComparator: function(item) {
+                        targetComparator: function (item) {
                             return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type)) &&
                                 (item.id ? item.id.name : null) === postIter.targetFunction;
                         },
-                        stopComparator: function(item) {
+                        stopComparator: function (item) {
                             return /ForOfStatement/.test(item.type);
                         }
                     });
                     if (lookup.targetFound) {
+                        
+
                         returnStmtAst = new ReturnAst(new ReturnDataAst(postIter.iterVar, this.returnBubbleFunc));
                     }
                     if (lookup.searchInterrupted) {
+                        
+
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({
                             code: LoopModifier.CONST.RETURN,
@@ -1291,7 +1338,7 @@ function Iter(forOfNode) {
 
     this.nodeCopy = nodeUtils.deepCopy(forOfNode);
 
-    this.incrAndPush = function(node) {
+    this.incrAndPush = function (node) {
         ++breakMod.stackIndex;
         ++continueMod.stackIndex;
         ++lblBreakMod.stackIndex;
@@ -1305,7 +1352,7 @@ function Iter(forOfNode) {
         lblContinueMod.pushIfAssoc(node);
     };
 
-    this.decrAndPop = function() {
+    this.decrAndPop = function () {
         breakMod.popIfAssoc();
         continueMod.popIfAssoc();
         lblBreakMod.popIfAssoc();
@@ -1319,19 +1366,25 @@ function Iter(forOfNode) {
         --lblContinueMod.stackIndex;
     };
 
-    this.traverse = function(traversal) {
+    this.traverse = function (traversal) {
         estraverse.traverse(_this.nodeCopy, {
-            enter: function(node) {
+            enter: function (node) {
                 traversal(node, _this.nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod);
             },
-            leave: function(node) {
+            leave: function (node) {
                 _this.decrAndPop();
             }
         });
     };
 
     // debug.
-    this.assertEmpty = function() {}
+    this.assertEmpty = function () {
+        
+        
+        
+        
+        
+    }
 }
 
 // Returns if-else AST having iterator in consequent and for-of in alternate (dynamic type checking).
@@ -1341,7 +1394,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
         nodeUtils = new NodeUtils();
 
     // Returns an iterator construct for a given for-of loop ast.
-    this.getIterConsequentAst = function() {
+    this.getIterConsequentAst = function () {
         var iterator = new Iter(forOfNode);
 
         // This is the property that will be set on the N1qlQuery instance - contains return value of iterator.
@@ -1351,7 +1404,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
         // List to store post iteration exit statements.
         var postIter = new PostIter(iterProp, returnBubbleFunc);
 
-        iterator.traverse(function(node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
+        iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
             iterator.incrAndPush(node);
 
             var arg,
@@ -1397,14 +1450,14 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     stopIterAst = arg = null;
                     // Labeled break statement.
                     /*
-                    		Before:
-                    		break x;
-                    		After:
-                    		return res.stopIter({
-                    			'code': 'labeled_break',
-                    			'args': 'x'
-                    		});
-                     	*/
+                            Before:
+                            break x;
+                            After:
+                            return res.stopIter({
+                                'code': 'labeled_break',
+                                'args': 'x'
+                            });
+                         */
                     if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                         stopIterAst = new StopIterAst(nodeCopy.right.name);
                         arg = new Arg({
@@ -1415,10 +1468,10 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     } else if (!node.label && breakMod.isReplaceReq()) {
                         // Unlabeled break statement.
                         /*
-                        	Before:
-                        	break;
-                        	After:
-                        	return res.stopIter({ 'code': 'break' });
+                            Before:
+                            break;
+                            After:
+                            return res.stopIter({ 'code': 'break' });
                          */
                         stopIterAst = new StopIterAst(nodeCopy.right.name);
                         arg = new Arg({
@@ -1437,13 +1490,13 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 case 'ContinueStatement':
                     // Labeled continue statement.
                     /*
-                    	Before:
-                    	continue x;
-                    	After:
-                    	return res.stopIter({
-                    		'code': 'labeled_continue',
-                    		'args': 'x'
-                    	});
+                        Before:
+                        continue x;
+                        After:
+                        return res.stopIter({
+                            'code': 'labeled_continue',
+                            'args': 'x'
+                        });
                      */
                     if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                         if (nodeCopy.parentLabel === node.label.name) {
@@ -1465,10 +1518,10 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     } else if (continueMod.isReplaceReq()) {
                         // Unlabeled continue statement.
                         /*
-                        	Before:
-                        	continue;
-                        	After:
-                        	return;
+                            Before:
+                            continue;
+                            After:
+                            return;
                          */
                         nodeUtils.replaceNode(node, new ReturnAst(null), Context.ContinueStatement);
                     }
@@ -1476,14 +1529,14 @@ function IterCompatible(forOfNode, globalAncestorStack) {
 
                 case 'ReturnStatement':
                     /*
-                    	Before:
-                    	return a + b;
-                    	After:
-                    	return res.stopIter({
-                    		'code': 'return',
-                    		'args': '(a + b)',
-                    		'data': a + b
-                    	});
+                        Before:
+                        return a + b;
+                        After:
+                        return res.stopIter({
+                            'code': 'return',
+                            'args': '(a + b)',
+                            'data': a + b
+                        });
                      */
                     if (returnMod.isReplaceReq(node)) {
                         // Return statement may or may not have arguments.
@@ -1541,14 +1594,14 @@ function IterCompatible(forOfNode, globalAncestorStack) {
     };
 
     // Maps loc nodes of source to target according to the context.
-    this.mapSourceNode = function(source, target, context) {
+    this.mapSourceNode = function (source, target, context) {
         switch (context) {
             // Maps the source to target loc during the following kind of transformation -
             /*
-            	Before:
-            	for (var r of res3){...}
-            	After:
-            	res.iter(function (r) {...}
+                Before:
+                for (var r of res3){...}
+                After:
+                res.iter(function (r) {...}
              */
             case Context.IterConsequent:
                 target.loc = nodeUtils.deepCopy(source.loc);
@@ -1560,25 +1613,27 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 target.expression.arguments[0].params[0].loc = nodeUtils.deepCopy(source.left.declarations[0].id.loc);
                 break;
 
-                // Maps the source to target loc during the following kind of transformation -
-                /*
-                	source: return function () {
-                		return inner;
-                	};
-                	target: return res1.stopIter({
-                		'code': 'return',
-                		'args': '(function () {\n    return inner;\n})',
-                		'data': function () {
-                			return inner;
-                		}
-                	});
-                 */
+            // Maps the source to target loc during the following kind of transformation -
+            /*
+                source: return function () {
+                    return inner;
+                };
+                target: return res1.stopIter({
+                    'code': 'return',
+                    'args': '(function () {\n    return inner;\n})',
+                    'data': function () {
+                        return inner;
+                    }
+                });
+             */
             case Context.ReturnStatement:
+                
                 target.loc = source.loc;
                 nodeUtils.forceSetLocForAllNodes(source.loc, target.argument);
                 if (source.argument) {
                     for (var prop of target.argument.arguments[0].properties) {
                         if (prop.key.value === 'data') {
+                            
                             prop.value = nodeUtils.deepCopy(source.argument);
                             break;
                         }
@@ -1586,39 +1641,42 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 }
                 break;
 
-                // Maps the source to target loc during the following kind of transformation -
-                /*
-                	source: return res.stopIter({
-                		'code': 'return',
-                		'args': 'res.getReturnValue().data',
-                		'data': res.getReturnValue().data
-                	});
-                	target: return res.getReturnValue().data;
-                 */
+            // Maps the source to target loc during the following kind of transformation -
+            /*
+                source: return res.stopIter({
+                    'code': 'return',
+                    'args': 'res.getReturnValue().data',
+                    'data': res.getReturnValue().data
+                });
+                target: return res.getReturnValue().data;
+             */
             case Context.ReturnAltFound:
+                
                 target.loc = source.loc;
                 for (var prop of source.argument.arguments[0].properties) {
                     if (prop.key.value === 'data') {
+                        
                         target.argument = nodeUtils.deepCopy(prop.value);
                         break;
                     }
                 }
                 break;
 
-                // Maps the source to target loc during the following kind of transformation -
-                /*
-                	source: return res1.stopIter({
-                		'code': 'return',
-                		'args': 'res.getReturnValue().data',
-                		'data': res.getReturnValue().data
-                	});
-                	target: return res2.stopIter({
-                		'code': 'return',
-                		'args': 'res.getReturnValue().data',
-                		'data': res.getReturnValue().data
-                	});
-                 */
+            // Maps the source to target loc during the following kind of transformation -
+            /*
+                source: return res1.stopIter({
+                    'code': 'return',
+                    'args': 'res.getReturnValue().data',
+                    'data': res.getReturnValue().data
+                });
+                target: return res2.stopIter({
+                    'code': 'return',
+                    'args': 'res.getReturnValue().data',
+                    'data': res.getReturnValue().data
+                });
+             */
             case Context.ReturnAltInterrupt:
+                
                 nodeUtils.setLocMatchingNodes(source, target);
                 break;
             default:
@@ -1627,16 +1685,16 @@ function IterCompatible(forOfNode, globalAncestorStack) {
     };
 
     // Returns AST for 'else' block.
-    this.getIterAlternateAst = function() {
+    this.getIterAlternateAst = function () {
         var iterator = new Iter(forOfNode);
-        iterator.traverse(function(node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
+        iterator.traverse(function (node, nodeCopy, breakMod, continueMod, lblBreakMod, lblContinueMod, returnMod) {
             var lookup, stopIterAst, arg, returnStmtAst, stopNode = null,
                 context;
 
             if (node.isAnnotated) {
                 // Targeted lookup for annotated nodes.
                 lookup = stackHelper.searchStack({
-                    targetComparator: function(item) {
+                    targetComparator: function (item) {
                         switch (node.metaData.code) {
                             case LoopModifier.CONST.RETURN:
                                 // For a 'return' statement, the target is to find the function that the 'return'
@@ -1650,7 +1708,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                                 throw 'Unhandled case: ' + node.metaData.code;
                         }
                     },
-                    stopComparator: function(item) {
+                    stopComparator: function (item) {
                         return /ForOfStatement/.test(item.type);
                     }
                 });
@@ -1675,6 +1733,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     }
                 }
                 if (lookup.searchInterrupted) {
+                    
                     switch (node.metaData.code) {
                         case LoopModifier.CONST.LABELED_BREAK:
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
@@ -1731,14 +1790,16 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 case 'BreakStatement':
                     if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                         lookup = stackHelper.searchStack({
-                            targetComparator: function(item) {
+                            targetComparator: function (item) {
                                 return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
                             },
-                            stopComparator: function(item) {
+                            stopComparator: function (item) {
                                 return /ForOfStatement/.test(item.type);
                             }
                         });
                         if (lookup.searchInterrupted) {
+                            
+
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                             arg = new Arg({
                                 code: LoopModifier.CONST.LABELED_BREAK,
@@ -1759,14 +1820,16 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 case 'ContinueStatement':
                     if (node.label && lblContinueMod.isReplaceReq(node.label.name)) {
                         lookup = stackHelper.searchStack({
-                            targetComparator: function(item) {
+                            targetComparator: function (item) {
                                 return /LabeledStatement/.test(item.type) && item.label.name === node.label.name;
                             },
-                            stopComparator: function(item) {
+                            stopComparator: function (item) {
                                 return /ForOfStatement/.test(item.type);
                             }
                         });
                         if (lookup.searchInterrupted) {
+                            
+
                             if (lookup.stopNode.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
                             } else {
@@ -1791,11 +1854,11 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 case 'ReturnStatement':
                     if (node.targetFunction) {
                         lookup = stackHelper.searchStack({
-                            targetComparator: function(item) {
+                            targetComparator: function (item) {
                                 return (/FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type)) &&
                                     item.id.name === node.targetFunction;
                             },
-                            stopComparator: function(item) {
+                            stopComparator: function (item) {
                                 return /ForOfStatement/.test(item.type);
                             }
                         });
@@ -1832,9 +1895,9 @@ function IterCompatible(forOfNode, globalAncestorStack) {
         return iterator.nodeCopy.parentLabel ? new LabeledStmtAst(iterator.nodeCopy.parentLabel, iterator.nodeCopy) : iterator.nodeCopy;
     };
 
-    this.getAst = function() {
+    this.getAst = function () {
         // if-else block which perform dynamic type checking.
-        var ifElseAst = new IfElseAst(new MemExprAst(forOfNode.right.name));
+        var ifElseAst = new IfElseAst(new IterTypeCheckAst(esprima.parse(forOfNode.right.name).body[0].expression));
 
         // Iterator AST.
         var iterConsequentAst = this.getIterConsequentAst();
@@ -1844,7 +1907,7 @@ function IterCompatible(forOfNode, globalAncestorStack) {
         ifElseAst.alternate.body.push(this.getIterAlternateAst());
 
         estraverse.traverse(ifElseAst, {
-            enter: function(node) {
+            enter: function (node) {
                 // Mark all the nodes of 'ifElseAst' to avoid repeated operations.
                 node.isGen = true;
 
@@ -1880,10 +1943,8 @@ function getAst(code, sourceFileName) {
     // Attaching comments is a separate step.
     ast = escodegen.attachComments(ast, ast.comments, ast.tokens);
 
-    // nodeUtils.checkGlobals(ast);
-
     estraverse.traverse(ast, {
-        enter: function(node, parent) {
+        enter: function (node, parent) {
             globalAncestorStack.push(node);
 
             // Grab the for-of statement's label and mark the label for deletion.
@@ -1896,20 +1957,22 @@ function getAst(code, sourceFileName) {
             if (/ReturnStatement/.test(node.type)) {
                 var stackHelper = new StackHelper(globalAncestorStack);
                 var lookup = stackHelper.searchStack({
-                    targetComparator: function(item) {
+                    targetComparator: function (item) {
                         return /FunctionDeclaration/.test(item.type) || /FunctionExpression/.test(item.type);
                     },
-                    stopComparator: function(item) {
+                    stopComparator: function (item) {
                         return false;
                     }
                 });
                 if (lookup.targetFound) {
+                    
+
                     // TODO :   Anonymous function might require some attention because comparing null doesn't make sense.
                     node.targetFunction = lookup.stopNode.id ? lookup.stopNode.id.name : null;
                 }
             }
         },
-        leave: function(node) {
+        leave: function (node) {
             // Perform variable substitution in query constructor.
             if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
                 var query = node.arguments[0].value;
@@ -1923,12 +1986,16 @@ function getAst(code, sourceFileName) {
                 }
             }
 
-            // TODO : Handle the case when the source of for-of loop is of type x.y
             // Modifies all the for-of statements to support iteration.
             // Takes care to see to it that it visits the node only once.
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
                 if (!/BlockStatement/.test(node.body.type)) {
                     nodeUtils.convertToBlockStmt(node);
+                }
+
+                // for-of node's right.name will be null when the right is anything other than IDENTIFIER
+                if (!node.right.name) {
+                    node.right.name = escodegen.generate(node.right);
                 }
 
                 var iterator = new IterCompatible(node, globalAncestorStack);
