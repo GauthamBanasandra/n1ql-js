@@ -18,7 +18,7 @@
 	int pos_type_len[2];
 	std::list<InsertedCharsInfo> *insertions;
 	// Contains the output plain JavaScript code.
-	std::string js_code;
+	std::string js_code, n1ql_query;
 	// Storing the state for resuming on switch.
 	int previous_state;
 %}
@@ -93,39 +93,56 @@
 [uU][pP][dD][aA][tT][eE][ \t\n][ \t\n]?	|
 [uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
 		BEGIN N1QL;
-		if(lex_op == kJsify) {
-			js_code += "new N1qlQuery('"+ std::string(yytext) + " ";
-		} else if(lex_op == kUniLineN1QL) {
+
+		switch(lex_op) {
+		case kJsify:
+			n1ql_query = std::string(yytext);
+			break;
+
+		case kUniLineN1QL:
 			js_code += std::string(yytext);
-		} else if(lex_op == kCommentN1QL) {
+			break;
+
+		case kCommentN1QL:
 			UpdatePos(insert_type::kN1QLBegin);
 			js_code += "/*" + std::string(yytext);
+			break;
 		}
 	}
 <N1QL>";"	{
 		BEGIN INITIAL;
-		if(lex_op == kJsify) {
-			js_code += "');";
-		} else if(lex_op == kUniLineN1QL) {
-			js_code += ";";
-		} else if(lex_op == kCommentN1QL) {
-			js_code += "*/$;";
-			UpdatePos(insert_type::kN1QLEnd);
+
+		switch(lex_op) {
+			case kJsify:
+				n1ql_query += ";";
+				js_code += TranspileQuery(n1ql_query);
+				break;
+
+			case kUniLineN1QL:
+				js_code += ";";
+				break;
+
+			case kCommentN1QL:
+				js_code += "*/$;";
+				UpdatePos(insert_type::kN1QLEnd);
+				break;
 		}
 	}
 <N1QL>.	{
-		// Need to escape the escape character to preserve the raw-ness.
-		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
-		if(yytext[0] == '\\' || (yytext[0] == '\'' && !IsEsc() && lex_op == kJsify)) {
-			js_code += "\\";
-		}
+		switch(lex_op) {
+			case kCommentN1QL:
+				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
+				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
+				js_code += "*";
+				break;
 
-		if(lex_op == kCommentN1QL) {
-			// For kCommentN1QL, instead of appending the character read, we substitute a '*'
-			// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
-			js_code += "*";
-		} else {
-			js_code += std::string(yytext);
+			case kUniLineN1QL:
+				js_code += std::string(yytext);
+				break;
+
+			case kJsify:
+				n1ql_query += std::string(yytext);
+				break;
 		}
 	}
 <N1QL>\n {
@@ -244,7 +261,7 @@ void HandleStrStart(int state) {
 
 // Restores the previous state and adds the appropriate closing quote.
 void HandleStrStop(int state) {
-	if(!IsEsc()) {
+	if(!IsEsc(js_code)) {
 		BEGIN previous_state;
 	}
 
@@ -264,11 +281,11 @@ void HandleStrStop(int state) {
 }
 
 // Tests whether the quote character is escaped.
-bool IsEsc() {
+bool IsEsc(const std::string &str) {
 	auto escaped = false;
-	auto i = js_code.length();
+	auto i = str.length();
 	while(i-- > 0) {
-		if(js_code[i] != '\\') {
+		if(str[i] != '\\') {
 			break;
 		}
 
@@ -281,4 +298,20 @@ bool IsEsc() {
 // A default yywrap
 extern "C" int yywrap() {
 	return 1;
+}
+
+std::string TranspileQuery(const std::string &query) {
+	std::string query_transpiled = "new N1qlQuery('";
+	for (const auto &c : query) {
+		// Need to escape the escape character to preserve the raw-ness.
+		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
+		if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
+			query_transpiled += "\\";
+		}
+
+		query_transpiled += c;
+	}
+
+	query_transpiled += "');";
+	return query_transpiled;
 }

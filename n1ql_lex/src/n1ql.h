@@ -52,6 +52,8 @@ int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsI
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);
-bool IsEsc();
+bool IsEsc(const std::string &str);
 void UpdatePos(insert_type type);
 void UpdatePos(Pos *pos);
+
+std::string TranspileQuery(const std::string &query);

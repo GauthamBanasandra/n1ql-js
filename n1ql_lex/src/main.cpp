@@ -15,7 +15,7 @@ int main()
 	string plain_js_code;
 	Pos last_pos;
 	std::list<InsertedCharsInfo> n1ql_pos;
-	int ret_code = CommentN1QL(input, &plain_js_code, &n1ql_pos, &last_pos);
+	int ret_code = Jsify(input, &plain_js_code, &last_pos);
 
 	switch(ret_code)
 	{
@@ -47,11 +47,11 @@ int main()
 		cout << "error: using a reserved word"<<endl<<ret_code;
 	}
 
-	cout << endl;
-	cout << plain_js_code << endl << endl;
-	for(auto i = 0; i < plain_js_code.length(); ++i) {
-		cout << i << " " << plain_js_code[i] << endl;
-	}
+//	cout << endl;
+//	cout << plain_js_code << endl << endl;
+//	for(auto i = 0; i < plain_js_code.length(); ++i) {
+//		cout << i << " " << plain_js_code[i] << endl;
+//	}
 
 	cout << endl << "Last pos: Line no: " << last_pos.line_no << " Col no: " << last_pos.col_no << " Index: " << last_pos.index << " Value: " << plain_js_code[last_pos.index] << endl;
 	for(const auto &pos : n1ql_pos) {
