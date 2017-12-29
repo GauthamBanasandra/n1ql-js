@@ -94,68 +94,50 @@
 [uU][pP][sS][eE][rR][tT][ \t\n][ \t\n]?	{
 		BEGIN N1QL;
 
-		switch(lex_op) {
-		case kJsify:
-			n1ql_query = std::string(yytext);
-			// The '\n' might be consumed by the regex above
-			// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
-			ReplaceRecentChar(n1ql_query, '\n', ' ');
-			break;
+		n1ql_query = std::string(yytext);
+		// The '\n' might be consumed by the regex above
+		// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
+		ReplaceRecentChar(n1ql_query, '\n', ' ');
 
-		case kUniLineN1QL:
-			n1ql_query = std::string(yytext);
-			ReplaceRecentChar(n1ql_query, '\n', ' ');
-			break;
-
-		case kCommentN1QL:
-			UpdatePos(insert_type::kN1QLBegin);
-			js_code += "/*" + std::string(yytext);
-			break;
+		if(lex_op == kCommentN1QL) {
+				UpdatePos(insert_type::kN1QLBegin);
+				js_code += "/*" + std::string(yytext);
 		}
 	}
 <N1QL>";"	{
 		BEGIN INITIAL;
 
+		n1ql_query += ";";
 		switch(lex_op) {
 			case kJsify:
-				n1ql_query += ";";
 				js_code += TranspileQuery(n1ql_query);
 				break;
 
 			case kUniLineN1QL:
-				js_code += n1ql_query + ";";
+				js_code += n1ql_query;
 				break;
 
 			case kCommentN1QL:
 				js_code += "*/$;";
 				UpdatePos(insert_type::kN1QLEnd);
+				// TODO : Parse the N1QL query here
 				break;
 		}
 	}
 <N1QL>.	{
-		switch(lex_op) {
-			case kCommentN1QL:
+		n1ql_query += std::string(yytext);
+
+		if(lex_op == kCommentN1QL) {
 				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
 				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
 				js_code += "*";
-				break;
-
-			case kUniLineN1QL:
-			case kJsify:
-				n1ql_query += std::string(yytext);
-				break;
 		}
 	}
 <N1QL>\n {
-		switch(lex_op) {
-			case kUniLineN1QL:
-			case kJsify:
-				n1ql_query += " ";
-				break;
+		n1ql_query += " ";
 
-			case kCommentN1QL:
-				js_code += "\n";
-				break;
+		if(lex_op == kCommentN1QL) {
+			js_code += "\n";
 		}
 	}
 <MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{js_code += std::string(yytext);}
