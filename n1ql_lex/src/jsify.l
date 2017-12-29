@@ -97,11 +97,14 @@
 		switch(lex_op) {
 		case kJsify:
 			n1ql_query = std::string(yytext);
+			// The '\n' might be consumed by the regex above
+			// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
 			ReplaceRecentChar(n1ql_query, '\n', ' ');
 			break;
 
 		case kUniLineN1QL:
-			js_code += std::string(yytext);
+			n1ql_query = std::string(yytext);
+			ReplaceRecentChar(n1ql_query, '\n', ' ');
 			break;
 
 		case kCommentN1QL:
@@ -120,7 +123,7 @@
 				break;
 
 			case kUniLineN1QL:
-				js_code += ";";
+				js_code += n1ql_query + ";";
 				break;
 
 			case kCommentN1QL:
@@ -138,9 +141,6 @@
 				break;
 
 			case kUniLineN1QL:
-				js_code += std::string(yytext);
-				break;
-
 			case kJsify:
 				n1ql_query += std::string(yytext);
 				break;
@@ -148,12 +148,9 @@
 	}
 <N1QL>\n {
 		switch(lex_op) {
+			case kUniLineN1QL:
 			case kJsify:
 				n1ql_query += " ";
-				break;
-
-			case kUniLineN1QL:
-				js_code += " ";
 				break;
 
 			case kCommentN1QL:
@@ -311,6 +308,7 @@ extern "C" int yywrap() {
 	return 1;
 }
 
+// Transpiles the given N1QL query into a JavaScript expression - "new N1qlQuery('...')"
 std::string TranspileQuery(const std::string &query) {
 	std::string query_transpiled = "new N1qlQuery('";
 	for (const auto &c : query) {
@@ -327,6 +325,7 @@ std::string TranspileQuery(const std::string &query) {
 	return query_transpiled;
 }
 
+// Replaces the recent occurrence of char m in str with char n
 void ReplaceRecentChar(std::string &str, char m, char n) {
 	auto find = str.rfind(m);
 	if(find != std::string::npos) {
