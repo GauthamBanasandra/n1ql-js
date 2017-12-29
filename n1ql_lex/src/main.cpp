@@ -11,50 +11,45 @@ int main()
 	ifstream file("inputs/input8.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
-	const char* input = source_code.c_str();
-	string plain_js_code;
-	Pos last_pos;
-	std::list<InsertedCharsInfo> n1ql_pos;
-	int ret_code = Jsify(input, &plain_js_code, &last_pos);
-
-	switch(ret_code)
+	auto info = CommentN1QL(source_code);
+	switch(info.code)
 	{
 	case kOK:
-		cout << plain_js_code << endl << ret_code;
+		cout << info.handler_code << endl << info.code;
 		break;
 	case kKeywordSelect:
-		cout << "error: select is a reserved word"<< endl << ret_code;
+		cout << "error: select is a reserved word"<< endl << info.code;
 		break;
 	case kKeywordCreate:
-		cout << "error: create is a reserved word"<<endl<<ret_code;;
+		cout << "error: create is a reserved word"<<endl<<info.code;;
 		break;
 	case kKeywordUpsert:
-		cout << "error: upsert is a reserved word"<<endl<<ret_code;;
+		cout << "error: upsert is a reserved word"<<endl<<info.code;;
 		break;
 	case kKeywordInsert:
-		cout << "error: insert is a reserved word"<<endl<<ret_code;;
+		cout << "error: insert is a reserved word"<<endl<<info.code;;
 		break;
 	case kKeywordDelete:
-		cout << "error: delete is a reserved word"<<endl<<ret_code;;
+		cout << "error: delete is a reserved word"<<endl<<info.code;;
 		break;
 	case kKeywordUpdate:
-		cout << "error: update is a reserved word"<<endl<<ret_code;;
+		cout << "error: update is a reserved word"<<endl<<info.code;;
 		break;
 	case kKeywordMerge:
-		cout << "error: merge is a reserved word"<<endl<<ret_code;;
+		cout << "error: merge is a reserved word"<<endl<<info.code;;
 		break;
 	default:
-		cout << "error: using a reserved word"<<endl<<ret_code;
+		cout << "error: using a reserved word"<<endl<<info.code;
 	}
 
 //	cout << endl;
-//	cout << plain_js_code << endl << endl;
-//	for(auto i = 0; i < plain_js_code.length(); ++i) {
-//		cout << i << " " << plain_js_code[i] << endl;
+//	cout << info.handler_code << endl << endl;
+//	for(auto i = 0; i < info.handler_code.length(); ++i) {
+//		cout << i << " " << info.handler_code[i] << endl;
 //	}
 
-	cout << endl << "Last pos: Line no: " << last_pos.line_no << " Col no: " << last_pos.col_no << " Index: " << last_pos.index << " Value: " << plain_js_code[last_pos.index] << endl;
-	for(const auto &pos : n1ql_pos) {
+	cout << endl << "Last pos: Line no: " << info.last_pos.line_no << " Col no: " << info.last_pos.col_no << " Index: " << info.last_pos.index << " Value: " << info.handler_code[info.last_pos.index] << endl;
+	for(const auto &pos : info.insertions) {
 		std::string type;
 		switch(pos.type) {
 			case insert_type::kN1QLBegin:
@@ -66,7 +61,7 @@ int main()
 		}
 
 		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " <<
-		plain_js_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
+		info.handler_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
 	}
 
 	return 0;

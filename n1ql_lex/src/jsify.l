@@ -169,23 +169,31 @@ int TransformSource(const char* input, std::string *output, Pos *last_pos) {
 }
 
 // Converts N1QL embedded JS to native JS.
-int Jsify(const char* input, std::string *output, Pos *last_pos_out) {
+JsifyInfo Jsify(const std::string &input) {
 	lex_op = kJsify;
-	return TransformSource(input, output, last_pos_out);
+	JsifyInfo info;
+
+	info.code = TransformSource(input.c_str(), &info.handler_code, &info.last_pos);
+	return info;
 }
 
 // Unilines Multiline N1QL embeddings.
-int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out) {
+UniLineN1QLInfo UniLineN1QL(const std::string &input) {
 	lex_op = kUniLineN1QL;
-	return TransformSource(input, output, last_pos_out);
+	UniLineN1QLInfo info;
+
+	info.code = TransformSource(input.c_str(), &info.handler_code, &info.last_pos);
+	return info;
 }
 
 // Comments out N1QL statements and substitutes $ in its place
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *insertions_out, Pos *last_pos_out) {
+CommentN1QLInfo CommentN1QL(const std::string &input) {
 	lex_op = kCommentN1QL;
-	insertions = insertions_out;
+	CommentN1QLInfo info;
 
-	return TransformSource(input, output, last_pos_out);
+	insertions = &info.insertions;
+	info.code = TransformSource(input.c_str(), &info.handler_code, &info.last_pos);
+	return info;
 }
 
 // Update line number, column number and index based on the current value of js_code

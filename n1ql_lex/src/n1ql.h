@@ -46,9 +46,28 @@ struct Pos {
   int64_t index;
 };
 
-int Jsify(const char* input, std::string *output, Pos *last_pos_out);
-int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out);
-int CommentN1QL(const char *input, std::string *output, std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out);
+struct JsifyInfo {
+	int code;
+	std::string handler_code;
+	Pos last_pos;
+};
+
+struct UniLineN1QLInfo {
+	int code;
+	std::string handler_code;
+	Pos last_pos;
+};
+
+struct CommentN1QLInfo {
+	int code;
+	std::string handler_code;
+	std::list<InsertedCharsInfo> insertions;
+	Pos last_pos;
+};
+
+JsifyInfo Jsify(const std::string &input);
+UniLineN1QLInfo UniLineN1QL(const std::string &info);
+CommentN1QLInfo CommentN1QL(const std::string &input);
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);
