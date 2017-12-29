@@ -15,7 +15,7 @@ int main()
 	string plain_js_code;
 	Pos last_pos;
 	std::list<InsertedCharsInfo> n1ql_pos;
-	int ret_code = Jsify(input, &plain_js_code, &last_pos);
+	int ret_code = UniLineN1QL(input, &plain_js_code, &last_pos);
 
 	switch(ret_code)
 	{

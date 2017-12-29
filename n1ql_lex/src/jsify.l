@@ -97,6 +97,7 @@
 		switch(lex_op) {
 		case kJsify:
 			n1ql_query = std::string(yytext);
+			ReplaceRecentChar(n1ql_query, '\n', ' ');
 			break;
 
 		case kUniLineN1QL:
@@ -146,8 +147,18 @@
 		}
 	}
 <N1QL>\n {
-		if(lex_op == kCommentN1QL) {
-			js_code += "\n";
+		switch(lex_op) {
+			case kJsify:
+				n1ql_query += " ";
+				break;
+
+			case kUniLineN1QL:
+				js_code += " ";
+				break;
+
+			case kCommentN1QL:
+				js_code += "\n";
+				break;
 		}
 	}
 <MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{js_code += std::string(yytext);}
@@ -314,4 +325,11 @@ std::string TranspileQuery(const std::string &query) {
 
 	query_transpiled += "');";
 	return query_transpiled;
+}
+
+void ReplaceRecentChar(std::string &str, char m, char n) {
+	auto find = str.rfind(m);
+	if(find != std::string::npos) {
+		str[find] = n;
+	}
 }

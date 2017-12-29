@@ -55,5 +55,5 @@ void HandleStrStop(int state);
 bool IsEsc(const std::string &str);
 void UpdatePos(insert_type type);
 void UpdatePos(Pos *pos);
-
 std::string TranspileQuery(const std::string &query);
+void ReplaceRecentChar(std::string &str, char m, char n);
