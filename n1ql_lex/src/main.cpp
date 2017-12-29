@@ -39,7 +39,7 @@ int main()
 		cout << "error: merge is a reserved word"<<endl<<info.code;;
 		break;
 	default:
-		cout << "error: using a reserved word"<<endl<<info.code;
+		cout << "error"<<endl<<info.code;
 	}
 
 //	cout << endl;
@@ -63,6 +63,8 @@ int main()
 		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " <<
 		info.handler_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
 	}
+
+	std::cout << "\nN1QL query compilation info: " << info.parse_info.info << std::endl;
 
 	return 0;
 }

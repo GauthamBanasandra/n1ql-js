@@ -19,7 +19,8 @@ enum op_code {
   kKeywordRevoke,
   kKeywordSelect,
   kKeywordUpdate,
-  kKeywordUpsert
+  kKeywordUpsert,
+  kN1QLParserError
 };
 
 enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
@@ -46,6 +47,11 @@ struct Pos {
   int64_t index;
 };
 
+struct ParseInfo {
+  bool is_valid;
+  std::string info;
+};
+
 struct JsifyInfo {
 	int code;
 	std::string handler_code;
@@ -63,6 +69,7 @@ struct CommentN1QLInfo {
 	std::string handler_code;
 	std::list<InsertedCharsInfo> insertions;
 	Pos last_pos;
+	ParseInfo parse_info;
 };
 
 JsifyInfo Jsify(const std::string &input);
@@ -76,3 +83,4 @@ void UpdatePos(insert_type type);
 void UpdatePos(Pos *pos);
 std::string TranspileQuery(const std::string &query);
 void ReplaceRecentChar(std::string &str, char m, char n);
+ParseInfo ParseQuery(const std::string &query);

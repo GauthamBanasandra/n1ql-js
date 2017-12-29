@@ -17,6 +17,7 @@
 	lex_op_code lex_op;
 	int pos_type_len[2];
 	std::list<InsertedCharsInfo> *insertions;
+	ParseInfo parse_info;
 	// Contains the output plain JavaScript code.
 	std::string js_code, n1ql_query;
 	// Storing the state for resuming on switch.
@@ -120,7 +121,12 @@
 			case kCommentN1QL:
 				js_code += "*/$;";
 				UpdatePos(insert_type::kN1QLEnd);
-				// TODO : Parse the N1QL query here
+
+				parse_info = ParseQuery(n1ql_query);
+				if(!parse_info.is_valid) {
+					return kN1QLParserError;
+				}
+
 				break;
 		}
 	}
@@ -193,6 +199,7 @@ CommentN1QLInfo CommentN1QL(const std::string &input) {
 
 	insertions = &info.insertions;
 	info.code = TransformSource(input.c_str(), &info.handler_code, &info.last_pos);
+	info.parse_info = parse_info;
 	return info;
 }
 
@@ -321,4 +328,11 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 	if(find != std::string::npos) {
 		str[find] = n;
 	}
+}
+
+ParseInfo ParseQuery(const std::string &query) {
+	ParseInfo info;
+	info.is_valid = false;
+	info.info = "Syntax error";
+	return info;
 }
