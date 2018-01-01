@@ -332,7 +332,7 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 
 ParseInfo ParseQuery(const std::string &query) {
 	ParseInfo info;
-	info.is_valid = false;
+	info.is_valid = true;
 	info.info = "Syntax error";
 	return info;
 }

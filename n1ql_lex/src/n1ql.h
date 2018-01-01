@@ -34,17 +34,17 @@ struct InsertedCharsInfo {
 
   insert_type type;
   int type_len;
-  int64_t line_no;
-  int64_t index;
+  int32_t line_no;
+  int32_t index;
 };
 
 // Represents position of each char in the source code
 struct Pos {
   Pos() : line_no(0), col_no(0), index(0) {}
 
-  int64_t line_no;
-  int64_t col_no;
-  int64_t index;
+  int32_t line_no;
+  int32_t col_no;
+  int32_t index;
 };
 
 struct ParseInfo {
