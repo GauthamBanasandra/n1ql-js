@@ -273,3 +273,9 @@ std::string Transpiler::ComposeDescription(int code) {
   std::string description = keyword + " is a reserved name in N1QLJs";
   return description;
 }
+
+ParseInfo ParseQuery(const std::string &query) {
+  Communicator comm(9300);
+  auto info = comm.ParseQuery(query);
+  return info;
+}

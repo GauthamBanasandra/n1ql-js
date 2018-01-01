@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <v8.h>
 
 struct CURLResponse {
   bool is_error;
@@ -47,7 +48,8 @@ public:
 class Communicator {
 private:
   std::string parse_query_url;
-
+  v8::Isolate *isolate;
+  
 public:
   Communicator(int host_port);
 

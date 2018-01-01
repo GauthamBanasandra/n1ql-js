@@ -753,7 +753,7 @@ char *yytext;
 	std::list<InsertedCharsInfo> *insertions;
 	ParseInfo parse_info;
 	// Contains the output plain JavaScript code.
-	std::string js_code, n1ql_query;
+  std::string js_code, n1ql_query;
 	// Storing the state for resuming on switch.
 	int previous_state;
 
@@ -1298,22 +1298,21 @@ YY_RULE_SETUP
 				js_code += n1ql_query;
 				break;
 
-			case kCommentN1QL:
-      	js_code += "*/$;";
-      	UpdatePos(insert_type::kN1QLEnd);
-      
-				parse_info = ParseQuery(n1ql_query);
+			case kCommentN1QL:      
+        parse_info = ParseQuery(n1ql_query);
 				if(!parse_info.is_valid) {
 					return kN1QLParserError;
 				}
         
+        js_code += "*/$;";
+        UpdatePos(insert_type::kN1QLEnd);
 				break;
 		}
 	}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 133 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 132 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		n1ql_query += std::string(yytext);
 
@@ -1327,7 +1326,7 @@ YY_RULE_SETUP
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 142 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 141 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		n1ql_query += " ";
 
@@ -1338,26 +1337,26 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 149 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 148 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 150 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 149 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 150 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += "\n";}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 152 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 ECHO;
 	YY_BREAK
-#line 1361 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
+#line 1360 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2323,7 +2322,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 152 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 
 
 // Parses the given input string.
@@ -2504,12 +2503,5 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 	if(find != std::string::npos) {
 		str[find] = n;
 	}
-}
-
-ParseInfo ParseQuery(const std::string &query) {
-	ParseInfo info;
-	info.is_valid = true;
-	info.info = "Syntax error";
-	return info;
 }
 

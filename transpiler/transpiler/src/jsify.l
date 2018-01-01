@@ -19,7 +19,7 @@
 	std::list<InsertedCharsInfo> *insertions;
 	ParseInfo parse_info;
 	// Contains the output plain JavaScript code.
-	std::string js_code, n1ql_query;
+  std::string js_code, n1ql_query;
 	// Storing the state for resuming on switch.
 	int previous_state;
 %}
@@ -118,15 +118,14 @@
 				js_code += n1ql_query;
 				break;
 
-			case kCommentN1QL:
-      	js_code += "*/$;";
-      	UpdatePos(insert_type::kN1QLEnd);
-      
-				parse_info = ParseQuery(n1ql_query);
+			case kCommentN1QL:      
+        parse_info = ParseQuery(n1ql_query);
 				if(!parse_info.is_valid) {
 					return kN1QLParserError;
 				}
         
+        js_code += "*/$;";
+        UpdatePos(insert_type::kN1QLEnd);
 				break;
 		}
 	}
@@ -328,11 +327,4 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 	if(find != std::string::npos) {
 		str[find] = n;
 	}
-}
-
-ParseInfo ParseQuery(const std::string &query) {
-	ParseInfo info;
-	info.is_valid = true;
-	info.info = "Syntax error";
-	return info;
 }

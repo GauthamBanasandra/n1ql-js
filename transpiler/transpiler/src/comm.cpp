@@ -7,7 +7,7 @@
 //
 
 #include "comm.hpp"
-
+#include "utils.hpp"
 #include <iostream>
 
 CURLClient::CURLClient() : headers(nullptr) { curl_handle = curl_easy_init(); }
@@ -33,7 +33,7 @@ size_t CURLClient::HeaderCallback(char *buffer, size_t size, size_t nitems,
   // Split the header into key:value
   auto find = header.find(':');
   if (find != std::string::npos) {
-    (*headers)[header.substr(0, find)] = header.substr(find);
+    (*headers)[header.substr(0, find)] = header.substr(find + 1); // Adding 1 to discount the ':'
   }
 
   return realsize;
@@ -131,22 +131,43 @@ CURLResponse CURLClient::HTTPPost(const std::vector<std::string> &header_list,
 Communicator::Communicator(int host_port) {
   parse_query_url =
       "http://localhost:" + std::to_string(host_port) + "/parseQuery";
+  isolate = v8::Isolate::GetCurrent();
 }
 
 ParseInfo Communicator::ParseQuery(const std::string &query) {
+  v8::HandleScope handle_scope(isolate);
+  
   CURLClient curl;
   auto response =
       curl.HTTPPost({"Content-Type: text/plain"}, parse_query_url, query);
 
   ParseInfo info;
-  if (std::stoi(response.headers["Status"]) == 0) {
-    // Parse the response JSON here.
-    info.is_valid = false;
-    info.info = response.response;
-  } else {
-    info.is_valid = false;
-    info.info = "Something went wrong while parsing the N1QL query";
+  info.is_valid = false;
+  info.info = "Something went wrong while parsing the N1QL query";
+  
+  if (response.is_error) {
+    // Something went wrong with CURL lib
+    std::cout << response.response << std::endl;
+    return info;
+  }
+  
+  if (std::stoi(response.headers["Status"]) != 0) {
+    // Something went wrong with N1QL parser
+    return info;
   }
 
+  auto resp_obj = v8::JSON::Parse(v8Str(isolate, response.response)).As<v8::Object>();
+  if (resp_obj.IsEmpty()) {
+    // Something went wrong while parsing JSON
+    return info;
+  }
+  
+  auto is_valid_v8val = resp_obj->Get(v8Str(isolate, "is_valid"));
+  auto info_v8val = resp_obj->Get(v8Str(isolate, "info"));
+  
+  info.is_valid = is_valid_v8val->ToBoolean()->Value();
+  v8::String::Utf8Value info_str(info_v8val);
+  info.info = *info_str;
+  
   return info;
 }
