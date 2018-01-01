@@ -32,7 +32,7 @@ function compile(code) {
             }),
             nodeUtils = new NodeUtils();
 
-        nodeUtils.checkGlobals(ast);
+//        nodeUtils.checkGlobals(ast);
         nodeUtils.checkForOfNodeRight(ast);
         return {
             language: 'JavaScript',

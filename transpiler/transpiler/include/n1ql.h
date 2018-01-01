@@ -20,6 +20,7 @@
 #include <v8.h>
 #include <vector>
 
+#include "comm.hpp"
 #include "libcouchbase/couchbase.h"
 #include "libcouchbase/n1ql.h"
 
@@ -32,6 +33,7 @@ enum op_code {
   kKeywordDrop,
   kKeywordExecute,
   kKeywordExplain,
+  kKeywordFrom,
   kKeywordGrant,
   kKeywordInfer,
   kKeywordInsert,
@@ -41,7 +43,8 @@ enum op_code {
   kKeywordRevoke,
   kKeywordSelect,
   kKeywordUpdate,
-  kKeywordUpsert
+  kKeywordUpsert,
+  kN1QLParserError
 };
 
 enum lex_op_code { kJsify, kUniLineN1QL, kCommentN1QL };
@@ -52,8 +55,8 @@ enum class insert_type { kN1QLBegin, kN1QLEnd };
 // Keeps track of the type of literal inserted during CommentN1QL
 struct InsertedCharsInfo {
   InsertedCharsInfo(insert_type type)
-  : type(type), type_len(0), line_no(0), index(0) {}
-  
+      : type(type), type_len(0), line_no(0), index(0) {}
+
   insert_type type;
   int type_len;
   int32_t line_no;
@@ -63,16 +66,36 @@ struct InsertedCharsInfo {
 // Represents position of each char in the source code
 struct Pos {
   Pos() : line_no(0), col_no(0), index(0) {}
-  
+
   int32_t line_no;
   int32_t col_no;
   int32_t index;
 };
 
+struct JsifyInfo {
+  int code;
+  std::string handler_code;
+  Pos last_pos;
+};
+
+struct UniLineN1QLInfo {
+  int code;
+  std::string handler_code;
+  Pos last_pos;
+};
+
+struct CommentN1QLInfo {
+  int code;
+  std::string handler_code;
+  std::list<InsertedCharsInfo> insertions;
+  Pos last_pos;
+  ParseInfo parse_info;
+};
+
 // Represents compilation status
 struct CompilationInfo {
   CompilationInfo() : compile_success(false), index(0), line_no(0), col_no(0) {}
-  
+
   std::string language;
   bool compile_success;
   int32_t index;
@@ -117,7 +140,7 @@ private:
   std::string rbac_pass;
   std::queue<lcb_t> instances;
   void AddResource();
-  
+
 public:
   ConnectionPool(int capacity, std::string cb_kv_endpoint,
                  std::string cb_source_bucket, std::string rbac_user,
@@ -134,7 +157,7 @@ public:
 class HashedStack {
   std::stack<QueryHandler> qstack;
   std::map<std::string, QueryHandler *> qmap;
-  
+
 public:
   HashedStack() {}
   void Push(QueryHandler &q_handler);
@@ -154,10 +177,10 @@ private:
   template <typename>
   static void RowCallback(lcb_t instance, int callback_type,
                           const lcb_RESPN1QL *resp);
-  
+
 public:
   N1QL(ConnectionPool *inst_pool, v8::Isolate *isolate)
-  : isolate(isolate), inst_pool(inst_pool) {}
+      : isolate(isolate), inst_pool(inst_pool) {}
   HashedStack qhandler_stack;
   std::vector<std::string> ExtractErrorMsg(const char *metadata);
   // Schedules operations for execution.
@@ -168,7 +191,7 @@ public:
 class Transpiler {
   v8::Isolate *isolate;
   v8::Local<v8::Context> context;
-  
+
 public:
   Transpiler(const std::string &transpiler_src);
   v8::Local<v8::Value> ExecTranspiler(const std::string &function,
@@ -186,29 +209,29 @@ public:
   bool IsTimerCalled(const std::string &handler_code);
   static void LogCompilationInfo(const CompilationInfo &info);
   ~Transpiler() {}
-  
+
 private:
   void RectifyCompilationInfo(CompilationInfo &info,
                               const std::list<InsertedCharsInfo> &n1ql_pos);
-  CompilationInfo
-  ComposeErrorInfo(int code, const Pos &last_pos,
-                   const std::list<InsertedCharsInfo> &ins_list);
+  CompilationInfo ComposeErrorInfo(const CommentN1QLInfo &cmt_info);
   CompilationInfo
   ComposeCompilationInfo(v8::Local<v8::Value> &compiler_result,
                          const std::list<InsertedCharsInfo> &ins_list);
   std::string ComposeDescription(int code);
 };
 
-int Jsify(const char *input, std::string *output, Pos *last_pos_out);
-int UniLineN1QL(const char *input, std::string *output, Pos *last_pos_out);
-int CommentN1QL(const char *input, std::string *output,
-                std::list<InsertedCharsInfo> *pos_out, Pos *last_pos_out);
+JsifyInfo Jsify(const std::string &input);
+UniLineN1QLInfo UniLineN1QL(const std::string &info);
+CommentN1QLInfo CommentN1QL(const std::string &input);
 
 void HandleStrStart(int state);
 void HandleStrStop(int state);
-bool IsEsc();
+bool IsEsc(const std::string &str);
 void UpdatePos(insert_type type);
 void UpdatePos(Pos *pos);
+std::string TranspileQuery(const std::string &query);
+void ReplaceRecentChar(std::string &str, char m, char n);
+ParseInfo ParseQuery(const std::string &query);
 
 void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args);

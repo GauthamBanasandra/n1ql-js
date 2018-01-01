@@ -16,6 +16,7 @@
 		AC262CDF1FB456CA00132ACA /* transpiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC1FA5CA1F78C8B1004CF8CA /* transpiler.cpp */; };
 		AC262CE01FB456D900132ACA /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC29B6D41FB178140095AD8E /* jsify.cc */; };
 		AC29B6D51FB178140095AD8E /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC29B6D41FB178140095AD8E /* jsify.cc */; };
+		AC32DF8E1FF60AB500884A77 /* comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC32DF8C1FF60AB500884A77 /* comm.cpp */; };
 		AC6C76C61F99B04100D31C13 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC6C76C51F99B04100D31C13 /* main.cpp */; };
 		AC6C76CB1F99B11200D31C13 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE3C1F87600200DD7069 /* utils.cpp */; };
 		AC6C76F81F99BDA200D31C13 /* test-utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC6C76F61F99BDA200D31C13 /* test-utils.cpp */; };
@@ -70,6 +71,8 @@
 		AC29B6D21FB176570095AD8E /* jsify.l */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.lex; path = jsify.l; sourceTree = "<group>"; };
 		AC29B6D41FB178140095AD8E /* jsify.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jsify.cc; sourceTree = "<group>"; };
 		AC29DA4D1FB9603C00B65801 /* input7.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input7.js; sourceTree = "<group>"; };
+		AC32DF8C1FF60AB500884A77 /* comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = comm.cpp; sourceTree = "<group>"; };
+		AC32DF8D1FF60AB500884A77 /* comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = comm.hpp; sourceTree = "<group>"; };
 		AC37C5BE1FBD5FF90086F9FD /* input8.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input8.js; sourceTree = "<group>"; };
 		AC41B3011FB312DE005A76F9 /* input6.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input6.js; sourceTree = "<group>"; };
 		AC572CDB1FA6EBDB00C6C9D5 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
@@ -260,6 +263,7 @@
 				AC1C8A671FAC489100740154 /* js_exception.cpp */,
 				AC29B6D21FB176570095AD8E /* jsify.l */,
 				AC29B6D41FB178140095AD8E /* jsify.cc */,
+				AC32DF8C1FF60AB500884A77 /* comm.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -271,6 +275,7 @@
 				AC23CE3A1F875F0300DD7069 /* log.hpp */,
 				AC23CE3D1F87600200DD7069 /* utils.hpp */,
 				AC1C8A681FAC489100740154 /* js_exception.hpp */,
+				AC32DF8D1FF60AB500884A77 /* comm.hpp */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -561,6 +566,7 @@
 				AC1FA5C01F78C3F5004CF8CA /* main.cpp in Sources */,
 				AC23CE3E1F87600200DD7069 /* utils.cpp in Sources */,
 				AC1FA5CB1F78C8B1004CF8CA /* transpiler.cpp in Sources */,
+				AC32DF8E1FF60AB500884A77 /* comm.cpp in Sources */,
 				AC23CE3B1F875F0300DD7069 /* log.cpp in Sources */,
 				AC23CE381F875E9000DD7069 /* n1ql.cpp in Sources */,
 			);
@@ -692,8 +698,12 @@
 				HEADER_SEARCH_PATHS = (
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
+					/usr/local/include,
 				);
-				LIBRARY_SEARCH_PATHS = "~/.cbdepscache/lib";
+				LIBRARY_SEARCH_PATHS = (
+					"~/.cbdepscache/lib",
+					/usr/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-lv8",
 					"-lv8_libplatform",
@@ -702,6 +712,7 @@
 					"-licuuc",
 					"-lcouchbase",
 					"-headerpad_max_install_names",
+					"-lcurl",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -714,8 +725,12 @@
 				HEADER_SEARCH_PATHS = (
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
+					/usr/local/include,
 				);
-				LIBRARY_SEARCH_PATHS = "~/.cbdepscache/lib";
+				LIBRARY_SEARCH_PATHS = (
+					"~/.cbdepscache/lib",
+					/usr/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-lv8",
 					"-lv8_libplatform",
@@ -724,6 +739,7 @@
 					"-licuuc",
 					"-lcouchbase",
 					"-headerpad_max_install_names",
+					"-lcurl",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

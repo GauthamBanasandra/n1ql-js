@@ -119,14 +119,13 @@
 				break;
 
 			case kCommentN1QL:
-				js_code += "*/$;";
-				UpdatePos(insert_type::kN1QLEnd);
-
 				parse_info = ParseQuery(n1ql_query);
 				if(!parse_info.is_valid) {
 					return kN1QLParserError;
 				}
 
+				js_code += "*/$;";
+				UpdatePos(insert_type::kN1QLEnd);
 				break;
 		}
 	}
