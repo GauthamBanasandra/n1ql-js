@@ -51,7 +51,7 @@ private:
   v8::Isolate *isolate;
   
 public:
-  Communicator(int host_port);
+  Communicator(const std::string &host_port);
 
   ParseInfo ParseQuery(const std::string &query);
 };

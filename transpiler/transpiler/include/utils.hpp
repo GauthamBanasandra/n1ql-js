@@ -11,6 +11,8 @@
 
 #include <v8.h>
 
+#include "comm.hpp"
+
 #define DATA_SLOT 0
 
 class N1QL;
@@ -18,6 +20,7 @@ class JsException;
 struct Data {
   N1QL *n1ql_handle;
   JsException *js_exception;
+  Communicator *comm;
 };
 
 inline const Data *UnwrapData(v8::Isolate *isolate) {

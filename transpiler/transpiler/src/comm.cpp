@@ -128,9 +128,8 @@ CURLResponse CURLClient::HTTPPost(const std::vector<std::string> &header_list,
   return response;
 }
 
-Communicator::Communicator(int host_port) {
-  parse_query_url =
-      "http://localhost:" + std::to_string(host_port) + "/parseQuery";
+Communicator::Communicator(const std::string &host_port) {
+  parse_query_url = "http://localhost:" + host_port + "/parseQuery";
   isolate = v8::Isolate::GetCurrent();
 }
 

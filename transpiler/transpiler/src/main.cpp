@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) {
       struct Data data;
       JsException js_exception(isolate);
       data.js_exception = &js_exception;
+      data.comm = new Communicator("9300");
       isolate->SetData(DATA_SLOT, &data);
 
       auto global = v8::ObjectTemplate::New(isolate);

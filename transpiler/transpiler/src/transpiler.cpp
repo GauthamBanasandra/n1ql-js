@@ -275,7 +275,8 @@ std::string Transpiler::ComposeDescription(int code) {
 }
 
 ParseInfo ParseQuery(const std::string &query) {
-  Communicator comm(9300);
-  auto info = comm.ParseQuery(query);
+  auto isolate = v8::Isolate::GetCurrent();
+  auto comm = UnwrapData(isolate)->comm;
+  auto info = comm->ParseQuery(query);
   return info;
 }
