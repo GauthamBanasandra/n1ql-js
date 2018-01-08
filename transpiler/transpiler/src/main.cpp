@@ -74,8 +74,9 @@ void LogProper(const v8::FunctionCallbackInfo<v8::Value> &args) {
 }
 
 std::string GetScriptToExecute(std::string &n1ql_js_src) {
+  auto isolate = v8::Isolate::GetCurrent();
   auto transpiler_src = GetTranspilerSrc();
-  Transpiler transpiler(transpiler_src);
+  Transpiler transpiler(isolate, transpiler_src);
   CompilationInfo info = transpiler.Compile(std::move(n1ql_js_src));
   Transpiler::LogCompilationInfo(info);
   if (!info.compile_success) {
@@ -94,10 +95,9 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
 }
 
 std::string CompileHandler(std::string handler) {
-  Transpiler transpiler(GetTranspilerSrc());
-  auto info = transpiler.Compile(handler);
-
   auto isolate = v8::Isolate::GetCurrent();
+  Transpiler transpiler(isolate, GetTranspilerSrc());
+  auto info = transpiler.Compile(handler);
   v8::HandleScope handle_scoe(isolate);
 
   auto info_obj = v8::Object::New(isolate);
@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
 
       delete conn_pool;
       delete data.n1ql_handle;
+      delete data.comm;
     } catch (const char *e) {
       std::cout << e << '\n';
     }

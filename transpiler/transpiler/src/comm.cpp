@@ -150,6 +150,11 @@ ParseInfo Communicator::ParseQuery(const std::string &query) {
     return info;
   }
   
+  if (response.headers.find("Status")==response.headers.end()) {
+    info.info = response.response;
+    return info;
+  }
+  
   if (std::stoi(response.headers["Status"]) != 0) {
     // Something went wrong with N1QL parser
     return info;

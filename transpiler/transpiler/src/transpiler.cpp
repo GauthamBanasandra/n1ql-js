@@ -15,8 +15,7 @@
 #include "n1ql.h"
 #include "utils.hpp"
 
-Transpiler::Transpiler(const std::string &transpiler_src) {
-  isolate = v8::Isolate::GetCurrent();
+Transpiler::Transpiler(v8::Isolate *isolate, const std::string &transpiler_src) :isolate(isolate) {
   v8::EscapableHandleScope handle_scope(isolate);
   v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
 
