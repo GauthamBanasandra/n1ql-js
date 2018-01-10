@@ -209,6 +209,7 @@ public:
   std::string GetSourceMap(const std::string &handler_code,
                            const std::string &src_filename);
   bool IsTimerCalled(const std::string &handler_code);
+  bool IsJsExpression(const std::string &str);
   static void LogCompilationInfo(const CompilationInfo &info);
   
 private:

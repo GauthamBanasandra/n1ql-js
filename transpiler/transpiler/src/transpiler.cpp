@@ -130,6 +130,16 @@ void Transpiler::LogCompilationInfo(const CompilationInfo &info) {
   }
 }
 
+bool Transpiler::IsJsExpression(const std::string &str) {
+  v8::HandleScope handle_scope(isolate);
+  v8::Local<v8::Value> args[1];
+  args[0] = v8Str(isolate, str);
+  auto result = ExecTranspiler("isJsExpression", args, 1);
+  auto bool_result = v8::Local<v8::Boolean>::Cast(result);
+  
+  return ToCBool(bool_result);
+}
+
 // Composes error info based on the code and recent position returned by
 // CommentN1QL
 CompilationInfo Transpiler::ComposeErrorInfo(const CommentN1QLInfo &cmt_info) {

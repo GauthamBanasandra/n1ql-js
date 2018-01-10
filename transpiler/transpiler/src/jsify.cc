@@ -744,20 +744,21 @@ char *yytext;
 // or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-	#include <list>
-	#include <algorithm>
-  #include "n1ql.h"
+		#include <list>
+		#include <algorithm>
+		#include "n1ql.h"
+		#include "utils.hpp"
 
-	lex_op_code lex_op;
-	int pos_type_len[2];
-	std::list<InsertedCharsInfo> *insertions;
-	ParseInfo parse_info;
-	// Contains the output plain JavaScript code.
-  std::string js_code, n1ql_query;
-	// Storing the state for resuming on switch.
-	int previous_state;
+		lex_op_code lex_op;
+		int pos_type_len[2];
+		std::list<InsertedCharsInfo> *insertions;
+		ParseInfo parse_info;
+		// Contains the output plain JavaScript code.
+		std::string js_code, n1ql_query;
+		// Storing the state for resuming on switch.
+		int previous_state;
 
-#line 761 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
+#line 762 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
 
 #define INITIAL 0
 #define N1QL 1
@@ -943,10 +944,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 28 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 29 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 
 	previous_state=YYSTATE;
-#line 950 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
+#line 951 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
 
 	if ( !(yy_init) )
 		{
@@ -1031,7 +1032,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 30 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 31 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		/* Start of a multi-line comment */
 		previous_state = YYSTATE;
@@ -1041,7 +1042,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 36 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 37 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		/* Stop of a multi-line comment */
 		js_code += "*/";
@@ -1051,14 +1052,14 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 41 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 42 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		js_code += "\n";
 	}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 44 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 45 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		/* Single-line comment */
 		previous_state = YYSTATE;
@@ -1069,7 +1070,7 @@ YY_RULE_SETUP
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 50 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 51 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		BEGIN previous_state;
 		js_code += "\n";
@@ -1077,214 +1078,214 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 54 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 55 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStart(DSTR); /* Handling double-quoted string */}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 55 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 56 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStop(DSTR);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 56 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 57 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStart(SSTR); /* Handling single-quoted string */}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 57 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 58 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStop(SSTR);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 58 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 59 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStart(TSTR); /* Handling templated string */}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 59 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 60 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {HandleStrStop(TSTR);}
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 60 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 61 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordAlter; /* Checking the constraints in this section */}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 61 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 62 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordBuild;}
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 62 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 63 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordCreate;}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 63 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 64 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordDelete;}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 64 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 65 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordDrop;}
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 65 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 66 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordExecute;}
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 66 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 67 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordExplain;}
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 67 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 68 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordFrom;}
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 68 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 69 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordGrant;}
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 69 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 70 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordInfer;}
 	YY_BREAK
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 70 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 71 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordInsert;}
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 71 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 72 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordMerge;}
 	YY_BREAK
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 72 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 73 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordPrepare;}
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 73 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 74 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordRename;}
 	YY_BREAK
 case 26:
 /* rule 26 can match eol */
 YY_RULE_SETUP
-#line 74 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 75 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordSelect;}
 	YY_BREAK
 case 27:
 /* rule 27 can match eol */
 YY_RULE_SETUP
-#line 75 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 76 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordRevoke;}
 	YY_BREAK
 case 28:
 /* rule 28 can match eol */
 YY_RULE_SETUP
-#line 76 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 77 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordUpdate;}
 	YY_BREAK
 case 29:
 /* rule 29 can match eol */
 YY_RULE_SETUP
-#line 77 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 78 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {return kKeywordUpsert;}
 	YY_BREAK
 case 30:
 /* rule 30 can match eol */
-#line 79 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 80 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 31:
 /* rule 31 can match eol */
-#line 80 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 81 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 32:
 /* rule 32 can match eol */
-#line 81 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 82 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 33:
 /* rule 33 can match eol */
-#line 82 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 83 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 34:
 /* rule 34 can match eol */
-#line 83 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 84 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 35:
 /* rule 35 can match eol */
-#line 84 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 85 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 36:
 /* rule 36 can match eol */
-#line 85 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 86 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 37:
 /* rule 37 can match eol */
-#line 86 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 87 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 38:
 /* rule 38 can match eol */
-#line 87 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 88 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 39:
 /* rule 39 can match eol */
-#line 88 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 89 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 40:
 /* rule 40 can match eol */
-#line 89 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 90 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 41:
 /* rule 41 can match eol */
-#line 90 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 91 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 42:
 /* rule 42 can match eol */
-#line 91 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 92 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 43:
 /* rule 43 can match eol */
-#line 92 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 93 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 44:
 /* rule 44 can match eol */
-#line 93 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 94 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 45:
 /* rule 45 can match eol */
-#line 94 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 95 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 46:
 /* rule 46 can match eol */
-#line 95 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 96 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 95 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 96 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		BEGIN N1QL;
 
 		n1ql_query = std::string(yytext);
-		// The '\n' might be consumed by the regex above
-		// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
-		ReplaceRecentChar(n1ql_query, '\n', ' ');
 
 		if(lex_op == kCommentN1QL) {
 				UpdatePos(insert_type::kN1QLBegin);
-				js_code += "/*" + std::string(yytext);
+		} else {
+				// The '\n' might be consumed by the regex above
+				// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
+				ReplaceRecentChar(n1ql_query, '\n', ' ');
 		}
 	}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 108 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 109 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		BEGIN INITIAL;
 
@@ -1298,65 +1299,71 @@ YY_RULE_SETUP
 				js_code += n1ql_query;
 				break;
 
-			case kCommentN1QL:      
-        parse_info = ParseQuery(n1ql_query);
-				if(!parse_info.is_valid) {
-					return kN1QLParserError;
+			case kCommentN1QL: {
+						parse_info = ParseQuery(n1ql_query);
+						if(parse_info.is_valid) {
+              	// It's a valid N1QL query, transpile and add to code
+								js_code += TranspileQuery(n1ql_query);
+						} else {
+              	// It's not a N1QL query, maybe it's a JS expression
+								auto isolate = v8::Isolate::GetCurrent();
+								auto transpiler = UnwrapData(isolate)->transpiler;
+								if(!transpiler->IsJsExpression(n1ql_query)) {
+                  // Neither a N1QL query nor a JS expression
+									return kN1QLParserError;
+								}
+                
+                // It's a JS expression, no need to transpile
+								js_code += n1ql_query;
+						}
+
+						UpdatePos(insert_type::kN1QLEnd);
 				}
-        
-        js_code += "*/$;";
-        UpdatePos(insert_type::kN1QLEnd);
 				break;
 		}
 	}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 132 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 145 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		n1ql_query += std::string(yytext);
-
-		if(lex_op == kCommentN1QL) {
-				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
-				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
-				js_code += "*";
-		}
 	}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 141 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 148 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
-		n1ql_query += " ";
-
 		if(lex_op == kCommentN1QL) {
-			js_code += "\n";
+				n1ql_query += "\n";
+		} else {
+				n1ql_query += " ";
 		}
 	}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 148 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 155 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 149 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 156 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 150 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 157 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += "\n";}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 158 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 ECHO;
 	YY_BREAK
-#line 1360 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
+#line 1367 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2322,7 +2329,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 158 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 
 
 // Parses the given input string.
@@ -2482,19 +2489,36 @@ extern "C" int yywrap() {
 
 // Transpiles the given N1QL query into a JavaScript expression - "new N1qlQuery('...')"
 std::string TranspileQuery(const std::string &query) {
-	std::string query_transpiled = "new N1qlQuery('";
-	for (const auto &c : query) {
-		// Need to escape the escape character to preserve the raw-ness.
-		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
-		if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
-			query_transpiled += "\\";
+	switch(lex_op) {
+		case kJsify:
+		case kUniLineN1QL: {
+				std::string query_transpiled = "new N1qlQuery('";
+				for (const auto &c : query) {
+						// Need to escape the escape character to preserve the raw-ness.
+						// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
+						if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
+							query_transpiled += "\\";
+						}
+
+						query_transpiled += c;
+				}
+
+				query_transpiled += "');";
+				return query_transpiled;
 		}
 
-		query_transpiled += c;
-	}
+		case kCommentN1QL: {
+				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
+				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
+				std::string query_transpiled = "/*";
+				for(const auto &c: query) {
+					query_transpiled += (c == '\n' ? c : '*');
+				}
 
-	query_transpiled += "');";
-	return query_transpiled;
+				query_transpiled += "*/$;";
+				return query_transpiled;
+		}
+	}
 }
 
 // Replaces the recent occurrence of char m in str with char n
@@ -2503,5 +2527,13 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 	if(find != std::string::npos) {
 		str[find] = n;
 	}
+}
+
+// Parse the N1QL query and return the parser result
+ParseInfo ParseQuery(const std::string &query) {
+  auto isolate = v8::Isolate::GetCurrent();
+  auto comm = UnwrapData(isolate)->comm;
+  auto info = comm->ParseQuery(query);
+  return info;
 }
 

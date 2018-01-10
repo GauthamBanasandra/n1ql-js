@@ -87,16 +87,16 @@ function jsFormat(code) {
 	return escodegen.generate(ast);
 }
 
-function isTimerCalled(code) {
-	return isFuncCalled('docTimer', code) || isFuncCalled('cronTimer', code);
+function getSourceMap(code, sourceFileName) {
+    var ast = getAst(code, sourceFileName);
+    return escodegen.generate(ast, {
+        sourceMap: true,
+        sourceMapWithCode: true
+    }).map;
 }
 
-function getSourceMap(code, sourceFileName) {
-	var ast = getAst(code, sourceFileName);
-	return escodegen.generate(ast, {
-		sourceMap: true,
-		sourceMapWithCode: true
-	}).map;
+function isTimerCalled(code) {
+	return isFuncCalled('docTimer', code) || isFuncCalled('cronTimer', code);
 }
 
 // Checks if a function is called.

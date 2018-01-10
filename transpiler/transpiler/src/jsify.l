@@ -119,14 +119,26 @@
 				js_code += n1ql_query;
 				break;
 
-			case kCommentN1QL:
-				parse_info = ParseQuery(n1ql_query);
-				if(!parse_info.is_valid) {
-					return kN1QLParserError;
-				}
+			case kCommentN1QL: {
+						parse_info = ParseQuery(n1ql_query);
+						if(parse_info.is_valid) {
+              	// It's a valid N1QL query, transpile and add to code
+								js_code += TranspileQuery(n1ql_query);
+						} else {
+              	// It's not a N1QL query, maybe it's a JS expression
+								auto isolate = v8::Isolate::GetCurrent();
+								auto transpiler = UnwrapData(isolate)->transpiler;
+								if(!transpiler->IsJsExpression(n1ql_query)) {
+                  // Neither a N1QL query nor a JS expression
+									return kN1QLParserError;
+								}
+                
+                // It's a JS expression, no need to transpile
+								js_code += n1ql_query;
+						}
 
-				js_code += TranspileQuery(n1ql_query);
-				UpdatePos(insert_type::kN1QLEnd);
+						UpdatePos(insert_type::kN1QLEnd);
+				}
 				break;
 		}
 	}
@@ -341,6 +353,7 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 	}
 }
 
+// Parse the N1QL query and return the parser result
 ParseInfo ParseQuery(const std::string &query) {
   auto isolate = v8::Isolate::GetCurrent();
   auto comm = UnwrapData(isolate)->comm;
