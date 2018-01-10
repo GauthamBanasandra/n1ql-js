@@ -17,10 +17,12 @@
 
 class N1QL;
 class JsException;
+class Transpiler;
 struct Data {
   N1QL *n1ql_handle;
   JsException *js_exception;
   Communicator *comm;
+  Transpiler *transpiler;
 };
 
 inline const Data *UnwrapData(v8::Isolate *isolate) {

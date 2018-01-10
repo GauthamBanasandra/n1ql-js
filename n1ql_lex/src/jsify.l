@@ -10,18 +10,19 @@
 // or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-	#include <list>
-	#include <algorithm>
- #include "n1ql.h"
+		#include <list>
+		#include <algorithm>
+		#include "n1ql.h"
+		#include "utils.h"
 
-	lex_op_code lex_op;
-	int pos_type_len[2];
-	std::list<InsertedCharsInfo> *insertions;
-	ParseInfo parse_info;
-	// Contains the output plain JavaScript code.
-	std::string js_code, n1ql_query;
-	// Storing the state for resuming on switch.
-	int previous_state;
+		lex_op_code lex_op;
+		int pos_type_len[2];
+		std::list<InsertedCharsInfo> *insertions;
+		ParseInfo parse_info;
+		// Contains the output plain JavaScript code.
+		std::string js_code, n1ql_query;
+		// Storing the state for resuming on switch.
+		int previous_state;
 %}
 %option nounput
 %x N1QL MLCMT SLCMT DSTR SSTR TSTR
@@ -96,13 +97,13 @@
 		BEGIN N1QL;
 
 		n1ql_query = std::string(yytext);
-		// The '\n' might be consumed by the regex above
-		// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
-		ReplaceRecentChar(n1ql_query, '\n', ' ');
 
 		if(lex_op == kCommentN1QL) {
 				UpdatePos(insert_type::kN1QLBegin);
-				js_code += "/*" + std::string(yytext);
+		} else {
+				// The '\n' might be consumed by the regex above
+				// It's essential to replace it with a space as multi-line string with single-quotes isn't possible in JavaScript
+				ReplaceRecentChar(n1ql_query, '\n', ' ');
 		}
 	}
 <N1QL>";"	{
@@ -124,25 +125,19 @@
 					return kN1QLParserError;
 				}
 
-				js_code += "*/$;";
+				js_code += TranspileQuery(n1ql_query);
 				UpdatePos(insert_type::kN1QLEnd);
 				break;
 		}
 	}
 <N1QL>.	{
 		n1ql_query += std::string(yytext);
-
-		if(lex_op == kCommentN1QL) {
-				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
-				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
-				js_code += "*";
-		}
 	}
 <N1QL>\n {
-		n1ql_query += " ";
-
 		if(lex_op == kCommentN1QL) {
-			js_code += "\n";
+				n1ql_query += "\n";
+		} else {
+				n1ql_query += " ";
 		}
 	}
 <MLCMT,SLCMT,DSTR,SSTR,TSTR>.	{js_code += std::string(yytext);}
@@ -306,19 +301,36 @@ extern "C" int yywrap() {
 
 // Transpiles the given N1QL query into a JavaScript expression - "new N1qlQuery('...')"
 std::string TranspileQuery(const std::string &query) {
-	std::string query_transpiled = "new N1qlQuery('";
-	for (const auto &c : query) {
-		// Need to escape the escape character to preserve the raw-ness.
-		// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
-		if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
-			query_transpiled += "\\";
+	switch(lex_op) {
+		case kJsify:
+		case kUniLineN1QL: {
+				std::string query_transpiled = "new N1qlQuery('";
+				for (const auto &c : query) {
+						// Need to escape the escape character to preserve the raw-ness.
+						// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
+						if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
+							query_transpiled += "\\";
+						}
+
+						query_transpiled += c;
+				}
+
+				query_transpiled += "');";
+				return query_transpiled;
 		}
 
-		query_transpiled += c;
-	}
+		case kCommentN1QL: {
+				// For kCommentN1QL, instead of appending the character read, we substitute a '*'
+				// This is done because it will be ambiguous to JavaScript parser if it sees comment in N1QL query.
+				std::string query_transpiled = "/*";
+				for(const auto &c: query) {
+					query_transpiled += (c == '\n' ? c : '*');
+				}
 
-	query_transpiled += "');";
-	return query_transpiled;
+				query_transpiled += "*/$;";
+				return query_transpiled;
+		}
+	}
 }
 
 // Replaces the recent occurrence of char m in str with char n
@@ -330,8 +342,12 @@ void ReplaceRecentChar(std::string &str, char m, char n) {
 }
 
 ParseInfo ParseQuery(const std::string &query) {
-	ParseInfo info;
-	info.is_valid = true;
-	info.info = "Syntax error";
-	return info;
+		ParseInfo info;
+		info.is_valid = true;
+		info.info = "Syntax error";
+		return info;
+//  auto isolate = v8::Isolate::GetCurrent();
+//  auto comm = UnwrapData(isolate)->comm;
+//  auto info = comm->ParseQuery(query);
+//  return info;
 }

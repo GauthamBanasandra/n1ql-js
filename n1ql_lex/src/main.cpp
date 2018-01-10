@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input8.js");
+	ifstream file("inputs/input9.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
 	auto info = CommentN1QL(source_code);
@@ -48,23 +48,23 @@ int main()
 //		cout << i << " " << info.handler_code[i] << endl;
 //	}
 
-	cout << endl << "Last pos: Line no: " << info.last_pos.line_no << " Col no: " << info.last_pos.col_no << " Index: " << info.last_pos.index << " Value: " << info.handler_code[info.last_pos.index] << endl;
-	for(const auto &pos : info.insertions) {
-		std::string type;
-		switch(pos.type) {
-			case insert_type::kN1QLBegin:
-				type = "N1QL Begin";
-				break;
-			case insert_type::kN1QLEnd:
-				type = "N1QL End";
-				break;
-		}
-
-		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " <<
-		info.handler_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
-	}
-
-	std::cout << "\nN1QL query compilation info: " << info.parse_info.info << std::endl;
+//	cout << endl << "Last pos: Line no: " << info.last_pos.line_no << " Col no: " << info.last_pos.col_no << " Index: " << info.last_pos.index << " Value: " << info.handler_code[info.last_pos.index] << endl;
+//	for(const auto &pos : info.insertions) {
+//		std::string type;
+//		switch(pos.type) {
+//			case insert_type::kN1QLBegin:
+//				type = "N1QL Begin";
+//				break;
+//			case insert_type::kN1QLEnd:
+//				type = "N1QL End";
+//				break;
+//		}
+//
+//		std::cout << "Index: " << pos.index << "\tLine no: " << pos.line_no << "\tValue: " <<
+//		info.handler_code[pos.index] << "\tType: " << type << "\tLen: " << pos.type_len << '\n';
+//	}
+//
+//	std::cout << "\nN1QL query compilation info: " << info.parse_info.info << std::endl;
 
 	return 0;
 }

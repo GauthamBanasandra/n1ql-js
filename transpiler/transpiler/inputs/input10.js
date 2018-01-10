@@ -2,7 +2,7 @@ function OnUpdate(doc, meta) {
 //  var query = INSERT INTO sample ( KEY, VALUE ) VALUES ("a", "b");
   var lim = 10;
   try {
-    var query = SELECT * FROM `beer-sample` LIMIT :lim;
+    var query = SELECT * FROM `beer-sample` LIMIT 10;
     query.execQuery();
   } catch(e) {
     log(e);

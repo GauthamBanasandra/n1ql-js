@@ -44,6 +44,7 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(const std::string &function,
 CompilationInfo Transpiler::Compile(const std::string &n1ql_js_src) {
   // Comment-out N1QL queries and obtain the list of insertions that was made
   auto cmt_info = CommentN1QL(n1ql_js_src);
+  std::cout << cmt_info.handler_code << std::endl;
   if (cmt_info.code != kOK) {
     return ComposeErrorInfo(cmt_info);
   }
@@ -271,11 +272,4 @@ std::string Transpiler::ComposeDescription(int code) {
 
   std::string description = keyword + " is a reserved name in N1QLJs";
   return description;
-}
-
-ParseInfo ParseQuery(const std::string &query) {
-  auto isolate = v8::Isolate::GetCurrent();
-  auto comm = UnwrapData(isolate)->comm;
-  auto info = comm->ParseQuery(query);
-  return info;
 }

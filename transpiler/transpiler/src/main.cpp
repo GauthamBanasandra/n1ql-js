@@ -18,7 +18,7 @@
 #include "include/v8.h"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input10.js"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input11.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
@@ -96,8 +96,8 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
 
 std::string CompileHandler(std::string handler) {
   auto isolate = v8::Isolate::GetCurrent();
-  Transpiler transpiler(isolate, GetTranspilerSrc());
-  auto info = transpiler.Compile(handler);
+  auto transpiler = UnwrapData(isolate)->transpiler;
+  auto info = transpiler->Compile(handler);
   v8::HandleScope handle_scoe(isolate);
 
   auto info_obj = v8::Object::New(isolate);
@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
       JsException js_exception(isolate);
       data.js_exception = &js_exception;
       data.comm = new Communicator("9300");
+      data.transpiler = new Transpiler(isolate, GetTranspilerSrc());
       isolate->SetData(DATA_SLOT, &data);
 
       auto global = v8::ObjectTemplate::New(isolate);

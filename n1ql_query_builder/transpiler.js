@@ -119,6 +119,16 @@ function isFuncCalled(methodName, code) {
 	return methodExists;
 }
 
+// Checks if the given statement is a valid JavaScript expression.
+function isJsExpression(stmt) {
+    try {
+        esprima.parse(stmt);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 // A utility class for handling nodes of an AST.
 function NodeUtils() {
 	var self = this;
@@ -455,16 +465,6 @@ function NodeUtils() {
 
 	// Checks if the N1QL query must be reverted back to JavaScript expression.
 	this.isRevertReq = function (query) {
-		// Checks if the given statement is a valid JavaScript expression.
-		function isJsExpression(stmt) {
-			try {
-				esprima.parse(stmt);
-				return true;
-			} catch (e) {
-				return false;
-			}
-		}
-
 		// Check whether N1QL query begins with delete and is parsable as a
 		// JavaScript expression.
 		var tokens = query.split(/\s/g);
