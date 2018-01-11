@@ -58,7 +58,10 @@ function compile(code) {
 			nodeUtils = new NodeUtils();
 
 		nodeUtils.checkGlobals(ast);
+
+		// TODO : Remove this check once UUID is used to create variables
 		nodeUtils.checkForOfNodeRight(ast);
+
 		return {
 			language: 'JavaScript',
 			compileSuccess: true
@@ -1475,14 +1478,14 @@ function IterCompatible(forOfNode, globalAncestorStack) {
 					stopIterAst = arg = null;
 					// Labeled break statement.
 					/*
-							Before:
-							break x;
-							After:
-							return res.stopIter({
-								'code': 'labeled_break',
-								'args': 'x'
-							});
-					 	*/
+						Before:
+						break x;
+						After:
+						return res.stopIter({
+							'code': 'labeled_break',
+							'args': 'x'
+						});
+					*/
 					if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
 						stopIterAst = new StopIterAst(nodeCopy.right.name);
 						arg = new Arg({
@@ -1922,6 +1925,8 @@ function IterCompatible(forOfNode, globalAncestorStack) {
 
 	this.getAst = function () {
 		// if-else block which perform dynamic type checking.
+		// TODO : Must not parse the forOfNode's right's name. Need to revert it back to just forOfNode.right.name once
+        //        UUID is used for creating variables.
 		var ifElseAst = new IfElseAst(new IterTypeCheckAst(esprima.parse(forOfNode.right.name).body[0].expression));
 
 		// Iterator AST.
@@ -2019,6 +2024,7 @@ function getAst(code, sourceFileName) {
 				}
 
 				// for-of node's right.name will be null when the right is anything other than IDENTIFIER
+                // TODO : Must skip this once UUID is used to create variables
 				if (!node.right.name) {
 					node.right.name = escodegen.generate(node.right);
 				}
