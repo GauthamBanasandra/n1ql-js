@@ -411,7 +411,8 @@ func main() {
 	//q := "UPDATE defaulters USE KEYS $ssn SET reminded = $dt"
 	//q := "(SELECT * FROM src_bucket WHERE NOT ($NUMERIC_FIELD IS NOT NULL) ORDER BY NUMERIC_FIELD_LIST, STRING_FIELD_LIST, BOOL_FIELD_LIST DESC) UNION (SELECT * FROM src_bucket WHERE (NUMERIC_FIELD IS NULL OR (($STRING_FIELD IS NOT NULL) OR (STRING_FIELD <= STRING_VALUES)) AND (STRING_FIELD NOT BETWEEN LOWER_BOUND_VALUE and UPPER_BOUND_VALUE)) ORDER BY STRING_FIELD_LIST);"
 	//q:= "MERGE INTO product p USING orders o ON KEY o.productId WHEN MATCHED THEN UPDATE SET p.lastSaleDate = o.orderDate WHEN MATCHED THEN UPDATE SET p.lastSaleDate = SomethingElse"
-	q:= "SELECT t1.city FROM `travel-sample` t1 WHERE t1.type = \"landmark\" AND t1.city IN (SELECT RAW city FROM `travel-sample` WHERE type = $type);"
+	//q:= "SELECT t1.city FROM `travel-sample` t1 WHERE t1.type = \"landmark\" AND t1.city IN (SELECT RAW city FROM `travel-sample` WHERE type = $type);"
+	q:= "SELECT t1.country, array_agg(t1.city), sum(t1.city_cnt) as apnum FROM (SELECT city, city_cnt, array_agg(airportname) as apnames, country FROM `travel-sample` WHERE type = $where GROUP BY city, country LETTING city_cnt = count($city) ) AS t1 WHERE t1.city_cnt > 5 GROUP BY t1.country;"
 	info := GetNamedParams(q)
 	if !info.PInfo.IsValid {
 		fmt.Print(info.PInfo.IsValid)

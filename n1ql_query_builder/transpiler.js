@@ -7,7 +7,7 @@ LoopModifier.CONST = {
 	LABELED_CONTINUE: 'labeled_continue'
 };
 
-Context = {
+var Context = {
 	N1qlQuery: 'n1ql_query',
 	N1qlQueryRevert: 'n1ql_query_revert',
 	IterTypeCheck: 'iter_type_check',

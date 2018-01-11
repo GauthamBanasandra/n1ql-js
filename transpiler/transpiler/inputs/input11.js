@@ -1,5 +1,6 @@
-
+"use strict";
 function OnUpdate(doc, meta) {
+  a = 10;
   try {
     var doc_id = meta.id; // GET operation
     log('creating document for : ', doc);
