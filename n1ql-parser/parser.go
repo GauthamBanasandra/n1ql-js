@@ -11,6 +11,53 @@ type queryStmt struct {
 	namedParams map[string]int
 }
 
+type queryExpr struct {
+	namedParams map[string]int
+}
+
+type ParseInfo struct {
+	IsValid bool   `json:"is_valid"`
+	Info    string `json:"info"`
+}
+
+type NamedParamsInfo struct {
+	PInfo ParseInfo	`json:"p_info"`
+	NamedParams	[]string `json:"named_params"`
+}
+
+func Parse(query string) (info *ParseInfo) {
+	info = &ParseInfo{IsValid:true}
+
+	_, err := n1ql.ParseStatement(query)
+	if err != nil {
+		info.IsValid = false
+		info.Info = fmt.Sprintf("%v", err)
+		return
+	}
+
+	return
+}
+
+func GetNamedParams(query string) (info *NamedParamsInfo) {
+	info = &NamedParamsInfo{}
+	info.PInfo.IsValid = true
+
+	alg, err := n1ql.ParseStatement(query)
+	if err != nil {
+		info.PInfo.IsValid = false
+		info.PInfo.Info = fmt.Sprintf("%v", err)
+		return
+	}
+
+	qs := queryStmt{}
+	alg.Accept(&qs)
+	for namedParam := range qs.namedParams{
+		info.NamedParams = append(info.NamedParams, namedParam)
+	}
+
+	return
+}
+
 func handleStmt(qs *queryStmt, expressions expression.Expressions) {
 	if qs.namedParams == nil {
 		qs.namedParams = make(map[string]int)
@@ -32,6 +79,7 @@ func handleExpr(qe *queryExpr, expressions expression.Expressions) {
 	}
 }
 
+// Visitors for N1QL statement
 func (qs *queryStmt) VisitSelect(stmt *algebra.Select) (interface{}, error) {
 	handleStmt(qs, stmt.Expressions())
 	return stmt, nil
@@ -117,10 +165,7 @@ func (qs *queryStmt) VisitInferKeyspace(stmt *algebra.InferKeyspace) (interface{
 	return stmt, nil
 }
 
-type queryExpr struct {
-	namedParams map[string]int
-}
-
+// Visitors for N1QL expressions
 func (qe *queryExpr) VisitAdd(expr *expression.Add) (interface{}, error) {
 	handleExpr(qe, expr.Children())
 	return expr, nil
@@ -364,14 +409,13 @@ func (qe *queryExpr) VisitAll(expr *expression.All) (interface{}, error) {
 func main() {
 	//q := "select * from `beer-sample` where name == $name"
 	//q := "UPDATE defaulters USE KEYS $ssn SET reminded = $dt"
-	q := "(SELECT * FROM src_bucket WHERE NOT ($NUMERIC_FIELD IS NOT NULL) ORDER BY NUMERIC_FIELD_LIST, STRING_FIELD_LIST, BOOL_FIELD_LIST DESC) UNION (SELECT * FROM src_bucket WHERE (NUMERIC_FIELD IS NULL OR (($STRING_FIELD IS NOT NULL) OR (STRING_FIELD <= STRING_VALUES)) AND (STRING_FIELD NOT BETWEEN LOWER_BOUND_VALUE and UPPER_BOUND_VALUE)) ORDER BY STRING_FIELD_LIST);"
-	alg, err := n1ql.ParseStatement(q)
-	if err != nil {
-		return
+	//q := "(SELECT * FROM src_bucket WHERE NOT ($NUMERIC_FIELD IS NOT NULL) ORDER BY NUMERIC_FIELD_LIST, STRING_FIELD_LIST, BOOL_FIELD_LIST DESC) UNION (SELECT * FROM src_bucket WHERE (NUMERIC_FIELD IS NULL OR (($STRING_FIELD IS NOT NULL) OR (STRING_FIELD <= STRING_VALUES)) AND (STRING_FIELD NOT BETWEEN LOWER_BOUND_VALUE and UPPER_BOUND_VALUE)) ORDER BY STRING_FIELD_LIST);"
+	//q:= "MERGE INTO product p USING orders o ON KEY o.productId WHEN MATCHED THEN UPDATE SET p.lastSaleDate = o.orderDate WHEN MATCHED THEN UPDATE SET p.lastSaleDate = SomethingElse"
+	q:= "SELECT t1.city FROM `travel-sample` t1 WHERE t1.type = \"landmark\" AND t1.city IN (SELECT RAW city FROM `travel-sample` WHERE type = $type);"
+	info := GetNamedParams(q)
+	if !info.PInfo.IsValid {
+		fmt.Print(info.PInfo.IsValid)
 	}
 
-	qs := queryStmt{}
-
-	alg.Accept(&qs)
-	fmt.Printf("qs named parameters: %v\n", qs.namedParams)
+	fmt.Printf("%v", info.NamedParams)
 }
