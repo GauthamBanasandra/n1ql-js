@@ -8,8 +8,6 @@ LoopModifier.CONST = {
 };
 
 var Context = {
-	N1qlQuery: 'n1ql_query',
-	N1qlQueryRevert: 'n1ql_query_revert',
 	IterTypeCheck: 'iter_type_check',
 	BreakStatement: 'break_statement',
 	BreakAltInterrupt: 'break_alt_interrupt',
@@ -30,10 +28,10 @@ var filename = process.argv[2],
 	code = fs.readFileSync(filename, 'utf-8'),
 	transpiledCode = transpile(code, filename);
 
-console.log(transpiledCode);
+// console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-console.log(JSON.stringify(compile(code)));
+console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame']));
 
 
 function saveTranspiledCode() {
@@ -132,6 +130,11 @@ function isJsExpression(stmt) {
     }
 }
 
+function transpileQuery(query, namedParams) {
+	var ast = new N1QLQueryAst(query, namedParams);
+	return escodegen.generate(ast);
+}
+
 // A utility class for handling nodes of an AST.
 function NodeUtils() {
 	var self = this;
@@ -167,29 +170,6 @@ function NodeUtils() {
 
 		// Attach the loc nodes based on the context.
 		switch (context) {
-			// Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
-			/*
-				Before:
-				var res1 = new N1qlQuery('select * from :bucket LIMIT 10;');
-				After:
-				var res1 = new N1qlQuery('select * from $1 LIMIT 10;', {posParams : [bucket]});
-			*/
-			case Context.N1qlQuery:
-				source.loc = self.deepCopy(sourceCopy.loc);
-				source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
-				source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
-				break;
-
-				// Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
-				/*
-					Before:
-					new N1qlQuery('delete bucket["key"]');
-					After:
-					delete bucket["key"];
-				*/
-			case Context.N1qlQueryRevert:
-				self.setLocForAllNodes(sourceCopy.loc, source);
-				break;
 				// Mapping of if-else block to for-of loop.
 				/*
 					Before:
@@ -390,11 +370,6 @@ function NodeUtils() {
 		parentBody.splice(insertIndex, 0, nodeToInsert);
 	};
 
-	// A N1QL node is a statement of the form new N1qlQuery('...');
-	this.isN1qlNode = function (node) {
-		return /NewExpression/.test(node.type) && /N1qlQuery/.test(node.callee.name);
-	};
-
 	this.convertToBlockStmt = function (node) {
 		switch (node.type) {
 			case 'ForOfStatement':
@@ -422,13 +397,6 @@ function NodeUtils() {
 		console.assert(arrayToInsert instanceof Array, 'arrayToInsert must be an Array');
 		var insertIndex = parentBody.indexOf(insAfterNode) + 1;
 		parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
-	};
-
-	// Build an ast node for N1QL function call from the query.
-	this.getQueryAst = function (query) {
-		var qParser = new QueryParser(),
-			subs = qParser.parse(query);
-		return new N1QLQueryAst(subs.query, subs.placeholders);
 	};
 
 	// Checks if the global scope contains only function declarations.
@@ -464,104 +432,6 @@ function NodeUtils() {
 				}
 			}
 		});
-	};
-
-	// Checks if the N1QL query must be reverted back to JavaScript expression.
-	this.isRevertReq = function (query) {
-		// Check whether N1QL query begins with delete and is parsable as a
-		// JavaScript expression.
-		var tokens = query.split(/\s/g);
-		if (tokens.length && tokens[0] === 'delete') {
-			return isJsExpression(query);
-		}
-
-		return false;
-	};
-}
-
-// A non-full-fledged parser to convert N1QL queries to parameterized queries.
-function QueryParser() {
-	function isQuote(c) {
-		return c === '\'' || c === '"' || c === '`';
-	}
-
-	// Back-tracks and finds if the i-th character is escaped.
-	function isEscaped(query, i) {
-		var escCount = 0;
-		for (var j = i - 1; j >= 0; --j) {
-			if (query[j] !== '\\') {
-				break;
-			}
-
-			++escCount;
-		}
-
-		// A character is escaped if it has odd number of escape character preceding it.
-		return escCount & 1;
-	}
-
-	// Parses placeholder having regex - :IDENT from the i-th character.
-	function parsePlaceholder(query, i) {
-		var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-		var qMatch = re.exec(query.slice(i));
-		if (qMatch && qMatch.index === 0) {
-			return qMatch[1];
-		}
-
-		return null;
-	}
-
-	// Utility method to maintain quote stack.
-	// Essentially, it keeps track of whether the i-th character is inside N1QL
-	// string or not and executes the callback upon entry / exit of N1QL string.
-	function manageQuoteStack(quoteStack, query, i, callback) {
-		if (isQuote(query[i]) && !isEscaped(query, i)) {
-			if (quoteStack.isEmpty()) {
-				// Enter N1QL string.
-				quoteStack.push(query[i]);
-				if (callback && callback.enter) {
-					callback.enter();
-				}
-			} else if (quoteStack.peek() === query[i]) {
-				quoteStack.pop();
-				// Exit N1QL string.
-				if (callback && callback.exit) {
-					callback.exit();
-				}
-			}
-		}
-	}
-
-	this.parse = function (query) {
-		var quoteStack = new Stack(),
-			substitutedQuery = '',
-			placeholders = [];
-
-		// Parse and substitute placeholders with $NUM.
-		for (var i = 0; i < query.length; ++i) {
-			var substituted = false;
-			manageQuoteStack(quoteStack, query, i);
-			if (query[i] === ':' && quoteStack.isEmpty()) {
-				var placeholder = parsePlaceholder(query, i);
-				if (placeholder) {
-					placeholders.push(placeholder);
-					substitutedQuery += '$' + placeholders.length;
-					substituted = true;
-					i += placeholder.length;
-				}
-			}
-
-			if (!substituted) {
-				substitutedQuery += query[i];
-			}
-		}
-
-		// Quote stack must be empty.
-		console.assert(quoteStack.isEmpty(), 'Quote stack must be empty, otherwise, the string is malformed in the query');
-		return {
-			query: substitutedQuery,
-			placeholders: placeholders
-		};
 	};
 }
 
@@ -1106,7 +976,7 @@ function BlockStatementAst(body) {
 	this.body = [body];
 }
 
-function N1QLQueryAst(query, posParams) {
+function N1QLQueryAst(query, namedParams) {
 	Ast.call(this, 'NewExpression');
 	this.callee = {
 		"type": "Identifier",
@@ -1122,12 +992,12 @@ function N1QLQueryAst(query, posParams) {
 				"type": "Property",
 				"key": {
 					"type": "Identifier",
-					"name": "posParams"
+					"name": "namedParams"
 				},
 				"computed": false,
 				"value": {
-					"type": "ArrayExpression",
-					"elements": []
+					"type": "ObjectExpression",
+					"properties": []
 				},
 				"kind": "init",
 				"method": false,
@@ -1136,11 +1006,22 @@ function N1QLQueryAst(query, posParams) {
 		}
 	];
 
-	for (var param of posParams) {
-		this.arguments[1].properties[0].value.elements.push({
-			"type": "Identifier",
-			"name": param
-		});
+	for (var param of namedParams) {
+		this.arguments[1].properties[0].value.properties.push({
+            "type": "Property",
+            "key": {
+                "type": "Identifier",
+                "name": param
+            },
+            "computed": false,
+            "value": {
+                "type": "Identifier",
+                "name": param
+            },
+            "kind": "init",
+            "method": false,
+            "shorthand": false
+        });
 	}
 }
 
@@ -2003,19 +1884,6 @@ function getAst(code, sourceFileName) {
 			}
 		},
 		leave: function (node) {
-			// Perform variable substitution in query constructor.
-			if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-				var query = node.arguments[0].value;
-				if (nodeUtils.isRevertReq(query)) {
-					// Revert the query back to JavaScript expression if necessary.
-					var ast = esprima.parse(query).body[0].expression;
-					nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQueryRevert);
-				} else {
-					var ast = nodeUtils.getQueryAst(query);
-					nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQuery);
-				}
-			}
-
 			// Modifies all the for-of statements to support iteration.
 			// Takes care to see to it that it visits the node only once.
 			if (/ForOfStatement/.test(node.type) && !node.isVisited) {

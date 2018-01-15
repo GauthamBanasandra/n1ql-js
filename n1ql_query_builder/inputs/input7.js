@@ -1,14 +1,12 @@
 function OnUpdate(doc, meta) {
     var bucket = '`beer-sample`',
-        abvLim = 20;
+        abvLim = 20,
+        n = 'abcd';
 
-    var res = /*SELECT brewery_id, name
-    					FROM :bucket
-    					WHERE type == 'beer' AND name = '"\\":name\\""' AND ID = :id*/$;
+    var res = new N1qlQuery('SELECT * FROM `beer-sample` WHERE name = $n', {namedParams: {n: n}});
 
-    for(var row of res) {
+    for (var row of res.x) {
         log(row);
-        helloWorld[row.brewery_id] = 
     }
 }
 
