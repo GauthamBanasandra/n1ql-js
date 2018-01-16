@@ -87,8 +87,6 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
   if (jsify_info.code != kOK) {
     std::cout << "Jsify failed with code: " << jsify_info.code << std::endl;
   }
-
-  std::cout << "After JSIFY:\n" << jsify_info.handler_code << std::endl;
   
   auto transpiled_src =
       transpiler.Transpile(jsify_info.handler_code, "input1.js",
@@ -160,14 +158,13 @@ int main(int argc, char *argv[]) {
       data.n1ql_handle = new N1QL(conn_pool, isolate);
 
       auto js_src = ReadFile(SOURCE_PATH);
-      std::cout << "Compiling handler:\n" << CompileHandler(js_src) << std::endl<< std::endl;
       auto script_to_execute = GetScriptToExecute(js_src);
       
-//      auto source = v8Str(isolate, script_to_execute.c_str());
-//      auto script = v8::Script::Compile(context, source).ToLocalChecked();
-//      auto result = script->Run(context).ToLocalChecked();
-//      v8::String::Utf8Value utf8(result);
-//      printf("%s\n", *utf8);
+      auto source = v8Str(isolate, script_to_execute.c_str());
+      auto script = v8::Script::Compile(context, source).ToLocalChecked();
+      auto result = script->Run(context).ToLocalChecked();
+      v8::String::Utf8Value utf8(result);
+      printf("%s\n", *utf8);
 
       delete conn_pool;
       delete data.n1ql_handle;

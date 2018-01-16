@@ -228,10 +228,10 @@ void N1QL::ExecQuery(QueryHandler &q_handler) {
     ConnectionPool::Error(instance, "unable to build query string", err);
   }
 
-  for (const auto &param : *q_handler.pos_params) {
-    err = lcb_n1p_posparam(n1ql_params, param.c_str(), param.length());
+  for (const auto &param : *q_handler.named_params) {
+    err = lcb_n1p_namedparamz(n1ql_params, param.first.c_str(), param.second.c_str());
     if (err != LCB_SUCCESS) {
-      ConnectionPool::Error(instance, "unable to set positional parameters",
+      ConnectionPool::Error(instance, "unable to set named parameters",
                             err);
     }
   }
@@ -258,21 +258,26 @@ void N1QL::ExecQuery(QueryHandler &q_handler) {
   inst_pool->Restore(instance);
 }
 
-std::list<std::string>
-ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args) {
+std::unordered_map<std::string, std::string>
+ExtractNamedParams(const v8::FunctionCallbackInfo<v8::Value> &args) {
   auto isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);
 
-  auto options = args.This()->Get(v8Str(isolate, "options"))->ToObject();
-  auto pos_params = options->Get(v8Str(isolate, "posParams")).As<v8::Array>();
-  std::list<std::string> pos_params_l;
-
-  for (auto i = 0; i < pos_params->Length(); ++i) {
-    v8::String::Utf8Value param(pos_params->Get(i));
-    pos_params_l.push_back(*param);
+  auto options_v8obj = args.This()->Get(v8Str(isolate, "options")).As<v8::Object>();
+  auto named_params_v8obj = options_v8obj->Get(v8Str(isolate, "namedParams")).As<v8::Object>();
+  auto named_params_v8arr = named_params_v8obj->GetPropertyNames();
+  
+  std::unordered_map<std::string, std::string> named_params;
+  for (auto i = 0; i < named_params_v8arr->Length(); ++i) {
+    auto key_v8val = named_params_v8arr->Get(i);
+    auto val_v8val = named_params_v8obj->Get(key_v8val);
+    
+    v8::String::Utf8Value key_utf8(key_v8val);
+    v8::String::Utf8Value val_utf8(val_v8val);
+    named_params[*key_utf8] = *val_utf8;
   }
-
-  return pos_params_l;
+  
+  return named_params;
 }
 
 // iter() function that is exposed to JavaScript.
@@ -287,7 +292,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     // Query to run.
     auto query = args.This()->Get(v8Str(isolate, "query"));
     v8::String::Utf8Value query_string(query);
-    auto pos_params = ExtractPosParams(args);
+    auto named_params = ExtractNamedParams(args);
 
     // Callback function to execute.
     auto func = v8::Local<v8::Function>::Cast(args[0]);
@@ -298,7 +303,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     QueryHandler q_handler;
     q_handler.hash = hash;
     q_handler.query = *query_string;
-    q_handler.pos_params = &pos_params;
+    q_handler.named_params = &named_params;
     q_handler.iter_handler = &iter_handler;
 
     auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
@@ -356,14 +361,14 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     // Query to run.
     auto query = args.This()->Get(v8Str(isolate, "query"));
     v8::String::Utf8Value query_string(query);
-    auto pos_params = ExtractPosParams(args);
+    auto named_params = ExtractNamedParams(args);
 
     // Prepare data for query execution.
     BlockingQueryHandler block_handler;
     QueryHandler q_handler;
     q_handler.hash = hash;
     q_handler.query = *query_string;
-    q_handler.pos_params = &pos_params;
+    q_handler.named_params = &named_params;
     q_handler.block_handler = &block_handler;
 
     auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;

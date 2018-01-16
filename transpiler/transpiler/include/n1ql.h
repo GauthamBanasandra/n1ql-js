@@ -13,7 +13,7 @@
 #define N1QL_H
 
 #include <list>
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include <stack>
 #include <string>
@@ -123,7 +123,7 @@ struct QueryHandler {
   lcb_t instance = nullptr;
   IterQueryHandler *iter_handler = nullptr;
   BlockingQueryHandler *block_handler = nullptr;
-  std::list<std::string> *pos_params = nullptr;
+  std::unordered_map<std::string, std::string> *named_params = nullptr;
 };
 
 // Data type for cookie to be used during row callback execution.
@@ -168,7 +168,7 @@ public:
   
 private:
   std::stack<QueryHandler> qstack;
-  std::map<std::string, QueryHandler *> qmap;
+  std::unordered_map<std::string, QueryHandler *> qmap;
 };
 
 class N1QL {
@@ -262,8 +262,8 @@ void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
 void PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
 template<typename T>
 v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
-std::list<std::string>
-ExtractPosParams(const v8::FunctionCallbackInfo<v8::Value> &args);
+std::unordered_map<std::string, std::string>
+ExtractNamedParams(const v8::FunctionCallbackInfo<v8::Value> &args);
 
 #endif
 

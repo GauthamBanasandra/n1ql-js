@@ -30,7 +30,7 @@ function compile(code) {
             }),
             nodeUtils = new NodeUtils();
 
-        nodeUtils.checkGlobals(ast);
+//        nodeUtils.checkGlobals(ast);
 
         // TODO : Remove this check once UUID is used to create variables
         nodeUtils.checkForOfNodeRight(ast);
@@ -968,7 +968,7 @@ function N1QLQueryAst(query, namedParams) {
             "type": "Property",
             "key": {
                 "type": "Identifier",
-                "name": param
+                "name": '$' + param
             },
             "computed": false,
             "value": {

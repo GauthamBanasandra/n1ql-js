@@ -67,12 +67,12 @@ int main() {
   // Structure for writing the query.
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLPARAMS *params = lcb_n1p_new();
-  err = lcb_n1p_setstmtz(params, "SELECT * FROM `beer-sample` WHERE country = \"United States\";");
+  err = lcb_n1p_setstmtz(params, "SELECT * FROM `beer-sample` WHERE country = $c;");
   if (err != LCB_SUCCESS) {
     end(instance, "unable to build query string", err);
   }
   
-  err = lcb_n1p_namedparamz(params, "$lim", "1");
+  err = lcb_n1p_namedparamz(params, "$c", "United States");
   if (err != LCB_SUCCESS) {
     end(instance, "unable to set named param", err);
   }
