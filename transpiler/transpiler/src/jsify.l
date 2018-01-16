@@ -113,6 +113,9 @@
 		switch(lex_op) {
 			case kJsify:
 				js_code += TranspileQuery(n1ql_query);
+        if(!parse_info.is_valid) {
+          return kN1QLParserError;
+        }
 				break;
 
 			case kUniLineN1QL:
@@ -314,21 +317,14 @@ extern "C" int yywrap() {
 // Transpiles the given N1QL query into a JavaScript expression - "new N1qlQuery('...')"
 std::string TranspileQuery(const std::string &query) {
 	switch(lex_op) {
-		case kJsify:
-		case kUniLineN1QL: {
-				std::string query_transpiled = "new N1qlQuery('";
-				for (const auto &c : query) {
-						// Need to escape the escape character to preserve the raw-ness.
-						// Need to escape the single quotes as the N1QL query is going to be enclosed in a single quoted string.
-						if(c == '\\' || (c == '\'' && !IsEsc(query_transpiled))) {
-							query_transpiled += "\\";
-						}
-
-						query_transpiled += c;
-				}
-
-				query_transpiled += "');";
-				return query_transpiled;
+		case kJsify: {
+        auto isolate = v8::Isolate::GetCurrent();
+        auto comm = UnwrapData(isolate)->comm;
+        auto transpiler = UnwrapData(isolate)->transpiler;
+        
+        auto info = comm->GetNamedParams(query);
+        parse_info = info.p_info;
+				return transpiler->TranspileQuery(query, info.named_params);
 		}
 
 		case kCommentN1QL: {
@@ -342,6 +338,9 @@ std::string TranspileQuery(const std::string &query) {
 				query_transpiled += "*/$;";
 				return query_transpiled;
 		}
+    
+    default:
+    	throw "Transpile Query not handled for this lex_op";
 	}
 }
 

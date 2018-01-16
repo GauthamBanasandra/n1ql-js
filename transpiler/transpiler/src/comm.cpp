@@ -128,9 +128,9 @@ CURLResponse CURLClient::HTTPPost(const std::vector<std::string> &header_list,
   return response;
 }
 
-Communicator::Communicator(const std::string &host_port) {
+Communicator::Communicator(const std::string &host_port, v8::Isolate *isolate):isolate(isolate) {
   parse_query_url = "http://localhost:" + host_port + "/parseQuery";
-  isolate = v8::Isolate::GetCurrent();
+  get_named_params_url = "http://localhost:" + host_port + "/getNamedParams";
 }
 
 ParseInfo Communicator::ParseQuery(const std::string &query) {
@@ -166,12 +166,59 @@ ParseInfo Communicator::ParseQuery(const std::string &query) {
     return info;
   }
   
-  auto is_valid_v8val = resp_obj->Get(v8Str(isolate, "is_valid"));
-  auto info_v8val = resp_obj->Get(v8Str(isolate, "info"));
+  return ExtractParseInfo(resp_obj);
+}
+
+NamedParamsInfo Communicator::GetNamedParams(const std::string &query) {
+  CURLClient curl;
+  auto response =
+  curl.HTTPPost({"Content-Type: text/plain"}, get_named_params_url, query);
+  
+  NamedParamsInfo info;
+  info.p_info.is_valid = false;
+  info.p_info.info = "Something went wrong while extracting named parameters";
+  
+  if (response.is_error) {
+    std::cout << response.response << std::endl;
+  }
+  
+  if (response.headers.find("Status")==response.headers.end()) {
+    info.p_info.info = response.response;
+    return info;
+  }
+  
+  if (std::stoi(response.headers["Status"]) != 0) {
+    // Something went wrong with N1QL parser
+    return info;
+  }
+  
+  auto resp_obj = v8::JSON::Parse(v8Str(isolate, response.response)).As<v8::Object>();
+  if (resp_obj.IsEmpty()) {
+    // Something went wrong while parsing JSON
+    return info;
+  }
+  
+  auto p_info_v8obj = resp_obj->Get(v8Str(isolate, "p_info")).As<v8::Object>();
+  auto named_params_v8arr = resp_obj->Get(v8Str(isolate, "named_params")).As<v8::Array>();
+  info.p_info = ExtractParseInfo(p_info_v8obj);
+  
+  for (int i = 0; i < named_params_v8arr->Length(); ++i) {
+    v8::String::Utf8Value named_param_utf8(named_params_v8arr->Get(i));
+    info.named_params.emplace_back(*named_param_utf8);
+  }
+  
+  return info;
+}
+
+ParseInfo Communicator::ExtractParseInfo(v8::Local<v8::Object> &parse_info_v8val){
+  v8::HandleScope handle_scope(isolate);
+  
+  ParseInfo info;
+  auto is_valid_v8val = parse_info_v8val->Get(v8Str(isolate, "is_valid"));
+  auto info_v8val = parse_info_v8val->Get(v8Str(isolate, "info"));
   
   info.is_valid = is_valid_v8val->ToBoolean()->Value();
   v8::String::Utf8Value info_str(info_v8val);
   info.info = *info_str;
-  
   return info;
 }

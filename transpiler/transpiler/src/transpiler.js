@@ -7,9 +7,7 @@ LoopModifier.CONST = {
     LABELED_CONTINUE: 'labeled_continue'
 };
 
-Context = {
-    N1qlQuery: 'n1ql_query',
-    N1qlQueryRevert: 'n1ql_query_revert',
+var Context = {
     IterTypeCheck: 'iter_type_check',
     BreakStatement: 'break_statement',
     BreakAltInterrupt: 'break_alt_interrupt',
@@ -32,8 +30,11 @@ function compile(code) {
             }),
             nodeUtils = new NodeUtils();
 
-//        nodeUtils.checkGlobals(ast);
+        nodeUtils.checkGlobals(ast);
+
+        // TODO : Remove this check once UUID is used to create variables
         nodeUtils.checkForOfNodeRight(ast);
+
         return {
             language: 'JavaScript',
             compileSuccess: true
@@ -62,16 +63,16 @@ function jsFormat(code) {
     return escodegen.generate(ast);
 }
 
-function isTimerCalled(code) {
-    return isFuncCalled('docTimer', code) || isFuncCalled('cronTimer', code);
-}
-
 function getSourceMap(code, sourceFileName) {
     var ast = getAst(code, sourceFileName);
     return escodegen.generate(ast, {
         sourceMap: true,
         sourceMapWithCode: true
     }).map;
+}
+
+function isTimerCalled(code) {
+    return isFuncCalled('docTimer', code) || isFuncCalled('cronTimer', code);
 }
 
 // Checks if a function is called.
@@ -104,6 +105,11 @@ function isJsExpression(stmt) {
     }
 }
 
+function transpileQuery(query, namedParams) {
+    var ast = new N1QLQueryAst(query, namedParams);
+    return escodegen.generate(ast);
+}
+
 // A utility class for handling nodes of an AST.
 function NodeUtils() {
     var self = this;
@@ -114,8 +120,6 @@ function NodeUtils() {
 
     // Deletes a node from the body.
     this.deleteNode = function (parentBody, nodeToDel) {
-        
-        
 
         var deleteIndex = parentBody.indexOf(nodeToDel);
         parentBody.splice(deleteIndex, 1);
@@ -139,29 +143,6 @@ function NodeUtils() {
 
         // Attach the loc nodes based on the context.
         switch (context) {
-            // Mapping of loc nodes for N1qlQuery happens during the substitution of variables in the N1QL query string.
-            /*
-                Before:
-                var res1 = new N1qlQuery('select * from :bucket LIMIT 10;');
-                After:
-                var res1 = new N1qlQuery('select * from $1 LIMIT 10;', {posParams : [bucket]});
-            */
-            case Context.N1qlQuery:
-                source.loc = self.deepCopy(sourceCopy.loc);
-                source.callee.loc = self.deepCopy(sourceCopy.callee.loc);
-                source.arguments[0].loc = self.deepCopy(sourceCopy.arguments[0].loc);
-                break;
-
-            // Mapping of loc nodes when a N1QL Query instantiation is reverted back to a JavaScript expression.
-            /*
-                Before:
-                new N1qlQuery('delete bucket["key"]');
-                After:
-                delete bucket["key"];
-            */
-            case Context.N1qlQueryRevert:
-                self.setLocForAllNodes(sourceCopy.loc, source);
-                break;
             // Mapping of if-else block to for-of loop.
             /*
                 Before:
@@ -193,7 +174,6 @@ function NodeUtils() {
                 switch (source.type) {
                     // Return to continue statement mapping - source: return, target: continue
                     case 'ContinueStatement':
-                        
                         if (source.label) {
                             source.label.loc = self.deepCopy(sourceCopy.loc);
                         }
@@ -201,7 +181,6 @@ function NodeUtils() {
 
                     // Continue to return statement mapping - source: continue, target: return
                     case 'ReturnStatement':
-                        
                         if (source.argument && sourceCopy.label.loc) {
                             source.argument = self.setLocForAllNodes(sourceCopy.label.loc, source.argument);
                         }
@@ -218,13 +197,11 @@ function NodeUtils() {
                 switch (source.type) {
                     // Return to break statement mapping - source: return, target: break
                     case 'BreakStatement':
-                        
                         source.label.loc = self.deepCopy(sourceCopy.argument.loc);
                         break;
 
                     // Break to return statement mapping - source: break, target: return
                     case 'ReturnStatement':
-                        
                         source.argument = self.setLocForAllNodes(sourceCopy.loc, source.argument);
                         break;
 
@@ -247,7 +224,6 @@ function NodeUtils() {
                 });
             */
             case Context.BreakAltInterrupt:
-                
                 self.setLocMatchingNodes(sourceCopy, source);
                 break;
 
@@ -264,7 +240,6 @@ function NodeUtils() {
              */
             case Context.ContinueAltInterrupt:
                 if (source.argument) {
-                    
                     self.setLocMatchingNodes(sourceCopy, source);
                 } else {
                     source.loc = sourceCopy.loc;
@@ -342,7 +317,6 @@ function NodeUtils() {
         convertTreeToStack(source, sourceNodeStack);
         convertTreeToStack(target, targetNodeStack);
 
-        
         // Pop all nodes from the sourceNodeStack and if an element contains loc node,
         // copy it to the corresponding element in the targetNodeStack.
         while (!sourceNodeStack.isEmpty()) {
@@ -356,15 +330,8 @@ function NodeUtils() {
 
     // Inserts the given node to the given parentBody at the specified index.
     this.insertNode = function (parentBody, refNode, nodeToInsert, insertAfter) {
-        
-        
         var insertIndex = insertAfter ? parentBody.indexOf(refNode) + 1 : parentBody.indexOf(refNode);
         parentBody.splice(insertIndex, 0, nodeToInsert);
-    };
-
-    // A N1QL node is a statement of the form new N1qlQuery('...');
-    this.isN1qlNode = function (node) {
-        return /NewExpression/.test(node.type) && /N1qlQuery/.test(node.callee.name);
     };
 
     this.convertToBlockStmt = function (node) {
@@ -390,17 +357,8 @@ function NodeUtils() {
 
     // Inserts an array of AST nodes into parentBody at the specified index.
     this.insertNodeArray = function (parentBody, insAfterNode, arrayToInsert) {
-        
-        
         var insertIndex = parentBody.indexOf(insAfterNode) + 1;
         parentBody.splice.apply(parentBody, [insertIndex, 0].concat(arrayToInsert));
-    };
-
-    // Build an ast node for N1QL function call from the query.
-    this.getQueryAst = function (query) {
-        var qParser = new QueryParser(),
-            subs = qParser.parse(query);
-        return new N1QLQueryAst(subs.query, subs.placeholders);
     };
 
     // Checks if the global scope contains only function declarations.
@@ -436,104 +394,6 @@ function NodeUtils() {
                 }
             }
         });
-    };
-
-    // Checks if the N1QL query must be reverted back to JavaScript expression.
-    this.isRevertReq = function (query) {
-        // Check whether N1QL query begins with delete and is parsable as a
-        // JavaScript expression.
-        var tokens = query.split(/\s/g);
-        if (tokens.length && tokens[0] === 'delete') {
-            return isJsExpression(query);
-        }
-
-        return false;
-    };
-}
-
-// A non-full-fledged parser to convert N1QL queries to parameterized queries.
-function QueryParser() {
-    function isQuote(c) {
-        return c === '\'' || c === '"' || c === '`';
-    }
-
-    // Back-tracks and finds if the i-th character is escaped.
-    function isEscaped(query, i) {
-        var escCount = 0;
-        for (var j = i - 1; j >= 0; --j) {
-            if (query[j] !== '\\') {
-                break;
-            }
-
-            ++escCount;
-        }
-
-        // A character is escaped if it has odd number of escape character preceding it.
-        return escCount & 1;
-    }
-
-    // Parses placeholder having regex - :IDENT from the i-th character.
-    function parsePlaceholder(query, i) {
-        var re = /:([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-        var qMatch = re.exec(query.slice(i));
-        if (qMatch && qMatch.index === 0) {
-            return qMatch[1];
-        }
-
-        return null;
-    }
-
-    // Utility method to maintain quote stack.
-    // Essentially, it keeps track of whether the i-th character is inside N1QL
-    // string or not and executes the callback upon entry / exit of N1QL string.
-    function manageQuoteStack(quoteStack, query, i, callback) {
-        if (isQuote(query[i]) && !isEscaped(query, i)) {
-            if (quoteStack.isEmpty()) {
-                // Enter N1QL string.
-                quoteStack.push(query[i]);
-                if (callback && callback.enter) {
-                    callback.enter();
-                }
-            } else if (quoteStack.peek() === query[i]) {
-                quoteStack.pop();
-                // Exit N1QL string.
-                if (callback && callback.exit) {
-                    callback.exit();
-                }
-            }
-        }
-    }
-
-    this.parse = function (query) {
-        var quoteStack = new Stack(),
-            substitutedQuery = '',
-            placeholders = [];
-
-        // Parse and substitute placeholders with $NUM.
-        for (var i = 0; i < query.length; ++i) {
-            var substituted = false;
-            manageQuoteStack(quoteStack, query, i);
-            if (query[i] === ':' && quoteStack.isEmpty()) {
-                var placeholder = parsePlaceholder(query, i);
-                if (placeholder) {
-                    placeholders.push(placeholder);
-                    substitutedQuery += '$' + placeholders.length;
-                    substituted = true;
-                    i += placeholder.length;
-                }
-            }
-
-            if (!substituted) {
-                substitutedQuery += query[i];
-            }
-        }
-
-        // Quote stack must be empty.
-        
-        return {
-            query: substitutedQuery,
-            placeholders: placeholders
-        };
     };
 }
 
@@ -587,8 +447,6 @@ function Stack() {
     // debug.
     this.printAll = function () {
         for (var item of stack) {
-            
-            
         }
     }
 }
@@ -723,7 +581,6 @@ function LoopModifier(modifier) {
                     break;
 
                 case LoopModifier.CONST.LABELED_BREAK:
-                    
                     node.lblBreakStackIndex = this.stackIndex;
                     break;
 
@@ -732,7 +589,6 @@ function LoopModifier(modifier) {
                     break;
 
                 case LoopModifier.CONST.LABELED_CONTINUE:
-                    
                     node.lblContinueStackIndex = this.stackIndex;
                     break;
 
@@ -790,7 +646,6 @@ function LoopModifier(modifier) {
 
     // Returns a boolean suggesting whether the loop modifier needs to be replaced.
     this.isReplaceReq = function (args) {
-        
         switch (this.modType) {
             // For break and continue, the replacement criteria is the for-of node being the parent on TOS.
             case LoopModifier.CONST.CONTINUE:
@@ -1078,7 +933,7 @@ function BlockStatementAst(body) {
     this.body = [body];
 }
 
-function N1QLQueryAst(query, posParams) {
+function N1QLQueryAst(query, namedParams) {
     Ast.call(this, 'NewExpression');
     this.callee = {
         "type": "Identifier",
@@ -1094,12 +949,12 @@ function N1QLQueryAst(query, posParams) {
                 "type": "Property",
                 "key": {
                     "type": "Identifier",
-                    "name": "posParams"
+                    "name": "namedParams"
                 },
                 "computed": false,
                 "value": {
-                    "type": "ArrayExpression",
-                    "elements": []
+                    "type": "ObjectExpression",
+                    "properties": []
                 },
                 "kind": "init",
                 "method": false,
@@ -1108,10 +963,21 @@ function N1QLQueryAst(query, posParams) {
         }
     ];
 
-    for (var param of posParams) {
-        this.arguments[1].properties[0].value.elements.push({
-            "type": "Identifier",
-            "name": param
+    for (var param of namedParams) {
+        this.arguments[1].properties[0].value.properties.push({
+            "type": "Property",
+            "key": {
+                "type": "Identifier",
+                "name": param
+            },
+            "computed": false,
+            "value": {
+                "type": "Identifier",
+                "name": param
+            },
+            "kind": "init",
+            "method": false,
+            "shorthand": false
         });
     }
 }
@@ -1213,7 +1079,6 @@ function PostIter(iterProp, returnBubbleFunc) {
                     });
                     // If the label is found and doesn't point to the for-of node, then add a break <label>.
                     if (lookup.targetFound) {
-                        
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
@@ -1224,7 +1089,6 @@ function PostIter(iterProp, returnBubbleFunc) {
                     // If the search was interrupted, then it means that it encountered a for-of node. So, add a
                     // 'return stopIter' node.
                     if (lookup.searchInterrupted) {
-                        
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({
@@ -1252,7 +1116,6 @@ function PostIter(iterProp, returnBubbleFunc) {
                         }
                     });
                     if (lookup.targetFound) {
-                        
 
                         if (/ForOfStatement/.test(lookup.stopNode.body.type)) {
                             pushCase = false;
@@ -1261,7 +1124,6 @@ function PostIter(iterProp, returnBubbleFunc) {
                         }
                     }
                     if (lookup.searchInterrupted) {
-                        
 
                         if (lookup.stopNode.parentLabel === postIter.args) {
                             returnStmtAst = new ReturnAst(null);
@@ -1294,12 +1156,10 @@ function PostIter(iterProp, returnBubbleFunc) {
                         }
                     });
                     if (lookup.targetFound) {
-                        
 
                         returnStmtAst = new ReturnAst(new ReturnDataAst(postIter.iterVar, this.returnBubbleFunc));
                     }
                     if (lookup.searchInterrupted) {
-                        
 
                         stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                         arg = new Arg({
@@ -1379,11 +1239,6 @@ function Iter(forOfNode) {
 
     // debug.
     this.assertEmpty = function () {
-        
-        
-        
-        
-        
     }
 }
 
@@ -1450,14 +1305,14 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     stopIterAst = arg = null;
                     // Labeled break statement.
                     /*
-                            Before:
-                            break x;
-                            After:
-                            return res.stopIter({
-                                'code': 'labeled_break',
-                                'args': 'x'
-                            });
-                         */
+                        Before:
+                        break x;
+                        After:
+                        return res.stopIter({
+                            'code': 'labeled_break',
+                            'args': 'x'
+                        });
+                    */
                     if (node.label && lblBreakMod.isReplaceReq(node.label.name)) {
                         stopIterAst = new StopIterAst(nodeCopy.right.name);
                         arg = new Arg({
@@ -1627,13 +1482,11 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 });
              */
             case Context.ReturnStatement:
-                
                 target.loc = source.loc;
                 nodeUtils.forceSetLocForAllNodes(source.loc, target.argument);
                 if (source.argument) {
                     for (var prop of target.argument.arguments[0].properties) {
                         if (prop.key.value === 'data') {
-                            
                             prop.value = nodeUtils.deepCopy(source.argument);
                             break;
                         }
@@ -1651,11 +1504,9 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 target: return res.getReturnValue().data;
              */
             case Context.ReturnAltFound:
-                
                 target.loc = source.loc;
                 for (var prop of source.argument.arguments[0].properties) {
                     if (prop.key.value === 'data') {
-                        
                         target.argument = nodeUtils.deepCopy(prop.value);
                         break;
                     }
@@ -1676,7 +1527,6 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                 });
              */
             case Context.ReturnAltInterrupt:
-                
                 nodeUtils.setLocMatchingNodes(source, target);
                 break;
             default:
@@ -1733,7 +1583,6 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                     }
                 }
                 if (lookup.searchInterrupted) {
-                    
                     switch (node.metaData.code) {
                         case LoopModifier.CONST.LABELED_BREAK:
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
@@ -1798,7 +1647,6 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                             }
                         });
                         if (lookup.searchInterrupted) {
-                            
 
                             stopIterAst = new StopIterAst(lookup.stopNode.right.name);
                             arg = new Arg({
@@ -1828,7 +1676,6 @@ function IterCompatible(forOfNode, globalAncestorStack) {
                             }
                         });
                         if (lookup.searchInterrupted) {
-                            
 
                             if (lookup.stopNode.parentLabel === node.label.name) {
                                 returnStmtAst = new ReturnAst(null);
@@ -1897,6 +1744,8 @@ function IterCompatible(forOfNode, globalAncestorStack) {
 
     this.getAst = function () {
         // if-else block which perform dynamic type checking.
+        // TODO : Must not parse the forOfNode's right's name. Need to revert it back to just forOfNode.right.name once
+        //        UUID is used for creating variables.
         var ifElseAst = new IfElseAst(new IterTypeCheckAst(esprima.parse(forOfNode.right.name).body[0].expression));
 
         // Iterator AST.
@@ -1965,7 +1814,6 @@ function getAst(code, sourceFileName) {
                     }
                 });
                 if (lookup.targetFound) {
-                    
 
                     // TODO :   Anonymous function might require some attention because comparing null doesn't make sense.
                     node.targetFunction = lookup.stopNode.id ? lookup.stopNode.id.name : null;
@@ -1973,19 +1821,6 @@ function getAst(code, sourceFileName) {
             }
         },
         leave: function (node) {
-            // Perform variable substitution in query constructor.
-            if (nodeUtils.isN1qlNode(node) && node.arguments.length > 0) {
-                var query = node.arguments[0].value;
-                if (nodeUtils.isRevertReq(query)) {
-                    // Revert the query back to JavaScript expression if necessary.
-                    var ast = esprima.parse(query).body[0].expression;
-                    nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQueryRevert);
-                } else {
-                    var ast = nodeUtils.getQueryAst(query);
-                    nodeUtils.replaceNode(node, nodeUtils.deepCopy(ast), Context.N1qlQuery);
-                }
-            }
-
             // Modifies all the for-of statements to support iteration.
             // Takes care to see to it that it visits the node only once.
             if (/ForOfStatement/.test(node.type) && !node.isVisited) {
@@ -1994,6 +1829,7 @@ function getAst(code, sourceFileName) {
                 }
 
                 // for-of node's right.name will be null when the right is anything other than IDENTIFIER
+                // TODO : Must skip this once UUID is used to create variables
                 if (!node.right.name) {
                     node.right.name = escodegen.generate(node.right);
                 }

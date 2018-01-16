@@ -1,4 +1,3 @@
-"use strict";
 function OnUpdate(doc, meta) {
   a = 10;
   try {

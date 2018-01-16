@@ -18,7 +18,7 @@
 #include "include/v8.h"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input11.js"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input10.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
@@ -88,6 +88,8 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
     std::cout << "Jsify failed with code: " << jsify_info.code << std::endl;
   }
 
+  std::cout << "After JSIFY:\n" << jsify_info.handler_code << std::endl;
+  
   auto transpiled_src =
       transpiler.Transpile(jsify_info.handler_code, "input1.js",
                            "input1.map.json", "127.0.0.1", "9090");
@@ -135,7 +137,7 @@ int main(int argc, char *argv[]) {
       struct Data data;
       JsException js_exception(isolate);
       data.js_exception = &js_exception;
-      data.comm = new Communicator("9300");
+      data.comm = new Communicator("9300", isolate);
       data.transpiler = new Transpiler(isolate, GetTranspilerSrc());
       isolate->SetData(DATA_SLOT, &data);
 
@@ -158,14 +160,14 @@ int main(int argc, char *argv[]) {
       data.n1ql_handle = new N1QL(conn_pool, isolate);
 
       auto js_src = ReadFile(SOURCE_PATH);
-      std::cout << CompileHandler(js_src) << std::endl;
+      std::cout << "Compiling handler:\n" << CompileHandler(js_src) << std::endl<< std::endl;
       auto script_to_execute = GetScriptToExecute(js_src);
-
-      auto source = v8Str(isolate, script_to_execute.c_str());
-      auto script = v8::Script::Compile(context, source).ToLocalChecked();
-      auto result = script->Run(context).ToLocalChecked();
-      v8::String::Utf8Value utf8(result);
-      printf("%s\n", *utf8);
+      
+//      auto source = v8Str(isolate, script_to_execute.c_str());
+//      auto script = v8::Script::Compile(context, source).ToLocalChecked();
+//      auto result = script->Run(context).ToLocalChecked();
+//      v8::String::Utf8Value utf8(result);
+//      printf("%s\n", *utf8);
 
       delete conn_pool;
       delete data.n1ql_handle;

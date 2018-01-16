@@ -26,6 +26,11 @@ struct ParseInfo {
   std::string info;
 };
 
+struct NamedParamsInfo {
+  ParseInfo p_info;
+  std::vector<std::string> named_params;
+};
+
 class CURLClient {
 private:
   CURL *curl_handle;
@@ -46,14 +51,18 @@ public:
 };
 
 class Communicator {
-private:
-  std::string parse_query_url;
-  v8::Isolate *isolate;
-  
 public:
-  Communicator(const std::string &host_port);
+  Communicator(const std::string &host_port, v8::Isolate *isolate);
 
   ParseInfo ParseQuery(const std::string &query);
+  NamedParamsInfo GetNamedParams(const std::string &query);
+
+private:
+  std::string parse_query_url;
+  std::string get_named_params_url;
+  v8::Isolate *isolate;
+  
+  ParseInfo ExtractParseInfo(v8::Local<v8::Object> &parse_info_v8val);
 };
 
 #endif /* comm_hpp */

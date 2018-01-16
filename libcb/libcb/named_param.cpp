@@ -67,7 +67,7 @@ int main() {
   // Structure for writing the query.
   lcb_CMDN1QL cmd = {0};
   lcb_N1QLPARAMS *params = lcb_n1p_new();
-  err = lcb_n1p_setstmtz(params, "SELECT * FROM `beer-sample` LIMIT $lim;");
+  err = lcb_n1p_setstmtz(params, "SELECT * FROM `beer-sample` WHERE country = \"United States\";");
   if (err != LCB_SUCCESS) {
     end(instance, "unable to build query string", err);
   }

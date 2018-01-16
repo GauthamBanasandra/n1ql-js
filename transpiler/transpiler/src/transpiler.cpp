@@ -108,6 +108,23 @@ std::string Transpiler::GetSourceMap(const std::string &handler_code,
   return *utf8result;
 }
 
+std::string Transpiler::TranspileQuery(const std::string &query, const std::vector<std::string> &named_params) {
+  v8::HandleScope handle_scope(isolate);
+  
+  auto named_params_v8arr = v8::Array::New(isolate, static_cast<int>(named_params.size()));
+  for (std::size_t i = 0; i < named_params.size(); ++i) {
+    named_params_v8arr->Set(static_cast<uint32_t>(i), v8Str(isolate, named_params[i].c_str()));
+  }
+  
+  v8::Local<v8::Value> args[2];
+  args[0] = v8Str(isolate, query);
+  args[1] = named_params_v8arr;
+  auto result = ExecTranspiler("transpileQuery", args, 2);
+  v8::String::Utf8Value utf8result(result);
+  
+  return *utf8result;
+}
+
 bool Transpiler::IsTimerCalled(const std::string &handler_code) {
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Value> args[1];
