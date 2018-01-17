@@ -56,3 +56,44 @@ std::string JSONStringify(v8::Isolate *isolate, const v8::Local<v8::Value> &obje
   std::string json_str = *utf8_value;
   return json_str;
 }
+
+const char *GetUsername(void *cookie, const char *host, const char *port,
+                        const char *bucket) {
+  LOG(logInfo) << "Getting username for " << host << ":" << port << std::endl;
+  
+  auto isolate = static_cast<v8::Isolate *>(cookie);
+  auto comm = UnwrapData(isolate)->comm;
+  auto endpoint = std::string(host) + ":" + std::string(port);
+  auto info = comm->GetCreds(endpoint);
+  if (info.is_error) {
+    LOG(logError) << "Failed to get username for " << host << ":" << port
+    << " err: " << info.error << std::endl;
+  }
+  
+  auto store = UnwrapData(isolate)->username_store;
+  // Storing the username in isolate's data as returning username directly could
+  // lead to a dangling pointer
+  
+  store[endpoint] = std::make_shared<char *>(new char[info.username.length()+1]);
+  strcpy(*store[endpoint], info.username.c_str());
+  return *store[endpoint];
+}
+
+const char *GetPassword(void *cookie, const char *host, const char *port,
+                        const char *bucket) {
+  LOG(logInfo) << "Getting password for " << host << ":" << port << std::endl;
+  
+  auto isolate = static_cast<v8::Isolate *>(cookie);
+  auto comm = UnwrapData(isolate)->comm;
+  auto endpoint = std::string(host) + ":" + std::string(port);
+  auto info = comm->GetCreds(endpoint);
+  if (info.is_error) {
+    LOG(logError) << "Failed to get password for " << host << ":" << port
+    << " err: " << info.error << std::endl;
+  }
+  
+  auto store = UnwrapData(isolate)->password_store;
+  store[endpoint] = std::make_shared<char *>(new char[info.password.length()+1]);
+  strcpy(*store[endpoint], info.password.c_str());
+  return *store[endpoint];
+}

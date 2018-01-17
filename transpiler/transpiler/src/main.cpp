@@ -153,8 +153,7 @@ int main(int argc, char *argv[]) {
       auto context = v8::Context::New(isolate, nullptr, global);
       v8::Context::Scope context_scope(context);
 
-      auto conn_pool = new ConnectionPool(5, "127.0.0.1:12000", "default",
-                                          "eventing", "asdasd");
+      auto conn_pool = new ConnectionPool(isolate, 5, "127.0.0.1:12000", "default");
       data.n1ql_handle = new N1QL(conn_pool, isolate);
 
       auto js_src = ReadFile(SOURCE_PATH);

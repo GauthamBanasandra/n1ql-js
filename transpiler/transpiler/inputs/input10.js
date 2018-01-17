@@ -11,7 +11,7 @@ function OnUpdate(doc, meta) {
     
     log(query.metadata);
   } catch(e) {
-    log('error');
+    log(e);
   }
 }
 function OnDelete(meta) {

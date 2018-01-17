@@ -13,10 +13,10 @@
 #define N1QL_H
 
 #include <list>
-#include <unordered_map>
 #include <queue>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <v8.h>
 #include <vector>
 
@@ -56,8 +56,8 @@ enum class insert_type { kN1QLBegin, kN1QLEnd };
 // Keeps track of the type of literal inserted during CommentN1QL
 struct InsertedCharsInfo {
   InsertedCharsInfo(insert_type type)
-  : type(type), type_len(0), line_no(0), index(0) {}
-  
+      : type(type), type_len(0), line_no(0), index(0) {}
+
   insert_type type;
   int type_len;
   int32_t line_no;
@@ -67,7 +67,7 @@ struct InsertedCharsInfo {
 // Represents position of each char in the source code
 struct Pos {
   Pos() : line_no(0), col_no(0), index(0) {}
-  
+
   int32_t line_no;
   int32_t col_no;
   int32_t index;
@@ -96,7 +96,7 @@ struct CommentN1QLInfo {
 // Represents compilation status
 struct CompilationInfo {
   CompilationInfo() : compile_success(false), index(0), line_no(0), col_no(0) {}
-  
+
   std::string language;
   bool compile_success;
   int32_t index;
@@ -135,22 +135,22 @@ struct HandlerCookie {
 // Pool of lcb instances and routines for pool management.
 class ConnectionPool {
 public:
-  ConnectionPool(int capacity, std::string cb_kv_endpoint,
-                 std::string cb_source_bucket, std::string rbac_user,
-                 std::string rbac_pass);
+  ConnectionPool(v8::Isolate *isolate, int capacity, std::string cb_kv_endpoint,
+                 std::string cb_source_bucket);
+  
   void Restore(lcb_t instance) { instances.push(instance); }
   lcb_t GetResource();
   static void Error(lcb_t instance, const char *msg, lcb_error_t err);
   ~ConnectionPool();
-  
+
 private:
   void AddResource();
-  
+
   const int capacity;
   int inst_count;
   std::string conn_str;
-  std::string rbac_pass;
   std::queue<lcb_t> instances;
+  v8::Isolate *isolate;
 };
 
 // Data structure for maintaining the operations.
@@ -165,7 +165,7 @@ public:
   QueryHandler *Get(std::string index_hash) { return qmap[index_hash]; }
   // TODO : Deduce return type
   int Size() { return static_cast<int>(qstack.size()); }
-  
+
 private:
   std::stack<QueryHandler> qstack;
   std::unordered_map<std::string, QueryHandler *> qmap;
@@ -174,19 +174,18 @@ private:
 class N1QL {
 public:
   N1QL(ConnectionPool *inst_pool, v8::Isolate *isolate)
-  : isolate(isolate), inst_pool(inst_pool) {}
+      : isolate(isolate), inst_pool(inst_pool) {}
   HashedStack qhandler_stack;
   std::vector<std::string> ExtractErrorMsg(const char *metadata);
   // Schedules operations for execution.
-  template<typename>
-  void ExecQuery(QueryHandler &q_handler);
-  
+  template <typename> void ExecQuery(QueryHandler &q_handler);
+
 private:
   // Callback for each row.
-  template<typename>
+  template <typename>
   static void RowCallback(lcb_t instance, int callback_type,
                           const lcb_RESPN1QL *resp);
-  
+
   v8::Isolate *isolate;
   ConnectionPool *inst_pool;
 };
@@ -194,8 +193,8 @@ private:
 class Transpiler {
 public:
   Transpiler(v8::Isolate *isolate, const std::string &transpiler_src)
-  : isolate(isolate), transpiler_src(transpiler_src) {}
-  
+      : isolate(isolate), transpiler_src(transpiler_src) {}
+
   v8::Local<v8::Value> ExecTranspiler(const std::string &function,
                                       v8::Local<v8::Value> args[],
                                       const int &args_len);
@@ -208,11 +207,12 @@ public:
   std::string JsFormat(const std::string &handler_code);
   std::string GetSourceMap(const std::string &handler_code,
                            const std::string &src_filename);
-  std::string TranspileQuery(const std::string &query, const std::vector<std::string> &named_params);
+  std::string TranspileQuery(const std::string &query,
+                             const std::vector<std::string> &named_params);
   bool IsTimerCalled(const std::string &handler_code);
   bool IsJsExpression(const std::string &str);
   static void LogCompilationInfo(const CompilationInfo &info);
-  
+
 private:
   void RectifyCompilationInfo(CompilationInfo &info,
                               const std::list<InsertedCharsInfo> &n1ql_pos);
@@ -221,7 +221,7 @@ private:
   ComposeCompilationInfo(v8::Local<v8::Value> &compiler_result,
                          const std::list<InsertedCharsInfo> &ins_list);
   std::string ComposeDescription(int code);
-  
+
   v8::Isolate *isolate;
   std::string transpiler_src;
 };
@@ -247,7 +247,7 @@ void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args);
 void SetReturnValue(const v8::FunctionCallbackInfo<v8::Value> &args,
                     v8::Local<v8::Object> return_value);
 
-template<typename HandlerType, typename ResultType>
+template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
                       ResultType &result);
 
@@ -260,10 +260,8 @@ std::string GetBaseHash(const v8::FunctionCallbackInfo<v8::Value> &args,
 void PushScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args,
                     std::string key_hash_str, std::string value_hash_str);
 void PopScopeStack(const v8::FunctionCallbackInfo<v8::Value> &args);
-template<typename T>
-v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
+template <typename T> v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle);
 std::unordered_map<std::string, std::string>
 ExtractNamedParams(const v8::FunctionCallbackInfo<v8::Value> &args);
 
 #endif
-

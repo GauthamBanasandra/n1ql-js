@@ -130,6 +130,7 @@ CURLResponse CURLClient::HTTPPost(const std::vector<std::string> &header_list,
 
 Communicator::Communicator(const std::string &host_port, v8::Isolate *isolate):isolate(isolate) {
   parse_query_url = "http://localhost:" + host_port + "/parseQuery";
+  get_creds_url = "http://localhost:" + host_port + "/getCreds";
   get_named_params_url = "http://localhost:" + host_port + "/getNamedParams";
 }
 
@@ -167,6 +168,41 @@ ParseInfo Communicator::ParseQuery(const std::string &query) {
   }
   
   return ExtractParseInfo(resp_obj);
+}
+
+CredsInfo Communicator::GetCreds(const std::string &endpoint) {
+  v8::HandleScope handle_scope(isolate);
+  
+  auto context = v8::Context::New(isolate);
+  v8::Context::Scope context_scope(context);
+  
+  CURLClient curl;
+  auto response =
+  curl.HTTPPost({"Content-Type: text/plain"}, get_creds_url, endpoint);
+  
+  CredsInfo info;
+  info.is_error = response.is_error;
+  if (response.is_error) {
+    info.error = response.response;
+    return info;
+  }
+  
+  if (std::stoi(response.headers["Status"]) != 0) {
+    info.is_error = true;
+    info.error = response.response;
+    return info;
+  }
+  
+  auto response_obj =
+  v8::JSON::Parse(v8Str(isolate, response.response))->ToObject();
+  auto username_v8_str = response_obj->Get(v8Str(isolate, "username"));
+  auto password_v8_str = response_obj->Get(v8Str(isolate, "password"));
+  v8::String::Utf8Value username_utf8(username_v8_str);
+  v8::String::Utf8Value password_utf8(password_v8_str);
+  
+  info.username = *username_utf8;
+  info.password = *password_utf8;
+  return info;
 }
 
 NamedParamsInfo Communicator::GetNamedParams(const std::string &query) {
