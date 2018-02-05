@@ -19,19 +19,19 @@ v8::Local<v8::Value> Transpiler::ExecTranspiler(const std::string &function,
                                                 v8::Local<v8::Value> args[],
                                                 const int &args_len) {
   v8::EscapableHandleScope handle_scope(isolate);
-  
+
   auto context = isolate->GetCurrentContext();
   v8::Context::Scope context_scope(context);
-  
+
   auto source = v8Str(isolate, transpiler_src);
   auto script = v8::Script::Compile(context, source).ToLocalChecked();
   script->Run(context).ToLocalChecked();
-  
+
   auto function_name = v8Str(isolate, function);
   auto function_def = context->Global()->Get(function_name);
   auto function_ref = v8::Local<v8::Function>::Cast(function_def);
   auto result = function_ref->Call(function_ref, args_len, args);
-  
+
   return handle_scope.Escape(result);
 }
 
@@ -107,20 +107,24 @@ std::string Transpiler::GetSourceMap(const std::string &handler_code,
   return *utf8result;
 }
 
-std::string Transpiler::TranspileQuery(const std::string &query, const std::vector<std::string> &named_params) {
+std::string
+Transpiler::TranspileQuery(const std::string &query,
+                           const std::vector<std::string> &named_params) {
   v8::HandleScope handle_scope(isolate);
-  
-  auto named_params_v8arr = v8::Array::New(isolate, static_cast<int>(named_params.size()));
+
+  auto named_params_v8arr =
+      v8::Array::New(isolate, static_cast<int>(named_params.size()));
   for (std::size_t i = 0; i < named_params.size(); ++i) {
-    named_params_v8arr->Set(static_cast<uint32_t>(i), v8Str(isolate, named_params[i].c_str()));
+    named_params_v8arr->Set(static_cast<uint32_t>(i),
+                            v8Str(isolate, named_params[i].c_str()));
   }
-  
+
   v8::Local<v8::Value> args[2];
   args[0] = v8Str(isolate, query);
   args[1] = named_params_v8arr;
   auto result = ExecTranspiler("transpileQuery", args, 2);
   v8::String::Utf8Value utf8result(result);
-  
+
   return *utf8result;
 }
 
@@ -152,7 +156,7 @@ bool Transpiler::IsJsExpression(const std::string &str) {
   args[0] = v8Str(isolate, str);
   auto result = ExecTranspiler("isJsExpression", args, 1);
   auto bool_result = v8::Local<v8::Boolean>::Cast(result);
-  
+
   return ToCBool(bool_result);
 }
 

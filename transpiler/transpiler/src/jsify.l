@@ -111,17 +111,11 @@
 
 		n1ql_query += ";";
 		switch(lex_op) {
-			case kJsify:
-				js_code += TranspileQuery(n1ql_query);
-        if(!parse_info.is_valid) {
-          return kN1QLParserError;
-        }
-				break;
-
 			case kUniLineN1QL:
 				js_code += n1ql_query;
 				break;
 
+			case kJsify:
 			case kCommentN1QL: {
 						parse_info = ParseQuery(n1ql_query);
 						if(parse_info.is_valid) {
@@ -140,7 +134,9 @@
 								js_code += n1ql_query;
 						}
 
-						UpdatePos(insert_type::kN1QLEnd);
+						if(lex_op == kCommentN1QL) {
+  						UpdatePos(insert_type::kN1QLEnd);
+						}
 				}
 				break;
 		}

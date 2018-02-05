@@ -5,8 +5,16 @@ function OnUpdate(doc, meta) {
 
     var res = new N1qlQuery('SELECT * FROM `beer-sample` WHERE name = $n', {namedParams: {n: n}});
 
-    for (var row of res.x) {
-        log(row);
+    var res1 = new N1qlQuery('SELECT * FROM `beer-sample` WHERE name = $n', {namedParams: {n: n}});
+
+    try {
+        for (var row of res) {
+            log(row);
+            for (var row of res1) {
+                log(row);
+            }
+        }
+    } catch (e) {
     }
 }
 

@@ -18,10 +18,12 @@
 #include "include/v8.h"
 
 #define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input10.js"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input12.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
+
+bool noRedact;
 
 inline std::string ReadFile(std::string path) {
   std::string line, content;
@@ -83,14 +85,21 @@ std::string GetScriptToExecute(std::string &n1ql_js_src) {
     throw "Compilation failed";
   }
 
+  std::cout << n1ql_js_src << std::endl;
   auto jsify_info = Jsify(n1ql_js_src);
   if (jsify_info.code != kOK) {
     std::cout << "Jsify failed with code: " << jsify_info.code << std::endl;
   }
   
+  std::cout << "After JSIFY:" << std::endl;
+  std::cout << jsify_info.handler_code << std::endl;
+  
   auto transpiled_src =
       transpiler.Transpile(jsify_info.handler_code, "input1.js",
                            "input1.map.json", "127.0.0.1", "9090");
+  
+  std::cout << "After transpilation:" << std::endl;
+  std::cout << transpiled_src << std::endl;
   return transpiled_src + ReadFile(BUILTIN_JS_PATH);
 }
 
@@ -135,7 +144,7 @@ int main(int argc, char *argv[]) {
       struct Data data;
       JsException js_exception(isolate);
       data.js_exception = &js_exception;
-      data.comm = new Communicator("9300", isolate);
+      data.comm = new Communicator("127.0.0.1", "9300");
       data.transpiler = new Transpiler(isolate, GetTranspilerSrc());
       isolate->SetData(DATA_SLOT, &data);
 

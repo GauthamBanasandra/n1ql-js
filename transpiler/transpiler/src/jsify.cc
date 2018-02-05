@@ -1291,17 +1291,11 @@ YY_RULE_SETUP
 
 		n1ql_query += ";";
 		switch(lex_op) {
-			case kJsify:
-				js_code += TranspileQuery(n1ql_query);
-        if(!parse_info.is_valid) {
-          return kN1QLParserError;
-        }
-				break;
-
 			case kUniLineN1QL:
 				js_code += n1ql_query;
 				break;
 
+			case kJsify:
 			case kCommentN1QL: {
 						parse_info = ParseQuery(n1ql_query);
 						if(parse_info.is_valid) {
@@ -1320,7 +1314,9 @@ YY_RULE_SETUP
 								js_code += n1ql_query;
 						}
 
-						UpdatePos(insert_type::kN1QLEnd);
+						if(lex_op == kCommentN1QL) {
+  						UpdatePos(insert_type::kN1QLEnd);
+						}
 				}
 				break;
 		}
@@ -1328,7 +1324,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 148 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 144 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		n1ql_query += std::string(yytext);
 	}
@@ -1336,7 +1332,7 @@ YY_RULE_SETUP
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 151 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 147 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {
 		if(lex_op == kCommentN1QL) {
 				n1ql_query += "\n";
@@ -1347,26 +1343,26 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 158 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 154 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 159 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 155 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += std::string(yytext);}
 	YY_BREAK
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 160 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 156 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 {js_code += "\n";}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 161 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 157 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 ECHO;
 	YY_BREAK
-#line 1370 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
+#line 1366 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(N1QL):
 case YY_STATE_EOF(MLCMT):
@@ -2332,7 +2328,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 161 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
+#line 157 "/Users/gautham/projects/github/n1ql-js/transpiler/transpiler/src/jsify.l"
 
 
 // Parses the given input string.

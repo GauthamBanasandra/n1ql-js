@@ -21,11 +21,12 @@
 #include "n1ql.h"
 #include "utils.hpp"
 
-ConnectionPool::ConnectionPool(v8::Isolate *isolate, int capacity, std::string cb_kv_endpoint,
+ConnectionPool::ConnectionPool(v8::Isolate *isolate, int capacity,
+                               std::string cb_kv_endpoint,
                                std::string cb_source_bucket)
-    :isolate(isolate), capacity(capacity), inst_count(0) {
+    : isolate(isolate), capacity(capacity), inst_count(0) {
   conn_str = "couchbase://" + cb_kv_endpoint + "/" + cb_source_bucket +
-      "?select_bucket=true";
+             "?select_bucket=true";
 }
 
 // Creates and adds one lcb instance into the pool.
@@ -82,7 +83,7 @@ lcb_t ConnectionPool::GetResource() {
 }
 
 void ConnectionPool::Error(lcb_t instance, const char *msg, lcb_error_t err) {
-  LOG(logError) << msg << " " << lcb_strerror(instance, err) << '\n';
+  LOG(logError) << msg << " " << lcb_strerror(instance, err) << std::endl;
 }
 
 ConnectionPool::~ConnectionPool() {
@@ -127,17 +128,17 @@ std::vector<std::string> N1QL::ExtractErrorMsg(const char *metadata) {
     }
   } else {
     LOG(logError) << "Error parsing JSON while extracting N1QL error message"
-                  << '\n';
+                  << std::endl;
   }
 
   return errors;
 }
 
 // Row-callback for iterator.
-template<>
+template <>
 void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
                                          const lcb_RESPN1QL *resp) {
-  auto cookie = (HandlerCookie *) lcb_get_cookie(instance);
+  auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
   auto isolate = cookie->isolate;
   auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
   auto q_handler = n1ql_handle->qhandler_stack.Top();
@@ -179,10 +180,10 @@ void N1QL::RowCallback<IterQueryHandler>(lcb_t instance, int callback_type,
 }
 
 // Row-callback for blocking query.
-template<>
+template <>
 void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
                                              const lcb_RESPN1QL *resp) {
-  auto cookie = (HandlerCookie *) lcb_get_cookie(instance);
+  auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
   auto isolate = cookie->isolate;
   auto n1ql_handle = UnwrapData(isolate)->n1ql_handle;
   auto q_handler = n1ql_handle->qhandler_stack.Top();
@@ -212,8 +213,7 @@ void N1QL::RowCallback<BlockingQueryHandler>(lcb_t instance, int callback_type,
   }
 }
 
-template<typename HandlerType>
-void N1QL::ExecQuery(QueryHandler &q_handler) {
+template <typename HandlerType> void N1QL::ExecQuery(QueryHandler &q_handler) {
   q_handler.instance = inst_pool->GetResource();
 
   // Schedule the data to support query.
@@ -233,10 +233,10 @@ void N1QL::ExecQuery(QueryHandler &q_handler) {
   }
 
   for (const auto &param : *q_handler.named_params) {
-    err = lcb_n1p_namedparamz(n1ql_params, param.first.c_str(), param.second.c_str());
+    err = lcb_n1p_namedparamz(n1ql_params, param.first.c_str(),
+                              param.second.c_str());
     if (err != LCB_SUCCESS) {
-      ConnectionPool::Error(instance, "unable to set named parameters",
-                            err);
+      ConnectionPool::Error(instance, "unable to set named parameters", err);
     }
   }
 
@@ -267,20 +267,22 @@ ExtractNamedParams(const v8::FunctionCallbackInfo<v8::Value> &args) {
   auto isolate = args.GetIsolate();
   v8::HandleScope handle_scope(isolate);
 
-  auto options_v8obj = args.This()->Get(v8Str(isolate, "options")).As<v8::Object>();
-  auto named_params_v8obj = options_v8obj->Get(v8Str(isolate, "namedParams")).As<v8::Object>();
+  auto options_v8obj =
+      args.This()->Get(v8Str(isolate, "options")).As<v8::Object>();
+  auto named_params_v8obj =
+      options_v8obj->Get(v8Str(isolate, "namedParams")).As<v8::Object>();
   auto named_params_v8arr = named_params_v8obj->GetPropertyNames();
-  
+
   std::unordered_map<std::string, std::string> named_params;
   for (auto i = 0; i < named_params_v8arr->Length(); ++i) {
     auto key_v8val = named_params_v8arr->Get(i);
     auto val_v8val = named_params_v8obj->Get(key_v8val);
-    
+
     v8::String::Utf8Value key_utf8(key_v8val);
     v8::String::Utf8Value val_utf8(val_v8val);
     named_params[*key_utf8] = *val_utf8;
   }
-  
+
   return named_params;
 }
 
@@ -320,7 +322,7 @@ void IterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 
     PopScopeStack(args);
   } catch (const char *e) {
-    LOG(logError) << e << '\n';
+    LOG(logError) << e << std::endl;
     auto js_exception = UnwrapData(isolate)->js_exception;
     js_exception->Throw(e);
   }
@@ -341,13 +343,13 @@ void StopIterFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
     // Cancel the query corresponding to the unique hash.
     auto q_handler = n1ql_handle->qhandler_stack.Get(hash);
     auto instance = q_handler->instance;
-    auto cookie = (HandlerCookie *) lcb_get_cookie(instance);
+    auto cookie = (HandlerCookie *)lcb_get_cookie(instance);
     lcb_n1ql_cancel(instance, cookie->handle);
 
     // Bubble up the message sent from JavaScript.
     SetReturnValue(args, handle_scope.Escape(arg));
   } catch (const char *e) {
-    LOG(logError) << e << '\n';
+    LOG(logError) << e << std::endl;
     auto js_exception = UnwrapData(isolate)->js_exception;
     js_exception->Throw(e);
   }
@@ -391,7 +393,7 @@ void ExecQueryFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
 
     args.GetReturnValue().Set(result_array);
   } catch (const char *e) {
-    LOG(logError) << e << '\n';
+    LOG(logError) << e << std::endl;
     auto js_exception = UnwrapData(isolate)->js_exception;
     js_exception->Throw(e);
   }
@@ -453,7 +455,7 @@ void GetReturnValueFunction(const v8::FunctionCallbackInfo<v8::Value> &args) {
   }
 }
 
-template<typename HandlerType, typename ResultType>
+template <typename HandlerType, typename ResultType>
 void AddQueryMetadata(HandlerType handler, v8::Isolate *isolate,
                       ResultType &result) {
   if (handler.metadata.length() > 0) {
@@ -638,8 +640,7 @@ bool HasKey(const v8::FunctionCallbackInfo<v8::Value> &args,
 }
 
 // Utility method to convert a MaybeLocal handle to a local handle.
-template<typename T>
-v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle) {
+template <typename T> v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle) {
   if (handle.IsEmpty()) {
     throw "Handle is empty";
   }
@@ -650,7 +651,7 @@ v8::Local<T> ToLocal(const v8::MaybeLocal<T> &handle) {
   v8::Local<T> value;
   auto result = handle.ToLocal(&value);
   if (!result) {
-    LOG(logError) << "handle.ToLocal failed" << '\n';
+    LOG(logError) << "handle.ToLocal failed" << std::endl;
   }
 
   return handle_scope.Escape(value);

@@ -18,7 +18,7 @@
 #include <string>
 
 enum LogLevel { logSilent, logInfo, logError, logWarning, logDebug, logTrace };
-
+extern bool noRedact;
 extern std::string appName;
 extern LogLevel desiredLogLevel;
 extern std::string workerID;
@@ -77,6 +77,7 @@ static LogLevel LevelFromString(const std::string &level) {
   return logInfo;
 }
 
+#define R(msg) (noRedact ? "" : "<ud>") << msg << (noRedact ? "" : "</ud>")
 #define LOG(level) std::cout
 
 #endif

@@ -65,9 +65,9 @@ const char *GetUsername(void *cookie, const char *host, const char *port,
   auto comm = UnwrapData(isolate)->comm;
   auto endpoint = std::string(host) + ":" + std::string(port);
   auto info = comm->GetCreds(endpoint);
-  if (info.is_error) {
+  if (!info.is_valid) {
     LOG(logError) << "Failed to get username for " << host << ":" << port
-    << " err: " << info.error << std::endl;
+    << " err: " << info.msg << std::endl;
   }
   
   auto store = UnwrapData(isolate)->username_store;
@@ -87,9 +87,9 @@ const char *GetPassword(void *cookie, const char *host, const char *port,
   auto comm = UnwrapData(isolate)->comm;
   auto endpoint = std::string(host) + ":" + std::string(port);
   auto info = comm->GetCreds(endpoint);
-  if (info.is_error) {
+  if (!info.is_valid) {
     LOG(logError) << "Failed to get password for " << host << ":" << port
-    << " err: " << info.error << std::endl;
+    << " err: " << info.msg << std::endl;
   }
   
   auto store = UnwrapData(isolate)->password_store;

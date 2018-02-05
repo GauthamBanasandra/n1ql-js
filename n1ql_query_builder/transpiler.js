@@ -28,10 +28,10 @@ var filename = process.argv[2],
 	code = fs.readFileSync(filename, 'utf-8'),
 	transpiledCode = transpile(code, filename);
 
-// console.log(transpiledCode);
+console.log(transpiledCode);
 esprima.parse(transpiledCode);
 
-console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame']));
+// console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame']));
 
 
 function saveTranspiledCode() {
