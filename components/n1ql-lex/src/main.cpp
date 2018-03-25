@@ -8,10 +8,10 @@ using namespace std;
 
 int main()
 {
-	ifstream file("inputs/input9.js");
+	ifstream file("inputs/input10.js");
 	string source_code((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
-	auto info = CommentN1QL(source_code);
+	auto info = Jsify(source_code);
 	switch(info.code)
 	{
 	case kOK:

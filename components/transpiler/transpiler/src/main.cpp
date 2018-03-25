@@ -17,8 +17,8 @@
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 
-#define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/transpiler"
-#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input12.js"
+#define PROJECT_ROOT "/Users/gautham/projects/github/n1ql-js/components/transpiler"
+#define SOURCE_PATH PROJECT_ROOT "/transpiler/inputs/input13.js"
 #define THIRD_PARTY_PATH PROJECT_ROOT "/transpiler/third_party"
 #define TRANSPILER_JS_PATH PROJECT_ROOT "/transpiler/src/transpiler.js"
 #define BUILTIN_JS_PATH PROJECT_ROOT "/transpiler/src/builtin.js"
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
       auto context = v8::Context::New(isolate, nullptr, global);
       v8::Context::Scope context_scope(context);
 
-      auto conn_pool = new ConnectionPool(isolate, 5, "127.0.0.1:12000", "default");
+      auto conn_pool = new ConnectionPool(isolate, 6, "127.0.0.1:12000", "default");
       data.n1ql_handle = new N1QL(conn_pool, isolate);
 
       auto js_src = ReadFile(SOURCE_PATH);

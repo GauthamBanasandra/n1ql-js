@@ -41,7 +41,7 @@ function compile(code) {
             }),
             nodeUtils = new NodeUtils();
 
-        nodeUtils.checkGlobals(ast);
+//        nodeUtils.checkGlobals(ast);
 
         // TODO : Remove this check once UUID is used to create variables
         nodeUtils.checkForOfNodeRight(ast);

@@ -2,9 +2,9 @@
   "name": "application-name",
   "version": "0.0.1",
   "devDependencies": {
-    "escodegen": "^1.8.1",
+    "escodegen": "^1.9.1",
     "esprima": "^4.0.0",
-    "estraverse": "latest",
+    "estraverse": "^4.2.0",
     "sleep": "latest"
   },
   "dependencies": {

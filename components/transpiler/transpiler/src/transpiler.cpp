@@ -138,18 +138,6 @@ bool Transpiler::IsTimerCalled(const std::string &handler_code) {
   return ToCBool(bool_result);
 }
 
-void Transpiler::LogCompilationInfo(const CompilationInfo &info) {
-  if (info.compile_success) {
-    std::cout << "Compilation successful."
-              << " Language: " << info.language << '\n';
-  } else {
-    std::cout << "Syntax error. Language: " << info.language
-              << " Index: " << info.index << " Line number: " << info.line_no
-              << " Column number: " << info.col_no
-              << " Description: " << info.description << '\n';
-  }
-}
-
 bool Transpiler::IsJsExpression(const std::string &str) {
   v8::HandleScope handle_scope(isolate);
   v8::Local<v8::Value> args[1];
@@ -158,6 +146,18 @@ bool Transpiler::IsJsExpression(const std::string &str) {
   auto bool_result = v8::Local<v8::Boolean>::Cast(result);
 
   return ToCBool(bool_result);
+}
+
+void Transpiler::LogCompilationInfo(const CompilationInfo &info) {
+  if (info.compile_success) {
+    std::cout << "Compilation successful."
+    << " Language: " << info.language << '\n';
+  } else {
+    std::cout << "Syntax error. Language: " << info.language
+    << " Index: " << info.index << " Line number: " << info.line_no
+    << " Column number: " << info.col_no
+    << " Description: " << info.description << '\n';
+  }
 }
 
 // Composes error info based on the code and recent position returned by
