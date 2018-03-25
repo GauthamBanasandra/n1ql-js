@@ -28,10 +28,10 @@ var filename = process.argv[2],
     code = fs.readFileSync(filename, 'utf-8'),
     transpiledCode = transpile(code, filename);
 
-console.log(transpiledCode);
-esprima.parse(transpiledCode);
+// console.log(transpiledCode);
+// esprima.parse(transpiledCode);
 
-// console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame']));
+console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame'], true));
 
 
 function saveTranspiledCode() {
@@ -130,8 +130,12 @@ function isJsExpression(stmt) {
     }
 }
 
-function transpileQuery(query, namedParams) {
+function transpileQuery(query, namedParams, isSelectQuery) {
     var exprAst = new N1QLQueryExprAst(query, namedParams);
+    if (!isSelectQuery) {
+        exprAst = new ExecQueryAst(exprAst);
+    }
+
     // N1QL expression need not have a semi-colon at it's end.
     // But it's essential to turn the expression into a statement in order to
     // append the semi colon.
@@ -1032,6 +1036,21 @@ function N1QLQueryExprAst(query, namedParams) {
             "shorthand": false
         });
     }
+}
+
+function ExecQueryAst(object) {
+    Ast.call(this, 'CallExpression');
+    this.callee = {
+        "type": "MemberExpression",
+        "computed": false,
+        "object": object,
+        "property": {
+            "type": "Identifier",
+            "name": "execQuery"
+        }
+    };
+
+    this.arguments = [];
 }
 
 // Class for maintaining the object that will be passed to 'stopIter'.
