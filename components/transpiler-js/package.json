@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@sweet-js/cli": "^3.0.8",
-    "@sweet-js/helpers": "^3.0.0"
+    "@sweet-js/helpers": "^3.0.0",
+    "heapdump": "^0.3.9"
   }
 }

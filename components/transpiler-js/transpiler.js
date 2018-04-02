@@ -31,7 +31,7 @@ var filename = process.argv[2],
 // console.log(transpiledCode);
 // esprima.parse(transpiledCode);
 
-console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame'], true));
+console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame'], false));
 
 
 function saveTranspiledCode() {
@@ -133,7 +133,8 @@ function isJsExpression(stmt) {
 function transpileQuery(query, namedParams, isSelectQuery) {
     var exprAst = new N1QLQueryExprAst(query, namedParams);
     if (!isSelectQuery) {
-        exprAst = new ExecQueryAst(exprAst);
+        // Call execQuery() for non select queries
+        exprAst = new CallExecQueryAst(exprAst);
     }
 
     // N1QL expression need not have a semi-colon at it's end.
@@ -1038,7 +1039,7 @@ function N1QLQueryExprAst(query, namedParams) {
     }
 }
 
-function ExecQueryAst(object) {
+function CallExecQueryAst(object) {
     Ast.call(this, 'CallExpression');
     this.callee = {
         "type": "MemberExpression",
