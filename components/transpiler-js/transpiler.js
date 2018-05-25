@@ -28,21 +28,18 @@ var filename = process.argv[2],
     code = fs.readFileSync(filename, 'utf-8'),
     transpiledCode = transpile(code, filename);
 
-// console.log(transpiledCode);
-// esprima.parse(transpiledCode);
-
-console.log(transpileQuery('SELECT * FROM `beer-sample`;', ['name', 'tame'], false));
-
+console.log(transpiledCode);
+esprima.parse(transpiledCode);
 
 function saveTranspiledCode() {
     var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
-    fs.writeFileSync(tCodePath, transpiledCode.code);
+    fs.writeFileSync(tCodePath, transpiledCode);
 
     var smPath = filename.slice(0, filename.lastIndexOf('.js')) + '.map.json';
-    fs.writeFileSync(smPath, transpiledCode.map);
+    fs.writeFileSync(smPath, getSourceMap(code, filename));
 }
 // Uncomment this line to save the transpiled code and the corresponding source map for it.
-// saveTranspiledCode();
+saveTranspiledCode();
 
 function compile(code) {
     try {
