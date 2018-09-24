@@ -76,10 +76,11 @@ function jsFormat(code) {
 
 function getSourceMap(code, sourceFileName) {
     var ast = getAst(code, sourceFileName);
-    return escodegen.generate(ast, {
-        sourceMap: true,
-        sourceMapWithCode: true
-    }).map;
+//    return escodegen.generate(ast, {
+//        sourceMap: true,
+//        sourceMapWithCode: true
+//    }).map;
+  return 'ast : ' + JSON.stringify(ast);
 }
 
 function isTimerCalled(code) {

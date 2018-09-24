@@ -26,9 +26,10 @@ var fs = require('fs'),
 
 var filename = process.argv[2],
     code = fs.readFileSync(filename, 'utf-8'),
-    transpiledCode = transpile(code, filename);
+    transpiledCode = transpile(code, filename),
+    sourceMap = getSourceMap(code, filename);
 
-console.log(transpiledCode.code);
+console.log(sourceMap);
 esprima.parse(transpiledCode.code);
 
 function saveTranspiledCode() {
@@ -71,6 +72,14 @@ function compile(code) {
             description: e.description
         }
     }
+}
+
+function getSourceMap(code, sourceFileName) {
+    var ast = getAst(code, sourceFileName);
+    return escodegen.generate(ast, {
+        sourceMap: true,
+        sourceMapWithCode: true
+    }).map;
 }
 
 function jsFormat(code) {
