@@ -17,6 +17,11 @@
 		AC262CE01FB456D900132ACA /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC29B6D41FB178140095AD8E /* jsify.cc */; };
 		AC29B6D51FB178140095AD8E /* jsify.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC29B6D41FB178140095AD8E /* jsify.cc */; };
 		AC32DF8E1FF60AB500884A77 /* comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC32DF8C1FF60AB500884A77 /* comm.cpp */; };
+		AC654D05215959D100B9E767 /* inspector_socket_server.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC654CFF215959D000B9E767 /* inspector_socket_server.cc */; };
+		AC654D07215959D100B9E767 /* http_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = AC654D01215959D100B9E767 /* http_parser.c */; };
+		AC654D08215959D100B9E767 /* inspector_io.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC654D02215959D100B9E767 /* inspector_io.cc */; };
+		AC654D09215959D100B9E767 /* inspector_socket.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC654D03215959D100B9E767 /* inspector_socket.cc */; };
+		AC654D0A215959D100B9E767 /* inspector_agent.cc in Sources */ = {isa = PBXBuildFile; fileRef = AC654D04215959D100B9E767 /* inspector_agent.cc */; };
 		AC6C76C61F99B04100D31C13 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC6C76C51F99B04100D31C13 /* main.cpp */; };
 		AC6C76CB1F99B11200D31C13 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC23CE3C1F87600200DD7069 /* utils.cpp */; };
 		AC6C76F81F99BDA200D31C13 /* test-utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC6C76F61F99BDA200D31C13 /* test-utils.cpp */; };
@@ -78,6 +83,19 @@
 		AC37C5BE1FBD5FF90086F9FD /* input8.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input8.js; sourceTree = "<group>"; };
 		AC41B3011FB312DE005A76F9 /* input6.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input6.js; sourceTree = "<group>"; };
 		AC572CDB1FA6EBDB00C6C9D5 /* input3.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = input3.js; sourceTree = "<group>"; };
+		AC654CFF215959D000B9E767 /* inspector_socket_server.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_socket_server.cc; sourceTree = "<group>"; };
+		AC654D00215959D100B9E767 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		AC654D01215959D100B9E767 /* http_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = http_parser.c; sourceTree = "<group>"; };
+		AC654D02215959D100B9E767 /* inspector_io.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_io.cc; sourceTree = "<group>"; };
+		AC654D03215959D100B9E767 /* inspector_socket.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_socket.cc; sourceTree = "<group>"; };
+		AC654D04215959D100B9E767 /* inspector_agent.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inspector_agent.cc; sourceTree = "<group>"; };
+		AC654D0B215959DC00B9E767 /* inspector_io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_io.h; sourceTree = "<group>"; };
+		AC654D0C215959DC00B9E767 /* inspector_agent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_agent.h; sourceTree = "<group>"; };
+		AC654D0D215959DC00B9E767 /* inspector_socket_server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_socket_server.h; sourceTree = "<group>"; };
+		AC654D0E215959DC00B9E767 /* v8_inspector_protocol_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = v8_inspector_protocol_json.h; sourceTree = "<group>"; };
+		AC654D0F215959DC00B9E767 /* inspector_socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inspector_socket.h; sourceTree = "<group>"; };
+		AC654D10215959DC00B9E767 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
+		AC654D11215959DC00B9E767 /* http_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http_parser.h; sourceTree = "<group>"; };
 		AC6C76C31F99B04100D31C13 /* unit-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unit-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC6C76C51F99B04100D31C13 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AC6C76F61F99BDA200D31C13 /* test-utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "test-utils.cpp"; sourceTree = "<group>"; };
@@ -226,6 +244,7 @@
 		AC1FA5B31F78C3F5004CF8CA = {
 			isa = PBXGroup;
 			children = (
+				AC654CFC2159595500B9E767 /* debugger */,
 				AC1FA5BE1F78C3F5004CF8CA /* transpiler */,
 				AC6C76C41F99B04100D31C13 /* unit-test */,
 				AC1FA5BD1F78C3F5004CF8CA /* Products */,
@@ -312,6 +331,42 @@
 				ACC9D9DA205A34CE00818BF4 /* input14.js */,
 			);
 			path = inputs;
+			sourceTree = "<group>";
+		};
+		AC654CFC2159595500B9E767 /* debugger */ = {
+			isa = PBXGroup;
+			children = (
+				AC654CFE2159596900B9E767 /* include */,
+				AC654CFD2159596200B9E767 /* src */,
+			);
+			path = debugger;
+			sourceTree = "<group>";
+		};
+		AC654CFD2159596200B9E767 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				AC654D01215959D100B9E767 /* http_parser.c */,
+				AC654D04215959D100B9E767 /* inspector_agent.cc */,
+				AC654D02215959D100B9E767 /* inspector_io.cc */,
+				AC654CFF215959D000B9E767 /* inspector_socket_server.cc */,
+				AC654D03215959D100B9E767 /* inspector_socket.cc */,
+				AC654D00215959D100B9E767 /* main.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		AC654CFE2159596900B9E767 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				AC654D10215959DC00B9E767 /* base64.h */,
+				AC654D11215959DC00B9E767 /* http_parser.h */,
+				AC654D0C215959DC00B9E767 /* inspector_agent.h */,
+				AC654D0B215959DC00B9E767 /* inspector_io.h */,
+				AC654D0D215959DC00B9E767 /* inspector_socket_server.h */,
+				AC654D0F215959DC00B9E767 /* inspector_socket.h */,
+				AC654D0E215959DC00B9E767 /* v8_inspector_protocol_json.h */,
+			);
+			path = include;
 			sourceTree = "<group>";
 		};
 		AC6C76C41F99B04100D31C13 /* unit-test */ = {
@@ -568,13 +623,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				AC29B6D51FB178140095AD8E /* jsify.cc in Sources */,
+				AC654D08215959D100B9E767 /* inspector_io.cc in Sources */,
+				AC654D05215959D100B9E767 /* inspector_socket_server.cc in Sources */,
+				AC654D09215959D100B9E767 /* inspector_socket.cc in Sources */,
 				AC1C8A691FAC489100740154 /* js_exception.cpp in Sources */,
+				AC654D07215959D100B9E767 /* http_parser.c in Sources */,
 				AC1FA5C01F78C3F5004CF8CA /* main.cpp in Sources */,
 				AC23CE3E1F87600200DD7069 /* utils.cpp in Sources */,
 				AC1FA5CB1F78C8B1004CF8CA /* transpiler.cpp in Sources */,
 				AC32DF8E1FF60AB500884A77 /* comm.cpp in Sources */,
 				AC23CE3B1F875F0300DD7069 /* log.cpp in Sources */,
 				AC23CE381F875E9000DD7069 /* n1ql.cpp in Sources */,
+				AC654D0A215959D100B9E767 /* inspector_agent.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -705,6 +765,7 @@
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
 					/usr/local/include,
+					"/Users/gautham/projects/github/n1ql-js/components/transpiler/debugger/include\n",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"~/.cbdepscache/lib",
@@ -719,6 +780,8 @@
 					"-lcouchbase",
 					"-headerpad_max_install_names",
 					"-lcurl",
+					"-luv",
+					"-lz",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -732,6 +795,7 @@
 					"~/.cbdepscache/include",
 					"~/.cbdepscache",
 					/usr/local/include,
+					"/Users/gautham/projects/github/n1ql-js/components/transpiler/debugger/include\n",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"~/.cbdepscache/lib",
@@ -746,6 +810,8 @@
 					"-lcouchbase",
 					"-headerpad_max_install_names",
 					"-lcurl",
+					"-luv",
+					"-lz",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

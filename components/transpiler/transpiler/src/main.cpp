@@ -174,6 +174,7 @@ int main(int argc, char *argv[]) {
       v8::String::Utf8Value utf8(result);
       printf("%s\n", *utf8);
 
+      
       delete conn_pool;
       delete data.n1ql_handle;
       delete data.comm;
