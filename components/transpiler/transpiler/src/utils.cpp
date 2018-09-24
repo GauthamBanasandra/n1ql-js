@@ -8,12 +8,11 @@
 
 #include <unistd.h>
 #include <vector>
-
 #include <libplatform/libplatform.h>
 #include <v8.h>
-
 #include <libcouchbase/api3.h>
 #include <libcouchbase/couchbase.h>
+#include <regex>
 
 #include "log.hpp"
 #include "utils.hpp"
@@ -57,43 +56,46 @@ std::string JSONStringify(v8::Isolate *isolate, const v8::Local<v8::Value> &obje
   return json_str;
 }
 
+std::string JoinHostPort(const std::string &host, const std::string &port) {
+  static std::regex ipv6re("^[0-9a-fA-F:]*:[0-9a-fA-F:]+$");
+  return std::regex_match(host, ipv6re) ? "[" + host + "]:" + port
+  : host + ":" + port;
+}
+
 const char *GetUsername(void *cookie, const char *host, const char *port,
                         const char *bucket) {
-  LOG(logInfo) << "Getting username for " << host << ":" << port << std::endl;
-  
+  auto endpoint = JoinHostPort(host, port);
   auto isolate = static_cast<v8::Isolate *>(cookie);
   auto comm = UnwrapData(isolate)->comm;
-  auto endpoint = std::string(host) + ":" + std::string(port);
   auto info = comm->GetCreds(endpoint);
   if (!info.is_valid) {
     LOG(logError) << "Failed to get username for " << host << ":" << port
     << " err: " << info.msg << std::endl;
   }
   
-  auto store = UnwrapData(isolate)->username_store;
-  // Storing the username in isolate's data as returning username directly could
-  // lead to a dangling pointer
-  
-  store[endpoint] = std::make_shared<char *>(new char[info.username.length()+1]);
-  strcpy(*store[endpoint], info.username.c_str());
-  return *store[endpoint];
+  static const char *username = "";
+  if (info.username != username) {
+    username = strdup(info.username.c_str());
+  }
+
+  return username;
 }
 
 const char *GetPassword(void *cookie, const char *host, const char *port,
                         const char *bucket) {
-  LOG(logInfo) << "Getting password for " << host << ":" << port << std::endl;
-  
   auto isolate = static_cast<v8::Isolate *>(cookie);
   auto comm = UnwrapData(isolate)->comm;
-  auto endpoint = std::string(host) + ":" + std::string(port);
+  auto endpoint = JoinHostPort(host, port);
   auto info = comm->GetCreds(endpoint);
   if (!info.is_valid) {
     LOG(logError) << "Failed to get password for " << host << ":" << port
     << " err: " << info.msg << std::endl;
   }
   
-  auto store = UnwrapData(isolate)->password_store;
-  store[endpoint] = std::make_shared<char *>(new char[info.password.length()+1]);
-  strcpy(*store[endpoint], info.password.c_str());
-  return *store[endpoint];
+  static const char *password = "";
+  if (info.password != password) {
+    password = strdup(info.password.c_str());
+  }
+  
+  return password;
 }

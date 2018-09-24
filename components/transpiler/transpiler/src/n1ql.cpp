@@ -26,7 +26,7 @@ ConnectionPool::ConnectionPool(v8::Isolate *isolate, int capacity,
                                std::string cb_source_bucket)
     : isolate(isolate), capacity(capacity), inst_count(0) {
   conn_str = "couchbase://" + cb_kv_endpoint + "/" + cb_source_bucket +
-             "?select_bucket=true";
+             "?select_bucket=true&detailed_errcodes=1";
 }
 
 // Creates and adds one lcb instance into the pool.

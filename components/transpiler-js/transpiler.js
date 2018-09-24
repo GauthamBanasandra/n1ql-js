@@ -28,8 +28,8 @@ var filename = process.argv[2],
     code = fs.readFileSync(filename, 'utf-8'),
     transpiledCode = transpile(code, filename);
 
-console.log(transpiledCode);
-esprima.parse(transpiledCode);
+console.log(transpiledCode.code);
+esprima.parse(transpiledCode.code);
 
 function saveTranspiledCode() {
     var tCodePath = filename.slice(0, filename.lastIndexOf('.js')) + '.t.js';
@@ -39,7 +39,7 @@ function saveTranspiledCode() {
     fs.writeFileSync(smPath, getSourceMap(code, filename));
 }
 // Uncomment this line to save the transpiled code and the corresponding source map for it.
-saveTranspiledCode();
+// saveTranspiledCode();
 
 function compile(code) {
     try {
@@ -73,24 +73,18 @@ function compile(code) {
     }
 }
 
-function transpile(code, sourceFileName) {
-    var ast = getAst(code, sourceFileName);
-    return escodegen.generate(ast, {
-        comment: true
-    });
-}
-
 function jsFormat(code) {
     var ast = esprima.parse(code);
     return escodegen.generate(ast);
 }
 
-function getSourceMap(code, sourceFileName) {
+function transpile(code, sourceFileName) {
     var ast = getAst(code, sourceFileName);
     return escodegen.generate(ast, {
         sourceMap: true,
-        sourceMapWithCode: true
-    }).map;
+        sourceMapWithCode: true,
+        comment: true
+    });
 }
 
 function isTimerCalled(code) {
