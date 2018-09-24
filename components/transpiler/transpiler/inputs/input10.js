@@ -4,7 +4,7 @@ function OnUpdate() {
   	city = 'Philadelphia',
   	code = '94107';
   try {
-//    var query = SELECT * FROM `beer-sample` WHERE code = $code;
+    var query = SELECT * FROM `beer-sample` WHERE code = $code;
     for(var row of query) {
       log(row);
     }

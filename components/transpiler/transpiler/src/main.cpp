@@ -193,8 +193,7 @@ int main(int argc, char *argv[]) {
       auto result = script->Run(context).ToLocalChecked();
       v8::String::Utf8Value utf8(result);
       printf("%s\n", *utf8);
-      
-      std::cout << data.transpiler->GetSourceMap(script_to_execute, SOURCE_PATH) << std::endl;
+
       auto agent = new inspector::Agent("127.0.0.1", "/tmp/frontend.url", 9140, [](const std::string &url) {});
       agent->Start(isolate, platform, SOURCE_PATH);
       agent->PauseOnNextJavascriptStatement("Break on start");
